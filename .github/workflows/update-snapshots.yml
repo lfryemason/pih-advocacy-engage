@@ -1,0 +1,32 @@
+name: Update Playwright Snapshots
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to update snapshots on'
+        required: true
+        default: 'main'
+
+jobs:
+  update-snapshots:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.branch }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+      - name: Install dependencies
+        run: npm ci
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+      - name: Update snapshots
+        run: npx playwright test auth-regression --update-snapshots
+      - uses: actions/create-pull-request@v6
+        with:
+          commit-message: "test: update playwright snapshots"
+          title: "Update Playwright visual snapshots (${{ inputs.branch }})"
+          branch: playwright/update-snapshots-${{ inputs.branch }}
+          base: ${{ inputs.branch }}
