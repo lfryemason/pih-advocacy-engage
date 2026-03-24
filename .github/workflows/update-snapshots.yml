@@ -11,6 +11,9 @@ on:
 jobs:
   update-snapshots:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
     steps:
       - uses: actions/checkout@v4
         with:
@@ -20,11 +23,13 @@ jobs:
           node-version: lts/*
       - name: Install dependencies
         run: npm ci
+      - name: Start Supabase
+        run: npx supabase start
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Update snapshots
         run: npx playwright test auth-regression --update-snapshots
-      - uses: actions/create-pull-request@v6
+      - uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "test: update playwright snapshots"
           title: "Update Playwright visual snapshots (${{ inputs.branch }})"
