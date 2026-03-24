@@ -11,6 +11,9 @@ on:
 jobs:
   update-snapshots:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     env:
       NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
       NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
