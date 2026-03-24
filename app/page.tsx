@@ -1,9 +1,8 @@
-import { connection } from "next/server";
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function Home() {
-  await connection();
+async function AuthCheck() {
   const supabase = await createClient();
   const { data, error } = await supabase.auth.getClaims();
 
@@ -12,4 +11,12 @@ export default async function Home() {
   }
 
   return <main />;
+}
+
+export default function Home() {
+  return (
+    <Suspense>
+      <AuthCheck />
+    </Suspense>
+  );
 }
