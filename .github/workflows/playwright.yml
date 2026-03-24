@@ -15,10 +15,15 @@ jobs:
         node-version: lts/*
     - name: Install dependencies
       run: npm ci
+    - name: Start Supabase
+      run: npx supabase start
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
       run: npx playwright test
+      env:
+        NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+        NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
