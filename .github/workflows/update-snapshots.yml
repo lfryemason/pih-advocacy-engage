@@ -31,7 +31,8 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Update snapshots
-        run: npx playwright test auth-regression sidebar-regression --update-snapshots
+        run: npx playwright test tests/regression --update-snapshots
+        continue-on-error: true
       - uses: peter-evans/create-pull-request@v8
         with:
           commit-message: "test: update playwright snapshots"

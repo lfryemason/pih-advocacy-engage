@@ -24,6 +24,7 @@ for (const theme of themes) {
 
     test("matches screenshot", async ({ page }) => {
       const sidebar = page.locator("aside");
+      await expect(sidebar).toBeVisible();
       await expect(sidebar).toHaveScreenshot(`sidebar-${theme}.png`);
     });
 
