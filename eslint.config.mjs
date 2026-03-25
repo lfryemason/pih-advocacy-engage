@@ -21,6 +21,7 @@ const eslintConfig = [
           ignoreStrings: true,
           ignoreTemplateLiterals: true,
           ignoreUrls: true,
+          ignoreComments: true,
         },
       ],
     },
