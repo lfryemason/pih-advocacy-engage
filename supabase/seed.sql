@@ -18,8 +18,9 @@ INSERT INTO auth.users (
 ) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO auth.identities (
-  id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at
+  id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at
 ) VALUES (
+  'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
   'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
   'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
   '{"sub":"aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee","email":"playwright@example.com"}',
