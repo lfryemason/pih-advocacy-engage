@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
     inputs:
       branch:
-        description: 'Branch to update snapshots on'
+        description: "Branch to update snapshots on"
         required: true
-        default: 'main'
+        default: "main"
 
 jobs:
   update-snapshots:
@@ -33,9 +33,10 @@ jobs:
       - name: Update snapshots
         run: npx playwright test tests/regression --update-snapshots
         continue-on-error: true
-      - uses: peter-evans/create-pull-request@v8
-        with:
-          commit-message: "test: update playwright snapshots"
-          title: "Update Playwright visual snapshots (${{ inputs.branch }})"
-          branch: playwright/update-snapshots-${{ inputs.branch }}
-          base: ${{ inputs.branch }}
+      - name: Commit updated snapshots
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tests/regression
+          git diff --cached --quiet || git commit -m "[ActionCreated] Update playwright snapshots"
+          git push
