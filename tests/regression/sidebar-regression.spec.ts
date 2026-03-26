@@ -1,5 +1,5 @@
 import { test, expect, Page } from "@playwright/test";
-import { AUTH_STATE_PATH } from "./global-setup";
+import { AUTH_STATE_PATH } from "../global-setup";
 
 test.use({ storageState: AUTH_STATE_PATH });
 
