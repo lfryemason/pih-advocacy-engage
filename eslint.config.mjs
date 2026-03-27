@@ -12,6 +12,20 @@ const compat = new FlatCompat({
 const eslintConfig = [
   { ignores: [".next/**"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
+  {
+    rules: {
+      "max-len": [
+        "warn",
+        {
+          code: 80,
+          ignoreStrings: true,
+          ignoreTemplateLiterals: true,
+          ignoreUrls: true,
+          ignoreComments: true,
+        },
+      ],
+    },
+  },
 ];
 
 export default eslintConfig;

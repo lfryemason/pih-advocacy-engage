@@ -1,1 +1,2 @@
+npx prettier --write "**/*.{ts,tsx,js,jsx,mjs,cjs}" --ignore-path .gitignore
 npm run lint
