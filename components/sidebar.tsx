@@ -16,6 +16,29 @@ import { createClient } from "@/lib/supabase/client";
 import logo from "@/app/assets/engage-logo.png";
 import React from "react";
 
+function NavLink({
+  href,
+  label,
+  icon: Icon,
+  isCollapsed,
+}: {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size: number }>;
+  isCollapsed: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-muted ${isCollapsed ? "justify-center px-0" : "px-6"}`}
+    >
+      <Icon size={20} />
+      {!isCollapsed && <span className="text-sm">{label}</span>}
+    </Link>
+  );
+}
+
 export function Sidebar() {
   const router = useRouter();
 
@@ -82,42 +105,30 @@ export function Sidebar() {
             )}
           </button>
         </div>
-        <Link
+        <NavLink
           href="/meetings"
-          aria-label="Meetings"
-          className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-muted ${isCollapsed ? "justify-center px-0" : "px-6"}`}
-        >
-          <Calendar size={20} />
-          {!isCollapsed && <span className="text-sm">Meetings</span>}
-        </Link>
-        <Link
+          label="Meetings"
+          icon={Calendar}
+          isCollapsed={isCollapsed}
+        />
+        <NavLink
           href="/representatives"
-          aria-label="Representatives"
-          className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-muted ${isCollapsed ? "justify-center px-0" : "px-6"}`}
-        >
-          <Landmark size={20} />
-          {!isCollapsed && <span className="text-sm">Representatives</span>}
-        </Link>
-        <Link
+          label="Representatives"
+          icon={Landmark}
+          isCollapsed={isCollapsed}
+        />
+        <NavLink
           href="/teams"
-          aria-label="Teams"
-          className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-muted ${isCollapsed ? "justify-center px-0" : "px-6"}`}
-        >
-          <UsersRound size={20} />
-          {!isCollapsed && <span className="text-sm">Teams</span>}
-        </Link>
-        <Link
+          label="Teams"
+          icon={UsersRound}
+          isCollapsed={isCollapsed}
+        />
+        <NavLink
           href="/profile"
-          aria-label={firstName ? `${firstName}'s profile` : "Profile"}
-          className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-muted ${isCollapsed ? "justify-center px-0" : "px-6"}`}
-        >
-          <UserCircle size={20} />
-          {!isCollapsed && (
-            <span className="text-sm">
-              {firstName ? `${firstName}'s profile` : "Profile"}
-            </span>
-          )}
-        </Link>
+          label={firstName ? `${firstName}'s profile` : "Profile"}
+          icon={UserCircle}
+          isCollapsed={isCollapsed}
+        />
       </nav>
       <div
         className="mt-auto pb-4"
