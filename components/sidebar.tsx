@@ -49,6 +49,7 @@ export function Sidebar() {
           <button
             onClick={() => setIsCollapsed((prev) => !prev)}
             className="h-fit rounded-md p-0 hover:bg-muted"
+            aria-label="Collapse sidebar"
           >
             <PanelLeftClose size={32} strokeWidth={1} />
           </button>
