@@ -19,7 +19,9 @@ test.describe("sidebar", () => {
   test("renders links", async ({ page }) => {
     const sidebar = page.locator("aside");
     await expect(sidebar.getByRole("link", { name: "Meetings" })).toBeVisible();
-    await expect(sidebar.getByRole("link", { name: "Representatives" })).toBeVisible();
+    await expect(
+      sidebar.getByRole("link", { name: "Representatives" }),
+    ).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Teams" })).toBeVisible();
     await expect(sidebar.getByRole("link", { name: /profile/i })).toBeVisible();
   });
@@ -36,7 +38,9 @@ test.describe("sidebar", () => {
     await page.getByRole("button", { name: "Collapse sidebar" }).click();
     const sidebar = page.locator("aside");
     await expect(sidebar.getByRole("link", { name: "Meetings" })).toBeVisible();
-    await expect(sidebar.getByRole("link", { name: "Representatives" })).toBeVisible();
+    await expect(
+      sidebar.getByRole("link", { name: "Representatives" }),
+    ).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Teams" })).toBeVisible();
   });
 });
