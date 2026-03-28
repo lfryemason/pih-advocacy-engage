@@ -2,16 +2,63 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { LogOut, PanelLeftClose } from "lucide-react";
+import {
+  LogOut,
+  PanelLeftClose,
+  Calendar,
+  UsersRound,
+  UserCircle,
+  PanelLeftOpen,
+  Landmark,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import logo from "@/app/assets/engage-logo.png";
 import React from "react";
 
+function NavLink({
+  href,
+  label,
+  icon: Icon,
+  isCollapsed,
+}: {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size: number }>;
+  isCollapsed: boolean;
+}) {
+  return (
+    <Link
+      href={href}
+      aria-label={label}
+      className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-muted ${isCollapsed ? "justify-center px-0" : "px-6"}`}
+    >
+      <Icon size={20} />
+      {!isCollapsed && <span className="text-sm">{label}</span>}
+    </Link>
+  );
+}
+
 export function Sidebar() {
   const router = useRouter();
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
+  const [firstName, setFirstName] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (!data.user) return;
+      const meta = data.user.user_metadata;
+      if (meta?.first_name) {
+        setFirstName(meta.first_name);
+      } else if (meta?.full_name) {
+        setFirstName(meta.full_name.split(" ")[0]);
+      } else {
+        setFirstName(null);
+      }
+    });
+  }, []);
 
   async function handleLogout() {
     const supabase = createClient();
@@ -51,9 +98,37 @@ export function Sidebar() {
             className="h-fit rounded-md p-0 hover:bg-muted"
             aria-label="Collapse sidebar"
           >
-            <PanelLeftClose size={32} strokeWidth={1} />
+            {isCollapsed ? (
+              <PanelLeftOpen size={32} strokeWidth={1} />
+            ) : (
+              <PanelLeftClose size={32} strokeWidth={1} />
+            )}
           </button>
         </div>
+        <NavLink
+          href="/meetings"
+          label="Meetings"
+          icon={Calendar}
+          isCollapsed={isCollapsed}
+        />
+        <NavLink
+          href="/representatives"
+          label="Representatives"
+          icon={Landmark}
+          isCollapsed={isCollapsed}
+        />
+        <NavLink
+          href="/teams"
+          label="Teams"
+          icon={UsersRound}
+          isCollapsed={isCollapsed}
+        />
+        <NavLink
+          href="/profile"
+          label={firstName ? `${firstName}'s profile` : "Profile"}
+          icon={UserCircle}
+          isCollapsed={isCollapsed}
+        />
       </nav>
       <div
         className="mt-auto pb-4"
