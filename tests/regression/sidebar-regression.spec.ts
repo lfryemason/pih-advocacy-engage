@@ -28,11 +28,10 @@ for (const theme of themes) {
       await expect(sidebar).toHaveScreenshot(`sidebar-${theme}.png`);
     });
 
-    test("renders logo", async ({ page }) => {
+    test("matches screenshot collapsed", async ({ page }) => {
+      await page.getByRole("button", { name: "Collapse sidebar" }).click();
       const sidebar = page.locator("aside");
-      await expect(
-        sidebar.getByRole("img", { name: "PIH Advocacy Engage" }),
-      ).toBeVisible();
+      await expect(sidebar).toHaveScreenshot(`sidebar-collapsed-${theme}.png`);
     });
   });
 }
