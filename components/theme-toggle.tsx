@@ -44,7 +44,7 @@ export function ThemeToggle({ isCollapsed }: { isCollapsed?: boolean }) {
           className={`flex items-center justify-center rounded-md border border-border p-2 transition-colors hover:bg-muted ${isCollapsed ? "w-full shrink-0" : "shrink-0"}`}
         >
           <Icon size={20} />
-</button>
+        </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {THEMES.map((t) => {
