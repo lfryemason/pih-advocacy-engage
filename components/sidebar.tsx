@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import logo from "@/app/assets/engage-logo.png";
 import React from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function NavLink({
   href,
@@ -131,7 +132,7 @@ export function Sidebar() {
         />
       </nav>
       <div
-        className="mt-auto pb-4"
+        className={`mt-auto flex gap-2 pb-4 ${isCollapsed ? "flex-col items-center" : "flex-row items-center"}`}
         style={{
           paddingLeft: isCollapsed ? "8px" : "24px",
           paddingRight: isCollapsed ? "8px" : "24px",
@@ -139,11 +140,12 @@ export function Sidebar() {
       >
         <button
           onClick={handleLogout}
-          className="flex w-full items-center justify-center gap-2 rounded-md border border-border py-2 text-sm transition-colors hover:bg-muted"
+          className={`flex items-center justify-center gap-2 rounded-md border border-border text-sm transition-colors hover:bg-muted ${isCollapsed ? "w-full p-2" : "flex-1 py-2"}`}
         >
           <LogOut size={20} />
           {!isCollapsed && <>Logout</>}
         </button>
+        <ThemeToggle isCollapsed={isCollapsed} />
       </div>
     </aside>
   );
