@@ -24,7 +24,7 @@ async function ProfileContent() {
       <Card className="max-w-lg">
         <CardHeader>
           <CardTitle>Profile</CardTitle>
-          <CardDescription>Your account details</CardDescription>
+          <CardDescription>Your Engage account details</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-2">
