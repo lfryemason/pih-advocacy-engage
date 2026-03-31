@@ -20,12 +20,7 @@ async function ProfileContent() {
       </p>
       <div className="mt-6 grid max-w-lg gap-2">
         <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
-          type="email"
-          value={data.user.email ?? ""}
-          disabled
-        />
+        <Input id="email" type="email" value={data.user.email ?? ""} disabled />
       </div>
     </div>
   );
