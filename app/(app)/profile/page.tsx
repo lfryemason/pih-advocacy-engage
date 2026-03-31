@@ -1,13 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
@@ -21,23 +14,19 @@ async function ProfileContent() {
 
   return (
     <div className="p-8">
-      <Card className="max-w-lg">
-        <CardHeader>
-          <CardTitle>Profile</CardTitle>
-          <CardDescription>Your Engage account details</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={data.user.email ?? ""}
-              readOnly
-            />
-          </div>
-        </CardContent>
-      </Card>
+      <h1 className="text-2xl font-bold">Profile</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Your Engage account details
+      </p>
+      <div className="mt-6 grid max-w-lg gap-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          value={data.user.email ?? ""}
+          disabled
+        />
+      </div>
     </div>
   );
 }
