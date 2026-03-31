@@ -14,6 +14,8 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   globalSetup: require.resolve("./tests/global-setup"),
   testDir: "./tests",
+  /* Skip snapshot/regression tests locally — they only pass in CI */
+  testIgnore: process.env.CI ? undefined : "**/regression/**",
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
