@@ -133,7 +133,7 @@ Snapshots are platform-specific (OS + browser). The recommended way to update th
 1. Go to **Actions → Update Playwright Snapshots** in the GitHub repository.
 2. Click **Run workflow**, choose the branch, and run it.
 3. The action adds a commit with the snapshot changes
-4. Commit again to trigger github actions
+4. Push another commit to trigger Github Actions (CI)
    1. You can use `git commit --allow-empty` if you just need to trigger the tests again
 
 To update snapshots locally (for your platform only):

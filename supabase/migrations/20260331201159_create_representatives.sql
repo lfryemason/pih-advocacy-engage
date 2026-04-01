@@ -10,6 +10,12 @@ create table public.representatives (
   district integer,
   party text not null,
   state_rank text check (state_rank in ('junior', 'senior')),
+
+  -- Reps must have a district and no state_rank; senators vice versa
+  constraint chk_rep_fields check (
+    (chamber = 'rep' and district is not null and state_rank is null) or
+    (chamber = 'sen' and district is null and state_rank is not null)
+  ),
   birthday date,
   in_office boolean not null default true,
   general_links jsonb not null default '[]'::jsonb,

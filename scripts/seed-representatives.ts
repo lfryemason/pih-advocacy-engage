@@ -54,7 +54,9 @@ async function main() {
   const records: RepresentativeInsert[] = legislators
     .filter((leg) => leg.terms.length > 0)
     .map((leg) => {
-      const latestTerm = leg.terms[leg.terms.length - 1];
+      const latestTerm = leg.terms.reduce((a, b) =>
+        a.start > b.start ? a : b,
+      );
       return {
         bioguide_id: leg.id.bioguide,
         first_name: leg.name.first,
@@ -69,6 +71,11 @@ async function main() {
         in_office: true,
       };
     });
+
+  if (records.length === 0) {
+    console.error("Upstream returned no legislators");
+    process.exit(1);
+  }
 
   let upserted = 0;
 
