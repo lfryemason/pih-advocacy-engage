@@ -73,8 +73,8 @@ export function Sidebar() {
       className="flex min-h-full flex-col border-r transition-[width] duration-300 ease-in-out"
       style={{
         width: isCollapsed ? "50px" : "275px",
-        backgroundColor: "hsl(var(--sidebar))",
-        color: "hsl(var(--sidebar-foreground))",
+        backgroundColor: "var(--sidebar)",
+        color: "var(--sidebar-foreground)",
       }}
     >
       <nav aria-label="Main navigation">
