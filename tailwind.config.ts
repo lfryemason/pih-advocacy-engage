@@ -25,10 +25,13 @@ export default {
         primary: {
           DEFAULT: "var(--primary)",
           foreground: "var(--primary-foreground)",
+          90: "var(--primary-90)",
+          80: "var(--primary-80)",
         },
         secondary: {
           DEFAULT: "var(--secondary)",
           foreground: "var(--secondary-foreground)",
+          80: "var(--secondary-80)",
         },
         muted: {
           DEFAULT: "var(--muted)",
@@ -41,6 +44,8 @@ export default {
         destructive: {
           DEFAULT: "var(--destructive)",
           foreground: "var(--destructive-foreground)",
+          90: "var(--destructive-90)",
+          80: "var(--destructive-80)",
         },
         border: "var(--border)",
         input: "var(--input)",
