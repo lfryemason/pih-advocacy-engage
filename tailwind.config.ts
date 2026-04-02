@@ -25,13 +25,14 @@ export default {
         primary: {
           DEFAULT: "var(--primary)",
           foreground: "var(--primary-foreground)",
-          90: "var(--primary-90)",
-          80: "var(--primary-80)",
+          dark: "var(--primary-dark)",
+          light: "var(--primary-light)",
+          lighter: "var(--primary-lighter)",
         },
         secondary: {
           DEFAULT: "var(--secondary)",
           foreground: "var(--secondary-foreground)",
-          80: "var(--secondary-80)",
+          dark: "var(--secondary-dark)",
         },
         muted: {
           DEFAULT: "var(--muted)",
@@ -44,19 +45,13 @@ export default {
         destructive: {
           DEFAULT: "var(--destructive)",
           foreground: "var(--destructive-foreground)",
-          90: "var(--destructive-90)",
-          80: "var(--destructive-80)",
+          dark: "var(--destructive-dark)",
+          light: "var(--destructive-light)",
+          lighter: "var(--destructive-lighter)",
         },
         border: "var(--border)",
         input: "var(--input)",
         ring: "var(--ring)",
-        chart: {
-          "1": "var(--chart-1)",
-          "2": "var(--chart-2)",
-          "3": "var(--chart-3)",
-          "4": "var(--chart-4)",
-          "5": "var(--chart-5)",
-        },
       },
       borderRadius: {
         lg: "var(--radius)",
