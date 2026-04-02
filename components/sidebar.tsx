@@ -96,6 +96,7 @@ export function Sidebar() {
           )}
           <button
             onClick={() => setIsCollapsed((prev) => !prev)}
+            type="button"
             className="h-fit rounded-md p-0 hover:bg-accent"
             aria-label="Collapse sidebar"
           >
@@ -140,6 +141,7 @@ export function Sidebar() {
       >
         <button
           onClick={handleLogout}
+          type="button"
           className={`flex items-center justify-center gap-2 rounded-md border border-border text-sm transition-colors hover:bg-accent ${isCollapsed ? "w-full p-2" : "flex-1 py-2"}`}
         >
           <LogOut size={20} />

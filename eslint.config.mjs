@@ -14,6 +14,7 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   {
     rules: {
+      "react/button-has-type": "error",
       "max-len": [
         "warn",
         {
