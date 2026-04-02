@@ -32,7 +32,7 @@ function NavLink({
     <Link
       href={href}
       aria-label={label}
-      className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-muted ${isCollapsed ? "justify-center px-0" : "px-6"}`}
+      className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-accent ${isCollapsed ? "justify-center px-0" : "px-6"}`}
     >
       <Icon size={20} />
       {!isCollapsed && <span className="text-sm">{label}</span>}
@@ -73,8 +73,8 @@ export function Sidebar() {
       className="flex min-h-full flex-col border-r transition-[width] duration-300 ease-in-out"
       style={{
         width: isCollapsed ? "50px" : "275px",
-        backgroundColor: "hsl(var(--sidebar))",
-        color: "hsl(var(--sidebar-foreground))",
+        backgroundColor: "var(--background)",
+        color: "var(--foreground)",
       }}
     >
       <nav aria-label="Main navigation">
@@ -96,7 +96,8 @@ export function Sidebar() {
           )}
           <button
             onClick={() => setIsCollapsed((prev) => !prev)}
-            className="h-fit rounded-md p-0 hover:bg-muted"
+            type="button"
+            className="h-fit rounded-md p-0 hover:bg-accent"
             aria-label="Collapse sidebar"
           >
             {isCollapsed ? (
@@ -140,7 +141,8 @@ export function Sidebar() {
       >
         <button
           onClick={handleLogout}
-          className={`flex items-center justify-center gap-2 rounded-md border border-border text-sm transition-colors hover:bg-muted ${isCollapsed ? "w-full p-2" : "flex-1 py-2"}`}
+          type="button"
+          className={`flex items-center justify-center gap-2 rounded-md border border-border text-sm transition-colors hover:bg-accent ${isCollapsed ? "w-full p-2" : "flex-1 py-2"}`}
         >
           <LogOut size={20} />
           {!isCollapsed && <>Logout</>}
