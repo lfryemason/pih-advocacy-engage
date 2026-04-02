@@ -23,7 +23,7 @@ test.describe("sidebar", () => {
       sidebar.getByRole("link", { name: "Representatives" }),
     ).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Teams" })).toBeVisible();
-    await expect(sidebar.getByRole("link", { name: /profile/i })).toBeVisible();
+    await expect(sidebar.locator('a[href="/profile"]')).toBeVisible();
   });
 
   test("hides logo when collapsed", async ({ page }) => {
