@@ -40,8 +40,9 @@ export function ThemeToggle({ isCollapsed }: { isCollapsed?: boolean }) {
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
+          type="button"
           aria-label="Select theme"
-          className={`flex items-center justify-center rounded-md border border-border p-2 transition-colors hover:bg-muted ${isCollapsed ? "w-full shrink-0" : "shrink-0"}`}
+          className={`flex items-center justify-center rounded-md border border-border p-2 transition-colors hover:bg-accent focus:outline-none focus-visible:ring-1 focus-visible:ring-ring ${isCollapsed ? "w-full shrink-0" : "shrink-0"}`}
         >
           <Icon size={20} />
         </button>
