@@ -1,35 +1,35 @@
-"use client";
+import { createClient } from "@/lib/supabase/server";
+import { SenatorsTableBody } from "@/components/representatives/senators-table-body";
 
-import { useState } from "react";
-import { Tables } from "@/lib/supabase/database.types";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+const PAGE_SIZE = 25;
 
-type Representative = Tables<"representatives">;
+export async function SenatorsTable({ page }: { page: number }) {
+  const supabase = await createClient();
+  const from = page * PAGE_SIZE;
+  const to = from + PAGE_SIZE - 1;
 
-const PAGE_SIZE = 50;
+  const { count } = await supabase
+    .from("representatives")
+    .select("id", { count: "exact", head: true })
+    .eq("chamber", "sen")
+    .eq("in_office", true);
 
-const partyColor: Record<string, string> = {
-  Democrat: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  Republican: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  Independent:
-    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-};
+  const totalPages = Math.ceil((count ?? 0) / PAGE_SIZE);
 
-export function SenatorsTable({ senators }: { senators: Representative[] }) {
-  const [page, setPage] = useState(0);
-  const totalPages = Math.ceil(senators.length / PAGE_SIZE);
-  const paginated = senators.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+  const { data: senators, error } = await supabase
+    .from("representatives")
+    .select()
+    .eq("chamber", "sen")
+    .eq("in_office", true)
+    .order("state")
+    .order("last_name")
+    .range(from, to);
 
-  if (senators.length === 0) {
+  if (error) {
+    return <p className="text-destructive">Failed to load senators.</p>;
+  }
+
+  if (senators.length === 0 && page === 0) {
     return (
       <p className="py-8 text-center text-muted-foreground">
         No senators found.
@@ -38,62 +38,10 @@ export function SenatorsTable({ senators }: { senators: Representative[] }) {
   }
 
   return (
-    <div className="max-w-2xl">
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>State</TableHead>
-              <TableHead>Party</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {paginated.map((senator) => (
-              <TableRow key={senator.id}>
-                <TableCell className="font-medium">
-                  {senator.official_full_name ??
-                    `${senator.first_name} ${senator.last_name}`}
-                </TableCell>
-                <TableCell>{senator.state}</TableCell>
-                <TableCell>
-                  <Badge
-                    variant="outline"
-                    className={partyColor[senator.party] ?? ""}
-                  >
-                    {senator.party[0]}
-                  </Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between pt-4">
-          <p className="text-sm text-muted-foreground">
-            Page {page + 1} of {totalPages}
-          </p>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => p - 1)}
-              disabled={page === 0}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((p) => p + 1)}
-              disabled={page >= totalPages - 1}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
+    <SenatorsTableBody
+      senators={senators}
+      page={page}
+      totalPages={totalPages}
+    />
   );
 }
