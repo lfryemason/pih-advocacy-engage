@@ -3,7 +3,13 @@ import { SenatorsTableBody } from "@/components/representatives/senators-table-b
 
 const PAGE_SIZE = 25;
 
-export async function SenatorsTable({ page }: { page: number }) {
+export async function SenatorsTable({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(0, parseInt(pageParam ?? "0", 10) || 0);
   const supabase = await createClient();
   const from = page * PAGE_SIZE;
   const to = from + PAGE_SIZE - 1;

@@ -80,7 +80,7 @@ describe("SenatorsTable", () => {
     ];
     mockCreateClient.mockResolvedValue(buildChain(senators, 2) as never);
 
-    const Component = await SenatorsTable({ page: 0 });
+    const Component = await SenatorsTable({ searchParams: Promise.resolve({ page: "0" }) });
     render(Component);
 
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
@@ -90,7 +90,7 @@ describe("SenatorsTable", () => {
   it("renders empty state when no senators found on page 0", async () => {
     mockCreateClient.mockResolvedValue(buildChain([], 0) as never);
 
-    const Component = await SenatorsTable({ page: 0 });
+    const Component = await SenatorsTable({ searchParams: Promise.resolve({ page: "0" }) });
     render(Component);
 
     expect(screen.getByText("No senators found.")).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe("SenatorsTable", () => {
       }) as never,
     );
 
-    const Component = await SenatorsTable({ page: 0 });
+    const Component = await SenatorsTable({ searchParams: Promise.resolve({ page: "0" }) });
     render(Component);
 
     expect(screen.getByText("Failed to load senators.")).toBeInTheDocument();
@@ -113,7 +113,7 @@ describe("SenatorsTable", () => {
     const senators = [makeSenator()];
     mockCreateClient.mockResolvedValue(buildChain(senators, 50) as never);
 
-    const Component = await SenatorsTable({ page: 1 });
+    const Component = await SenatorsTable({ searchParams: Promise.resolve({ page: "1" }) });
     render(Component);
 
     // 50 senators / 25 per page = 2 pages, currently on page 2
