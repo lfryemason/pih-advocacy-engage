@@ -80,9 +80,7 @@ export function SenatorsTableBody({
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                router.push(`/representatives?page=${page - 1}`)
-              }
+              onClick={() => router.push(`/representatives?page=${page - 1}`)}
               disabled={page === 0}
             >
               Previous
@@ -90,9 +88,7 @@ export function SenatorsTableBody({
             <Button
               variant="outline"
               size="sm"
-              onClick={() =>
-                router.push(`/representatives?page=${page + 1}`)
-              }
+              onClick={() => router.push(`/representatives?page=${page + 1}`)}
               disabled={page >= totalPages - 1}
             >
               Next
