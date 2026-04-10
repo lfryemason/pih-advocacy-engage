@@ -6,6 +6,7 @@ test.use({ storageState: AUTH_STATE_PATH });
 test.describe("representatives page", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/representatives");
+    await page.waitForLoadState("networkidle");
   });
 
   test("renders heading and description", async ({ page }) => {
@@ -18,7 +19,7 @@ test.describe("representatives page", () => {
   });
 
   test("renders senators table with header columns", async ({ page }) => {
-    await expect(page.getByRole("table")).toBeVisible({ timeout: 15000 });
+    await expect(page.getByRole("table")).toBeVisible();
     await expect(
       page.getByRole("columnheader", { name: "Name" }),
     ).toBeVisible();

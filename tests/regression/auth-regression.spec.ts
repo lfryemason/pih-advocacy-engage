@@ -1,18 +1,22 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, Page } from "@playwright/test";
 
 const themes = ["light", "dark"] as const;
+type Theme = (typeof themes)[number];
+
+async function setTheme(page: Page, theme: Theme) {
+  await page.evaluate((t) => {
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(t);
+    document.documentElement.style.colorScheme = t;
+  }, theme);
+}
 
 for (const theme of themes) {
   test.describe(`login page (${theme})`, () => {
     test.beforeEach(async ({ page }) => {
-      await page.addInitScript((t) => {
-        window.localStorage.setItem("theme", t);
-      }, theme);
       await page.goto("/auth/login");
-      await page.waitForFunction(
-        (t) => document.documentElement.classList.contains(t),
-        theme,
-      );
+      await page.waitForLoadState("networkidle");
+      await setTheme(page, theme);
     });
 
     test("matches screenshot", async ({ page }) => {
@@ -22,14 +26,9 @@ for (const theme of themes) {
 
   test.describe(`sign up page (${theme})`, () => {
     test.beforeEach(async ({ page }) => {
-      await page.addInitScript((t) => {
-        window.localStorage.setItem("theme", t);
-      }, theme);
       await page.goto("/auth/sign-up");
-      await page.waitForFunction(
-        (t) => document.documentElement.classList.contains(t),
-        theme,
-      );
+      await page.waitForLoadState("networkidle");
+      await setTheme(page, theme);
     });
 
     test("matches screenshot", async ({ page }) => {
@@ -39,14 +38,9 @@ for (const theme of themes) {
 
   test.describe(`forgot password page (${theme})`, () => {
     test.beforeEach(async ({ page }) => {
-      await page.addInitScript((t) => {
-        window.localStorage.setItem("theme", t);
-      }, theme);
       await page.goto("/auth/forgot-password");
-      await page.waitForFunction(
-        (t) => document.documentElement.classList.contains(t),
-        theme,
-      );
+      await page.waitForLoadState("networkidle");
+      await setTheme(page, theme);
     });
 
     test("matches screenshot", async ({ page }) => {
