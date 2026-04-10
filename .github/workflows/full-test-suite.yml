@@ -21,7 +21,7 @@ jobs:
       - name: Start Supabase
         run: npx supabase start
       - name: Run Jest tests
-        run: npx jest
+        run: npx jest --forceExit
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Playwright tests
