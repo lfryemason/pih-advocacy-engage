@@ -7,6 +7,12 @@
     "lint": "eslint .",
     "prepare": "husky"
   },
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
+  },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.1",
     "@radix-ui/react-dropdown-menu": "^2.1.14",
@@ -42,6 +48,7 @@
     "jest": "^30.3.0",
     "jest-environment-jsdom": "^30.3.0",
     "jest-fixed-jsdom": "^0.0.11",
+    "lint-staged": "^16.4.0",
     "msw": "^2.13.2",
     "postcss": "^8",
     "prettier": "^3.8.1",
