@@ -17,12 +17,17 @@ for (const { name, path } of authPages) {
     test(`${name} page (${theme}) has no accessibility violations`, async ({
       page,
     }) => {
-      await page.goto(path);
-      await page.evaluate((t) => {
-        document.documentElement.classList.remove("light", "dark");
-        document.documentElement.classList.add(t);
-        document.documentElement.style.colorScheme = t;
+      // Set theme in localStorage before navigating so next-themes
+      // applies the correct class on hydration (avoids race condition
+      // where page.evaluate runs before next-themes overwrites it).
+      await page.addInitScript((t) => {
+        window.localStorage.setItem("theme", t);
       }, theme);
+      await page.goto(path);
+      await page.waitForFunction(
+        (t) => document.documentElement.classList.contains(t),
+        theme,
+      );
 
       const results = await new AxeBuilder({ page })
         .exclude("h1") // primary color (#ff8c00) on white fails contrast — known issue, tracked separately

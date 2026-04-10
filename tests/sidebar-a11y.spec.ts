@@ -10,12 +10,14 @@ for (const theme of themes) {
   test(`sidebar (${theme}) has no accessibility violations`, async ({
     page,
   }) => {
-    await page.goto("/");
-    await page.evaluate((t) => {
-      document.documentElement.classList.remove("light", "dark");
-      document.documentElement.classList.add(t);
-      document.documentElement.style.colorScheme = t;
+    await page.addInitScript((t) => {
+      window.localStorage.setItem("theme", t);
     }, theme);
+    await page.goto("/");
+    await page.waitForFunction(
+      (t) => document.documentElement.classList.contains(t),
+      theme,
+    );
 
     const results = await new AxeBuilder({ page }).analyze();
 
