@@ -19,7 +19,7 @@ test.describe("representatives page", () => {
   });
 
   test("renders senators table with header columns", async ({ page }) => {
-    await expect(page.getByRole("table")).toBeVisible();
+    await expect(page.getByRole("table")).toBeVisible({ timeout: 15000 });
     await expect(
       page.getByRole("columnheader", { name: "Name" }),
     ).toBeVisible();

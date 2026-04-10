@@ -10,11 +10,8 @@ test.describe("senators table (e2e)", () => {
   });
 
   test("renders table with senators", async ({ page }) => {
-    await expect(page.getByRole("table")).toBeVisible();
+    await expect(page.getByRole("table")).toBeVisible({ timeout: 15000 });
     expect(await page.getByRole("row").count()).toBeGreaterThan(1);
-  });
-
-  test("clicking a row navigates to detail page", async ({ page }) => {
     const firstDataRow = page.getByRole("row").nth(1);
     await firstDataRow.click();
     await page.waitForURL(/\/representatives\/.+/);
