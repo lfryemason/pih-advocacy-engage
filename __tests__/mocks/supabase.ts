@@ -56,8 +56,7 @@ function applyFilters(
     if (value.startsWith("eq.")) {
       const eqVal = value.slice(3);
       filtered = filtered.filter(
-        (r) =>
-          String(r[key as keyof MockRepresentative]) === eqVal,
+        (r) => String(r[key as keyof MockRepresentative]) === eqVal,
       );
     }
   }
@@ -108,18 +107,13 @@ export function representativesHandlers(
       if (accept.includes("vnd.pgrst.object")) {
         const item = filtered[0] ?? null;
         if (!item) {
-          return HttpResponse.json(
-            { message: "not found" },
-            { status: 406 },
-          );
+          return HttpResponse.json({ message: "not found" }, { status: 406 });
         }
         return HttpResponse.json(item);
       }
 
       // List query with offset/limit pagination
-      const offset = parseInt(
-        url.searchParams.get("offset") ?? "0",
-      );
+      const offset = parseInt(url.searchParams.get("offset") ?? "0");
       const limit = parseInt(
         url.searchParams.get("limit") ?? String(filtered.length),
       );

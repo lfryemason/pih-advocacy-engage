@@ -43,9 +43,7 @@ describe("SenatorsTable", () => {
   });
 
   it("renders header columns", async () => {
-    server.use(
-      ...representativesHandlers([makeRepresentative()]),
-    );
+    server.use(...representativesHandlers([makeRepresentative()]));
     render(<SenatorsTable />);
 
     await waitFor(() => {
@@ -74,9 +72,7 @@ describe("SenatorsTable", () => {
     render(<SenatorsTable />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Elizabeth Warren"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Elizabeth Warren")).toBeInTheDocument();
     });
     expect(screen.getByText("MA")).toBeInTheDocument();
     expect(screen.getByText("D")).toBeInTheDocument();
@@ -140,12 +136,8 @@ describe("SenatorsTable", () => {
       expect(screen.getByText("Jane Doe")).toBeInTheDocument();
     });
 
-    await userEvent.click(
-      screen.getByRole("row", { name: /Jane Doe/ }),
-    );
-    expect(mockPush).toHaveBeenCalledWith(
-      "/representatives/W000817",
-    );
+    await userEvent.click(screen.getByRole("row", { name: /Jane Doe/ }));
+    expect(mockPush).toHaveBeenCalledWith("/representatives/W000817");
   });
 
   it("renders empty state when no senators found", async () => {
@@ -153,29 +145,21 @@ describe("SenatorsTable", () => {
     render(<SenatorsTable />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("No senators found."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("No senators found.")).toBeInTheDocument();
     });
   });
 
   it("renders error state when query fails", async () => {
-    server.use(
-      ...representativesHandlers([], "Something went wrong"),
-    );
+    server.use(...representativesHandlers([], "Something went wrong"));
     render(<SenatorsTable />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Failed to load senators."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Failed to load senators.")).toBeInTheDocument();
     });
   });
 
   it("does not show pagination when totalPages is 1", async () => {
-    server.use(
-      ...representativesHandlers([makeRepresentative()]),
-    );
+    server.use(...representativesHandlers([makeRepresentative()]));
     render(<SenatorsTable />);
 
     await waitFor(() => {
@@ -200,12 +184,8 @@ describe("SenatorsTable", () => {
     await waitFor(() => {
       expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
     });
-    expect(
-      screen.getByRole("button", { name: "Previous" }),
-    ).toBeDisabled();
-    expect(
-      screen.getByRole("button", { name: "Next" }),
-    ).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
   });
 
   it("disables Next on last page and enables Previous", async () => {
@@ -222,19 +202,13 @@ describe("SenatorsTable", () => {
       expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
     });
 
-    await userEvent.click(
-      screen.getByRole("button", { name: "Next" }),
-    );
+    await userEvent.click(screen.getByRole("button", { name: "Next" }));
 
     await waitFor(() => {
       expect(screen.getByText("Page 2 of 2")).toBeInTheDocument();
     });
-    expect(
-      screen.getByRole("button", { name: "Previous" }),
-    ).toBeEnabled();
-    expect(
-      screen.getByRole("button", { name: "Next" }),
-    ).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
   });
 
   it("renders multiple senator rows", async () => {
