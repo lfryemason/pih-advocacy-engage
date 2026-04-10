@@ -97,9 +97,7 @@ describe("SenatorsTable", () => {
   });
 
   it("renders header columns", async () => {
-    mockCreateClient.mockReturnValue(
-      buildChain([makeSenator()], 1) as never,
-    );
+    mockCreateClient.mockReturnValue(buildChain([makeSenator()], 1) as never);
     render(<SenatorsTable />);
 
     await waitFor(() => {
@@ -190,16 +188,12 @@ describe("SenatorsTable", () => {
     render(<SenatorsTable />);
 
     await waitFor(() => {
-      expect(
-        screen.getByText("Failed to load senators."),
-      ).toBeInTheDocument();
+      expect(screen.getByText("Failed to load senators.")).toBeInTheDocument();
     });
   });
 
   it("does not show pagination when totalPages is 1", async () => {
-    mockCreateClient.mockReturnValue(
-      buildChain([makeSenator()], 1) as never,
-    );
+    mockCreateClient.mockReturnValue(buildChain([makeSenator()], 1) as never);
     render(<SenatorsTable />);
 
     await waitFor(() => {
@@ -212,9 +206,7 @@ describe("SenatorsTable", () => {
   });
 
   it("shows pagination when more than 25 senators", async () => {
-    mockCreateClient.mockReturnValue(
-      buildChain([makeSenator()], 50) as never,
-    );
+    mockCreateClient.mockReturnValue(buildChain([makeSenator()], 50) as never);
     render(<SenatorsTable />);
 
     await waitFor(() => {
