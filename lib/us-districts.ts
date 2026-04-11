@@ -54,7 +54,6 @@ export const US_STATES: StateCode[] = [
   { code: "WY", name: "Wyoming" },
 ];
 
-
 // Cited from https://www2.census.gov/programs-surveys/decennial/2020/data/apportionment/apportionment-2020-table01.pdf
 // States with a single at-large representative are marked 'at-large'.
 const DISTRICT_COUNTS: Record<string, number | "at-large"> = {
