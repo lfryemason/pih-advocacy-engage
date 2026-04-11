@@ -107,8 +107,8 @@ export function ProfileForm({
         <Select id="state" value={state} onChange={handleStateChange}>
           <option value="">Select a state</option>
           {US_STATES.map((s) => (
-            <option key={s.value} value={s.value}>
-              {s.label}
+            <option key={s.code} value={s.code}>
+              {s.name}
             </option>
           ))}
         </Select>

@@ -23,6 +23,7 @@ test.describe("sidebar", () => {
       sidebar.getByRole("link", { name: "Representatives" }),
     ).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Teams" })).toBeVisible();
+    // href-based selector used because the link label is dynamic (shows user's full name when set)
     await expect(sidebar.locator('a[href="/profile"]')).toBeVisible();
   });
 

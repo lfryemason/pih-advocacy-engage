@@ -31,7 +31,7 @@ async function ProfileContent() {
   );
 }
 
-export default function ProfilePage() {
+export default function Profile() {
   return (
     <Suspense
       fallback={
