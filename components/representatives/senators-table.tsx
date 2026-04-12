@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
@@ -31,38 +31,36 @@ export function SenatorsTable() {
   const [senators, setSenators] = useState<Representative[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(false);
-  const [isPending, startTransition] = useTransition();
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    startTransition(async () => {
-      setError(false);
-      const supabase = createClient();
-      const from = page * PAGE_SIZE;
-      const to = from + PAGE_SIZE - 1;
+    setIsLoading(true);
+    setError(false);
+    const supabase = createClient();
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
 
-      const {
-        data,
-        count,
-        error: queryError,
-      } = await supabase
-        .from("representatives")
-        .select("*", { count: "exact" })
-        .eq("chamber", "sen")
-        .eq("in_office", true)
-        .order("state")
-        .order("last_name")
-        .range(from, to);
+    const response = supabase
+      .from("representatives")
+      .select("*", { count: "exact" })
+      .eq("chamber", "sen")
+      .eq("in_office", true)
+      .order("state")
+      .order("last_name")
+      .range(from, to);
 
+    response.then(({ data, count, error: queryError }) => {
       if (queryError) {
         setError(true);
       } else {
         setSenators(data ?? []);
         setTotalPages(Math.ceil((count ?? 0) / PAGE_SIZE));
       }
+      setIsLoading(false);
     });
   }, [page]);
 
-  if (isPending) {
+  if (isLoading) {
     // TODO(lfm): Could be nice to change this to a better table loading state.
     return <p className="text-muted-foreground">Loading…</p>;
   }
