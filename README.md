@@ -9,6 +9,7 @@ TODO: fill out readme more fully
 - Next.js + typescript - FE + builds
 - Supabase (postgres) - DB + auth
 - Vercel - deployment
+- Vitest + React Testing Library - unit tests
 - Playwright - E2E tests
 - Github actions - CI/CD
 
@@ -111,10 +112,29 @@ The app will be available at [localhost:3000](http://localhost:3000).
 
 ## Running tests
 
-Ensure the dev server and Supabase are running, then:
+### Unit tests (Vitest)
+
+Unit tests use [Vitest](https://vitest.dev/) with React Testing Library and [MSW](https://mswjs.io/) for network-level API mocking. No running server or database is required.
 
 ```bash
-# Run all tests
+# Run all unit tests
+npx vitest run
+
+# Run in watch mode
+npx vitest
+
+# Run a specific test file
+npx vitest run __tests__/components/representatives/senators-table.test.tsx
+```
+
+Test files live in `__tests__/` and shared MSW mocks are in `__tests__/mocks/`. Configuration is in `vitest.config.ts` and `vitest.setup.ts`.
+
+### E2E tests (Playwright)
+
+Ensure Supabase is running:
+
+```bash
+# Run all E2E tests
 npx playwright test
 
 # Run a specific test file
