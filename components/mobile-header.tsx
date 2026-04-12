@@ -67,6 +67,7 @@ export function MobileHeader() {
             <Image
               src={logo}
               alt="PIH Advocacy Engage"
+              onPointerDown={(e) => e.stopPropagation()}
               className="block h-auto max-h-[36px] w-auto"
               priority
             />
