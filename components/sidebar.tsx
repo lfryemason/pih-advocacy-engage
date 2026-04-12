@@ -91,6 +91,7 @@ export function Sidebar() {
                 src={logo}
                 alt="PIH Advocacy Engage"
                 className="block h-auto max-h-[76px] w-auto"
+                priority
               />
             </Link>
           )}

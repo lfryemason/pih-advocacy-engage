@@ -14,8 +14,10 @@ test.describe("senators table (e2e)", () => {
   });
 
   test("clicking a senator name navigates to detail page", async ({ page }) => {
-    await expect(page.getByRole("table")).toBeVisible();
-    const firstLink = page.getByRole("link").first();
+    const table = page.getByRole("table");
+    await expect(table).toBeVisible();
+    const firstLink = table.getByRole("link").first();
+    await expect(firstLink).toBeVisible();
     await firstLink.click();
     await page.waitForURL(/\/representatives\/.+/);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
