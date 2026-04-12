@@ -71,7 +71,7 @@ export function SenatorsTable() {
   }
 
   return (
-    <div className="w-1/2 min-w-0">
+    <div className="w-full min-w-0 md:w-1/2">
       <h1 className="mb-3 text-2xl font-bold">Senators</h1>
       <Table>
         <TableHeader>
