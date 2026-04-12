@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
 import { Badge } from "@/components/ui/badge";
@@ -27,7 +27,6 @@ const partyColor: Record<string, string> = {
 };
 
 export function SenatorsTable() {
-  const router = useRouter();
   const [page, setPage] = useState(0);
   const [senators, setSenators] = useState<Representative[]>([]);
   const [totalPages, setTotalPages] = useState(0);
@@ -41,15 +40,13 @@ export function SenatorsTable() {
       const from = page * PAGE_SIZE;
       const to = from + PAGE_SIZE - 1;
 
-      const { count } = await supabase
+      const {
+        data,
+        count,
+        error: queryError,
+      } = await supabase
         .from("representatives")
-        .select("id", { count: "exact", head: true })
-        .eq("chamber", "sen")
-        .eq("in_office", true);
-
-      const { data, error: queryError } = await supabase
-        .from("representatives")
-        .select()
+        .select("*", { count: "exact" })
         .eq("chamber", "sen")
         .eq("in_office", true)
         .order("state")
@@ -95,16 +92,15 @@ export function SenatorsTable() {
           </TableHeader>
           <TableBody>
             {senators.map((senator) => (
-              <TableRow
-                key={senator.id}
-                className="cursor-pointer hover:underline"
-                onClick={() =>
-                  router.push(`/representatives/${senator.bioguide_id}`)
-                }
-              >
+              <TableRow key={senator.id}>
                 <TableCell className="font-medium">
-                  {senator.official_full_name ??
-                    `${senator.first_name} ${senator.last_name}`}
+                  <Link
+                    href={`/representatives/${senator.bioguide_id}`}
+                    className="underline-offset-4 hover:underline"
+                  >
+                    {senator.official_full_name ??
+                      `${senator.first_name} ${senator.last_name}`}
+                  </Link>
                 </TableCell>
                 <TableCell>{senator.state}</TableCell>
                 <TableCell>
