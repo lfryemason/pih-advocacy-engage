@@ -9,7 +9,7 @@ test.describe("congress table (e2e)", () => {
   });
 
   test("renders table with representatives", async ({ page }) => {
-    const table = page.getByRole("table").nth(1);
+    const table = page.getByRole("table", { name: "Representatives" });
     await expect(table).toBeVisible();
     await expect(table.getByText("April May")).toBeVisible();
     await expect(table.getByText("Peter Petrawicki")).toBeVisible();
@@ -18,7 +18,7 @@ test.describe("congress table (e2e)", () => {
   });
 
   test("shows State, District and Party columns", async ({ page }) => {
-    const table = page.getByRole("table").nth(1);
+    const table = page.getByRole("table", { name: "Representatives" });
     await expect(
       table.getByRole("columnheader", { name: "State" }),
     ).toBeVisible();
@@ -33,7 +33,7 @@ test.describe("congress table (e2e)", () => {
   test("clicking a representative name navigates to detail page", async ({
     page,
   }) => {
-    const table = page.getByRole("table").nth(1);
+    const table = page.getByRole("table", { name: "Representatives" });
     await expect(table).toBeVisible();
     await table.getByRole("link", { name: "April May" }).click();
     await page.waitForURL("/representatives/R000001");

@@ -9,8 +9,13 @@ const partyColor: Record<string, string> = {
 
 export function PartyBadge({ party }: { party: string }) {
   return (
-    <Badge variant="outline" className={partyColor[party] ?? ""}>
-      {party[0]}
+    <Badge
+      variant="outline"
+      className={partyColor[party] ?? ""}
+      aria-label={party}
+    >
+      <span aria-hidden="true">{party[0]}</span>
+      <span className="sr-only">{party}</span>
     </Badge>
   );
 }

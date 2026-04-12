@@ -71,8 +71,9 @@ export function CongressTable() {
 
   return (
     <div className="w-full min-w-0 md:w-1/2">
-      <h1 className="mb-3 text-2xl font-bold">Representatives</h1>
+      <h2 className="mb-3 text-2xl font-bold">Representatives</h2>
       <Table>
+        <caption className="sr-only">Representatives</caption>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
