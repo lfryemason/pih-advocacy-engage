@@ -14,7 +14,6 @@ for (const theme of themes) {
       window.localStorage.setItem("theme", t);
     }, theme);
     await page.goto("/representatives");
-    await page.waitForLoadState("networkidle");
     await page.evaluate((t) => {
       document.documentElement.classList.remove("light", "dark");
       document.documentElement.classList.add(t);
