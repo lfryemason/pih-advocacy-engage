@@ -9,12 +9,12 @@ test.describe("senators table (e2e)", () => {
   });
 
   test("renders table with senators", async ({ page }) => {
-    await expect(page.getByRole("table")).toBeVisible();
+    await expect(page.getByRole("table", { name: "Senators" })).toBeVisible();
     expect(await page.getByRole("row").count()).toBeGreaterThan(1);
   });
 
   test("clicking a senator name navigates to detail page", async ({ page }) => {
-    const table = page.getByRole("table");
+    const table = page.getByRole("table", { name: "Senators" });
     await expect(table).toBeVisible();
     const firstLink = table.getByRole("link").first();
     await expect(firstLink).toBeVisible();

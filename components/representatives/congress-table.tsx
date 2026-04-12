@@ -19,9 +19,9 @@ type Representative = Tables<"representatives">;
 
 const PAGE_SIZE = 25;
 
-export function SenatorsTable() {
+export function CongressTable() {
   const [page, setPage] = useState(0);
-  const [senators, setSenators] = useState<Representative[]>([]);
+  const [representatives, setRepresentatives] = useState<Representative[]>([]);
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -36,17 +36,17 @@ export function SenatorsTable() {
     const response = supabase
       .from("representatives")
       .select("*", { count: "exact" })
-      .eq("chamber", "sen")
+      .eq("chamber", "rep")
       .eq("in_office", true)
       .order("state")
-      .order("last_name")
+      .order("district")
       .range(from, to);
 
     response.then(({ data, count, error: queryError }) => {
       if (queryError) {
         setError(true);
       } else {
-        setSenators(data ?? []);
+        setRepresentatives(data ?? []);
         setTotalPages(Math.ceil((count ?? 0) / PAGE_SIZE));
       }
       setIsLoading(false);
@@ -54,49 +54,50 @@ export function SenatorsTable() {
   }, [page]);
 
   if (isLoading) {
-    // TODO(lfm): Could be nice to change this to a better table loading state.
     return <p className="text-muted-foreground">Loading…</p>;
   }
 
   if (error) {
-    return <p className="text-destructive">Failed to load senators.</p>;
+    return <p className="text-destructive">Failed to load representatives.</p>;
   }
 
-  if (senators.length === 0 && page === 0) {
+  if (representatives.length === 0 && page === 0) {
     return (
       <p className="py-8 text-center text-muted-foreground">
-        No senators found.
+        No representatives found.
       </p>
     );
   }
 
   return (
     <div className="w-full min-w-0 md:w-1/2">
-      <h2 className="mb-3 text-2xl font-bold">Senators</h2>
+      <h2 className="mb-3 text-2xl font-bold">Representatives</h2>
       <Table>
-        <caption className="sr-only">Senators</caption>
+        <caption className="sr-only">Representatives</caption>
         <TableHeader>
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead className="text-center">State</TableHead>
+            <TableHead className="text-center">District</TableHead>
             <TableHead>Party</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {senators.map((senator) => (
-            <TableRow key={senator.id}>
+          {representatives.map((rep) => (
+            <TableRow key={rep.id}>
               <TableCell className="w-full max-w-0 truncate font-medium">
                 <Link
-                  href={`/representatives/${senator.bioguide_id}`}
+                  href={`/representatives/${rep.bioguide_id}`}
                   className="block truncate underline-offset-4 hover:underline"
                 >
-                  {senator.official_full_name ??
-                    `${senator.first_name} ${senator.last_name}`}
+                  {rep.official_full_name ??
+                    `${rep.first_name} ${rep.last_name}`}
                 </Link>
               </TableCell>
-              <TableCell className="text-center">{senator.state}</TableCell>
+              <TableCell className="text-center">{rep.state}</TableCell>
+              <TableCell className="text-center">{rep.district}</TableCell>
               <TableCell>
-                <PartyBadge party={senator.party} />
+                <PartyBadge party={rep.party} />
               </TableCell>
             </TableRow>
           ))}
