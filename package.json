@@ -32,22 +32,19 @@
   "devDependencies": {
     "@axe-core/playwright": "^4.11.1",
     "@eslint/eslintrc": "^3",
-    "@jest/globals": "^30.3.0",
     "@playwright/test": "^1.58.2",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
-    "@types/jest": "^30.0.0",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.0.1",
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "15.3.1",
     "husky": "^9.1.7",
-    "jest": "^30.3.0",
-    "jest-environment-jsdom": "^30.3.0",
-    "jest-fixed-jsdom": "^0.0.11",
+    "jsdom": "^29.0.2",
     "lint-staged": "^16.4.0",
     "msw": "^2.13.2",
     "postcss": "^8",
@@ -56,7 +53,7 @@
     "supabase": "^2.83.0",
     "tailwindcss": "^3.4.1",
     "tailwindcss-animate": "^1.0.7",
-    "ts-jest": "^29.4.9",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.1.4"
   }
 }

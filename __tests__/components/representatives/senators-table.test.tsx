@@ -1,3 +1,4 @@
+import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SenatorsTable } from "@/components/representatives/senators-table";
@@ -7,16 +8,22 @@ import {
   makeRepresentative,
 } from "../../mocks/supabase";
 
-const mockPush = jest.fn();
-jest.mock("next/navigation", () => ({
-  useRouter: () => ({ push: mockPush }),
+vi.mock("next/link", () => ({
+  default: ({
+    href,
+    children,
+    ...props
+  }: {
+    href: string;
+    children: React.ReactNode;
+  }) => (
+    <a href={href} {...props}>
+      {children}
+    </a>
+  ),
 }));
 
 describe("SenatorsTable", () => {
-  beforeEach(() => {
-    mockPush.mockClear();
-  });
-
   it("shows loading state initially", () => {
     server.use(...representativesHandlers([]));
     render(<SenatorsTable />);
@@ -124,7 +131,7 @@ describe("SenatorsTable", () => {
     expect(screen.getByText("I")).toBeInTheDocument();
   });
 
-  it("navigates to detail page on row click", async () => {
+  it("renders name as a link to detail page", async () => {
     server.use(
       ...representativesHandlers([
         makeRepresentative({ bioguide_id: "W000817" }),
@@ -136,8 +143,8 @@ describe("SenatorsTable", () => {
       expect(screen.getByText("Jane Doe")).toBeInTheDocument();
     });
 
-    await userEvent.click(screen.getByRole("row", { name: /Jane Doe/ }));
-    expect(mockPush).toHaveBeenCalledWith("/representatives/W000817");
+    const link = screen.getByRole("link", { name: "Jane Doe" });
+    expect(link).toHaveAttribute("href", "/representatives/W000817");
   });
 
   it("renders empty state when no senators found", async () => {

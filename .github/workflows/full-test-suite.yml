@@ -20,8 +20,8 @@ jobs:
         run: npm ci
       - name: Start Supabase
         run: npx supabase start
-      - name: Run Jest tests
-        run: npx jest --forceExit
+      - name: Run Vitest tests
+        run: npx vitest run
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
       - name: Run Playwright tests
