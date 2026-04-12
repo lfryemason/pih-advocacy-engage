@@ -10,6 +10,9 @@ for (const theme of themes) {
   test(`sidebar (${theme}) has no accessibility violations`, async ({
     page,
   }) => {
+    await page.addInitScript((t) => {
+      window.localStorage.setItem("theme", t);
+    }, theme);
     await page.goto("/");
     await page.evaluate((t) => {
       document.documentElement.classList.remove("light", "dark");

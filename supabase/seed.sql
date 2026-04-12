@@ -27,3 +27,9 @@ INSERT INTO auth.identities (
   'email',
   NOW(), NOW(), NOW()
 ) ON CONFLICT (id) DO NOTHING;
+
+-- Seed representatives for Playwright E2E tests
+INSERT INTO public.representatives (bioguide_id, first_name, last_name, official_full_name, chamber, state, party, state_rank, birthday, in_office) VALUES
+  ('S000001', 'Hank', 'Green',  'Hank Green',  'sen', 'MT', 'Democrat',    'senior', '1980-05-05', true),
+  ('S000002', 'John',   'Green',  'John Green',  'sen', 'IN', 'Democrat',    'junior', '1977-08-24', true),
+ON CONFLICT (bioguide_id) DO NOTHING;

@@ -10,6 +10,9 @@ for (const theme of themes) {
   test(`representatives page (${theme}) has no accessibility violations`, async ({
     page,
   }) => {
+    await page.addInitScript((t) => {
+      window.localStorage.setItem("theme", t);
+    }, theme);
     await page.goto("/representatives");
     await page.waitForLoadState("networkidle");
     await page.evaluate((t) => {
