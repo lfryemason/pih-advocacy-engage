@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,31 +8,33 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
-interface ProfileFormProps {
-  email: string;
-  initialFirstName: string;
-  initialLastName: string;
-  initialPronouns: string;
-  initialState: string;
-  initialDistrict: string;
-}
-
-export function ProfileForm({
-  email,
-  initialFirstName,
-  initialLastName,
-  initialPronouns,
-  initialState,
-  initialDistrict,
-}: ProfileFormProps) {
-  const [firstName, setFirstName] = useState(initialFirstName);
-  const [lastName, setLastName] = useState(initialLastName);
-  const [pronouns, setPronouns] = useState(initialPronouns);
-  const [state, setState] = useState(initialState);
-  const [district, setDistrict] = useState(initialDistrict);
+export function ProfileForm() {
+  const [isLoadingUser, setIsLoadingUser] = useState(true);
+  const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [pronouns, setPronouns] = useState("");
+  const [state, setState] = useState("");
+  const [district, setDistrict] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user) {
+        const meta = data.user.user_metadata ?? {};
+        setEmail(data.user.email ?? "");
+        setFirstName(String(meta.first_name ?? ""));
+        setLastName(String(meta.last_name ?? ""));
+        setPronouns(String(meta.pronouns ?? ""));
+        setState(String(meta.state ?? ""));
+        setDistrict(String(meta.congressional_district ?? ""));
+      }
+      setIsLoadingUser(false);
+    });
+  }, []);
 
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setState(e.target.value);
@@ -65,6 +67,10 @@ export function ProfileForm({
       setIsLoading(false);
     }
   };
+
+  if (isLoadingUser) {
+    return <p className="mt-6 text-sm text-muted-foreground">Loading...</p>;
+  }
 
   const districtOptions = getDistrictOptions(state);
 
