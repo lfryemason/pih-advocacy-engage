@@ -7,13 +7,13 @@ test.use({ storageState: AUTH_STATE_PATH });
 const themes = ["light", "dark"] as const;
 
 for (const theme of themes) {
-  test(`sidebar (${theme}) has no accessibility violations`, async ({
+  test(`representatives page (${theme}) has no accessibility violations`, async ({
     page,
   }) => {
     await page.addInitScript((t) => {
       window.localStorage.setItem("theme", t);
     }, theme);
-    await page.goto("/");
+    await page.goto("/representatives");
     await page.evaluate((t) => {
       document.documentElement.classList.remove("light", "dark");
       document.documentElement.classList.add(t);

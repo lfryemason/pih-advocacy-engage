@@ -17,6 +17,9 @@ for (const { name, path } of authPages) {
     test(`${name} page (${theme}) has no accessibility violations`, async ({
       page,
     }) => {
+      await page.addInitScript((t) => {
+        window.localStorage.setItem("theme", t);
+      }, theme);
       await page.goto(path);
       await page.evaluate((t) => {
         document.documentElement.classList.remove("light", "dark");
