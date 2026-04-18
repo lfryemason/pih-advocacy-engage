@@ -77,19 +77,6 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon key from supabase start output>
 supabase stop
 ```
 
-#### Email confirmation
-
-To login, you need to confirm emails, however local Supabase doesn't send real emails. Instead, all emails (including confirmation links) are caught by **Inbucket**, a local inbox available at [localhost:54324](http://localhost:54324).
-
-To skip email confirmation entirely in local dev, add this to `supabase/config.toml`:
-
-```toml
-[auth.email]
-enable_confirmations = false
-```
-
-Then restart the local stack for the change to take effect.
-
 ### Seed representatives data
 
 Populate the `representatives` table with current members of Congress from the [congress-legislators](https://github.com/unitedstates/congress-legislators) dataset:

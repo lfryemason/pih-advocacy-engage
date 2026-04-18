@@ -1,12 +1,24 @@
 import { defineConfig, devices } from "@playwright/test";
+import { execSync } from "child_process";
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Load local Supabase env vars (SERVICE_ROLE_KEY, etc.) when not already set
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  try {
+    const env = execSync("npx supabase status -o env", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    for (const rawLine of env.split("\n")) {
+      const line = rawLine.replace(/\r$/, "").trim();
+      const match = line.match(/^(?:export\s+)?(\w+)="?(.*?)"?$/);
+      if (match && !process.env[match[1]]) {
+        process.env[match[1]] = match[2];
+      }
+    }
+  } catch {
+    // Supabase CLI not available or not running — CI sets env vars directly
+  }
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.
@@ -14,8 +26,23 @@ import { defineConfig, devices } from "@playwright/test";
 export default defineConfig({
   globalSetup: require.resolve("./tests/global-setup"),
   testDir: "./tests",
-  /* Skip snapshot/regression tests locally — they only pass in CI */
-  testIgnore: process.env.CI ? undefined : "**/regression/**",
+  /*
+   * Test suite selection:
+   * - TEST_SUITE=regression → only regression tests
+   * - TEST_SUITE=e2e → only e2e tests (exclude regression)
+   * - unset locally → skip regression (they only pass in CI)
+   * - unset in CI → run everything
+   */
+  testMatch:
+    process.env.TEST_SUITE === "regression"
+      ? "**/regression/**/*.spec.ts"
+      : undefined,
+  testIgnore:
+    process.env.TEST_SUITE === "regression"
+      ? undefined
+      : process.env.TEST_SUITE === "e2e" || !process.env.CI
+        ? "**/regression/**"
+        : undefined,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
