@@ -44,20 +44,17 @@ export function Sidebar() {
   const router = useRouter();
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
-  const [firstName, setFirstName] = React.useState<string | null>(null);
+  const [fullName, setFullName] = React.useState<string | null>(null);
 
   React.useEffect(() => {
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       if (!data.user) return;
       const meta = data.user.user_metadata;
-      if (meta?.first_name) {
-        setFirstName(meta.first_name);
-      } else if (meta?.full_name) {
-        setFirstName(meta.full_name.split(" ")[0]);
-      } else {
-        setFirstName(null);
-      }
+      const first = meta?.first_name ?? "";
+      const last = meta?.last_name ?? "";
+      const combined = [first, last].filter(Boolean).join(" ");
+      setFullName(combined || meta?.full_name || null);
     });
   }, []);
 
@@ -129,7 +126,7 @@ export function Sidebar() {
         />
         <NavLink
           href="/profile"
-          label={firstName ? `${firstName}'s profile` : "Profile"}
+          label={fullName ? `${fullName}` : "Profile"}
           icon={UserCircle}
           isCollapsed={isCollapsed}
         />
