@@ -1,12 +1,23 @@
 import { defineConfig, devices } from "@playwright/test";
+import { execSync } from "child_process";
 
-/**
- * Read environment variables from file.
- * https://github.com/motdotla/dotenv
- */
-// import dotenv from 'dotenv';
-// import path from 'path';
-// dotenv.config({ path: path.resolve(__dirname, '.env') });
+// Load local Supabase env vars (SERVICE_ROLE_KEY, etc.) when not already set
+if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  try {
+    const env = execSync("npx supabase status -o env", {
+      encoding: "utf-8",
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+    for (const line of env.split("\n")) {
+      const match = line.match(/^(\w+)="?(.*?)"?$/);
+      if (match && !process.env[match[1]]) {
+        process.env[match[1]] = match[2];
+      }
+    }
+  } catch {
+    // Supabase CLI not available or not running — CI sets env vars directly
+  }
+}
 
 /**
  * See https://playwright.dev/docs/test-configuration.

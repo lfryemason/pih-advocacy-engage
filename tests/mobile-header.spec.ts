@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { AUTH_STATE_PATH } from "./global-setup";
+import { resetDatabase } from "./reset-db";
 
 test.use({
   storageState: AUTH_STATE_PATH,
   viewport: { width: 400, height: 800 },
 });
+test.beforeAll(resetDatabase);
 
 test.describe("mobile header", () => {
   test.beforeEach(async ({ page }) => {
