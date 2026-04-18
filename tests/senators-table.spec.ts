@@ -35,4 +35,17 @@ test.describe("senators table (e2e)", () => {
     await expect(table.getByRole("link", { name: "Hank Green" })).toBeVisible();
     await expect(table.getByRole("link", { name: "John Green" })).toBeHidden();
   });
+
+  test("name filter shows only senators whose name matches", async ({
+    page,
+  }) => {
+    const table = page.getByRole("table", { name: "Senators" });
+    await expect(table.getByRole("link", { name: "Hank Green" })).toBeVisible();
+    await expect(table.getByRole("link", { name: "John Green" })).toBeVisible();
+
+    await page.getByRole("textbox", { name: "Filter by name" }).fill("Hank");
+
+    await expect(table.getByRole("link", { name: "Hank Green" })).toBeVisible();
+    await expect(table.getByRole("link", { name: "John Green" })).toBeHidden();
+  });
 });

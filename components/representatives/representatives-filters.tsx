@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronDown, X } from "lucide-react";
+import { debounce, xor } from "es-toolkit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -27,12 +28,6 @@ export function hasActiveFilters(f: Filters): boolean {
 
 const FILTER_WIDTH = "w-40";
 const NAME_DEBOUNCE_MS = 300;
-
-function toggle<T>(list: T[], value: T): T[] {
-  return list.includes(value)
-    ? list.filter((v) => v !== value)
-    : [...list, value];
-}
 
 function summarize(
   values: string[],
@@ -69,13 +64,15 @@ export function RepresentativesFilters({
     setNameDraft(filters.name);
   }, [filters.name]);
 
-  useEffect(() => {
-    if (nameDraft === filters.name) return;
-    const id = setTimeout(() => {
-      onChange({ ...filters, name: nameDraft });
-    }, NAME_DEBOUNCE_MS);
-    return () => clearTimeout(id);
-  }, [nameDraft, filters, onChange]);
+  const emitName = useMemo(
+    () =>
+      debounce((value: string) => {
+        onChange({ ...filters, name: value });
+      }, NAME_DEBOUNCE_MS),
+    [filters, onChange],
+  );
+
+  useEffect(() => () => emitName.cancel(), [emitName]);
 
   return (
     <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -99,7 +96,7 @@ export function RepresentativesFilters({
                 key={state.code}
                 onSelect={(e) => {
                   e.preventDefault();
-                  set({ states: toggle(filters.states, state.code) });
+                  set({ states: xor(filters.states, [state.code]) });
                 }}
                 className="pr-2"
               >
@@ -133,7 +130,7 @@ export function RepresentativesFilters({
                 key={party}
                 onSelect={(e) => {
                   e.preventDefault();
-                  set({ parties: toggle(filters.parties, party) });
+                  set({ parties: xor(filters.parties, [party]) });
                 }}
                 className="pr-2"
               >
@@ -150,7 +147,10 @@ export function RepresentativesFilters({
       <Input
         placeholder="Name"
         value={nameDraft}
-        onChange={(e) => setNameDraft(e.target.value)}
+        onChange={(e) => {
+          setNameDraft(e.target.value);
+          emitName(e.target.value);
+        }}
         aria-label="Filter by name"
         className={`h-8 ${FILTER_WIDTH}`}
       />

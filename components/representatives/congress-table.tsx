@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
@@ -26,8 +26,17 @@ export function CongressTable({ filters }: { filters: Filters }) {
   const [totalPages, setTotalPages] = useState(0);
   const [error, setError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const prevFiltersRef = useRef(filters);
 
   useEffect(() => {
+    if (prevFiltersRef.current !== filters && page !== 0) {
+      prevFiltersRef.current = filters;
+      setPage(0);
+      return;
+    }
+    prevFiltersRef.current = filters;
+
+    const controller = new AbortController();
     setIsLoading(true);
     setError(false);
     const supabase = createClient();
@@ -50,22 +59,24 @@ export function CongressTable({ filters }: { filters: Filters }) {
       );
     }
 
-    const response = query.order("state").order("district").range(from, to);
+    query
+      .order("state")
+      .order("district")
+      .range(from, to)
+      .abortSignal(controller.signal)
+      .then(({ data, count, error: queryError }) => {
+        if (controller.signal.aborted) return;
+        if (queryError) {
+          setError(true);
+        } else {
+          setRepresentatives(data ?? []);
+          setTotalPages(Math.ceil((count ?? 0) / PAGE_SIZE));
+        }
+        setIsLoading(false);
+      });
 
-    response.then(({ data, count, error: queryError }) => {
-      if (queryError) {
-        setError(true);
-      } else {
-        setRepresentatives(data ?? []);
-        setTotalPages(Math.ceil((count ?? 0) / PAGE_SIZE));
-      }
-      setIsLoading(false);
-    });
+    return () => controller.abort();
   }, [page, filters]);
-
-  useEffect(() => {
-    setPage(0);
-  }, [filters]);
 
   return (
     <div className="w-full min-w-0 md:w-1/2">
