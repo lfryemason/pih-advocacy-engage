@@ -26,16 +26,25 @@ function adminClient() {
 /** Ensure the test user exists, creating it if needed. */
 export async function seedTestUser() {
   const supabase = adminClient();
-  const { data } = await supabase.auth.admin.getUserById(TEST_USER_ID);
+  const { data, error: getError } =
+    await supabase.auth.admin.getUserById(TEST_USER_ID);
 
-  if (!data.user) {
-    await supabase.auth.admin.createUser({
+  // 404 = user doesn't exist yet; any other error is a real failure
+  if (getError && getError.status !== 404) {
+    throw new Error(`Failed to look up test user: ${getError.message}`);
+  }
+
+  if (!data?.user) {
+    const { error: createError } = await supabase.auth.admin.createUser({
       id: TEST_USER_ID,
       email: TEST_EMAIL,
       password: TEST_PASSWORD,
       email_confirm: true,
       user_metadata: {},
     });
+    if (createError) {
+      throw new Error(`Failed to create test user: ${createError.message}`);
+    }
   }
 }
 
@@ -44,15 +53,34 @@ export async function resetDatabase() {
   const supabase = adminClient();
 
   // Reset user metadata
-  await supabase.auth.admin.updateUserById(TEST_USER_ID, {
-    user_metadata: {},
-  });
+  const { error: updateError } = await supabase.auth.admin.updateUserById(
+    TEST_USER_ID,
+    { user_metadata: {} },
+  );
+  if (updateError) {
+    throw new Error(
+      `Failed to reset test user metadata: ${updateError.message}`,
+    );
+  }
 
-  // Reset representatives table to seed state (upsert without delete to
-  // avoid race conditions with parallel workers)
+  // Reset representatives table to seed state. We only delete rows NOT in the
+  // seed set (safe for parallel workers — never touches the seed rows), then
+  // upsert to restore any seed rows that a test may have modified.
+  const seedIds = SEED_REPRESENTATIVES.map((r) => r.bioguide_id);
+  const { error: deleteError } = await supabase
+    .from("representatives")
+    .delete()
+    .not("bioguide_id", "in", `(${seedIds.join(",")})`);
+  if (deleteError) {
+    throw new Error(
+      `Failed to clear non-seed representatives: ${deleteError.message}`,
+    );
+  }
+
   const { error: upsertError } = await supabase
     .from("representatives")
     .upsert(SEED_REPRESENTATIVES, { onConflict: "bioguide_id" });
-  if (upsertError)
+  if (upsertError) {
     throw new Error(`Failed to seed representatives: ${upsertError.message}`);
+  }
 }

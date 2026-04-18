@@ -8,8 +8,9 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
       encoding: "utf-8",
       stdio: ["pipe", "pipe", "pipe"],
     });
-    for (const line of env.split("\n")) {
-      const match = line.match(/^(\w+)="?(.*?)"?$/);
+    for (const rawLine of env.split("\n")) {
+      const line = rawLine.replace(/\r$/, "").trim();
+      const match = line.match(/^(?:export\s+)?(\w+)="?(.*?)"?$/);
       if (match && !process.env[match[1]]) {
         process.env[match[1]] = match[2];
       }
