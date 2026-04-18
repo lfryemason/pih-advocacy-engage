@@ -31,7 +31,9 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Update snapshots
-        run: npx playwright test tests/regression --update-snapshots
+        env:
+          TEST_SUITE: regression
+        run: npx playwright test --update-snapshots
         continue-on-error: true
       - name: Commit updated snapshots
         run: |
