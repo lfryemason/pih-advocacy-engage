@@ -1,9 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { AUTH_STATE_PATH } from "./global-setup";
-import { resetDatabase } from "./reset-db";
 
 test.use({ storageState: AUTH_STATE_PATH });
-test.beforeAll(resetDatabase);
 
 test.describe("congress table (e2e)", () => {
   test.beforeEach(async ({ page }) => {

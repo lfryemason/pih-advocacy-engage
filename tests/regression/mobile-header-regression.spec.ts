@@ -6,7 +6,7 @@ test.use({
   storageState: AUTH_STATE_PATH,
   viewport: { width: 400, height: 800 },
 });
-test.beforeAll(resetDatabase);
+test.beforeEach(resetDatabase);
 
 const themes = ["light", "dark"] as const;
 type Theme = (typeof themes)[number];

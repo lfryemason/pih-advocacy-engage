@@ -25,8 +25,23 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
 export default defineConfig({
   globalSetup: require.resolve("./tests/global-setup"),
   testDir: "./tests",
-  /* Skip snapshot/regression tests locally — they only pass in CI */
-  testIgnore: process.env.CI ? undefined : "**/regression/**",
+  /*
+   * Test suite selection:
+   * - TEST_SUITE=regression → only regression tests
+   * - TEST_SUITE=e2e → only e2e tests (exclude regression)
+   * - unset locally → skip regression (they only pass in CI)
+   * - unset in CI → run everything
+   */
+  testMatch:
+    process.env.TEST_SUITE === "regression"
+      ? "**/regression/**/*.spec.ts"
+      : undefined,
+  testIgnore:
+    process.env.TEST_SUITE === "regression"
+      ? undefined
+      : process.env.TEST_SUITE === "e2e" || !process.env.CI
+        ? "**/regression/**"
+        : undefined,
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */

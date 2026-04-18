@@ -3,7 +3,7 @@ import { AUTH_STATE_PATH } from "../global-setup";
 import { resetDatabase } from "../reset-db";
 
 test.use({ storageState: AUTH_STATE_PATH });
-test.beforeAll(resetDatabase);
+test.beforeEach(resetDatabase);
 
 const themes = ["light", "dark"] as const;
 type Theme = (typeof themes)[number];
