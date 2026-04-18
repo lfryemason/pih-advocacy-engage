@@ -1,6 +1,4 @@
-export type StateCode = { code: string; name: string };
-
-export const US_STATES: StateCode[] = [
+export const US_STATES = [
   { code: "AL", name: "Alabama" },
   { code: "AK", name: "Alaska" },
   { code: "AZ", name: "Arizona" },
@@ -52,7 +50,10 @@ export const US_STATES: StateCode[] = [
   { code: "WV", name: "West Virginia" },
   { code: "WI", name: "Wisconsin" },
   { code: "WY", name: "Wyoming" },
-];
+] as const;
+
+export type State = (typeof US_STATES)[number];
+export type StateCode = State["code"];
 
 // Cited from https://www2.census.gov/programs-surveys/decennial/2020/data/apportionment/apportionment-2020-table01.pdf
 // States with a single at-large representative are marked 'at-large'.

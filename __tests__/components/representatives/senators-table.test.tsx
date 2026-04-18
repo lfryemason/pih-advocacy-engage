@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SenatorsTable } from "@/components/representatives/senators-table";
+import { EMPTY_FILTERS } from "@/components/representatives/representatives-filters";
 import {
   server,
   representativesHandlers,
@@ -26,7 +27,7 @@ vi.mock("next/link", () => ({
 describe("SenatorsTable", () => {
   it("shows loading state initially", () => {
     server.use(...representativesHandlers([]));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     expect(screen.getByText("Loading…")).toBeInTheDocument();
   });
@@ -41,7 +42,7 @@ describe("SenatorsTable", () => {
       }),
     ];
     server.use(...representativesHandlers(senators));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Jane Doe")).toBeInTheDocument();
@@ -51,7 +52,7 @@ describe("SenatorsTable", () => {
 
   it("renders header columns", async () => {
     server.use(...representativesHandlers([makeRepresentative()]));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(
@@ -76,7 +77,7 @@ describe("SenatorsTable", () => {
         }),
       ]),
     );
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Elizabeth Warren")).toBeInTheDocument();
@@ -95,7 +96,7 @@ describe("SenatorsTable", () => {
         }),
       ]),
     );
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Jane Smith")).toBeInTheDocument();
@@ -122,7 +123,7 @@ describe("SenatorsTable", () => {
         }),
       ]),
     );
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("D")).toBeInTheDocument();
@@ -137,7 +138,7 @@ describe("SenatorsTable", () => {
         makeRepresentative({ bioguide_id: "W000817" }),
       ]),
     );
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Jane Doe")).toBeInTheDocument();
@@ -149,7 +150,7 @@ describe("SenatorsTable", () => {
 
   it("renders empty state when no senators found", async () => {
     server.use(...representativesHandlers([]));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("No senators found.")).toBeInTheDocument();
@@ -158,7 +159,7 @@ describe("SenatorsTable", () => {
 
   it("renders error state when query fails", async () => {
     server.use(...representativesHandlers([], "Something went wrong"));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Failed to load senators.")).toBeInTheDocument();
@@ -167,7 +168,7 @@ describe("SenatorsTable", () => {
 
   it("does not show pagination when totalPages is 1", async () => {
     server.use(...representativesHandlers([makeRepresentative()]));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -186,7 +187,7 @@ describe("SenatorsTable", () => {
       }),
     );
     server.use(...representativesHandlers(senators));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
@@ -203,7 +204,7 @@ describe("SenatorsTable", () => {
       }),
     );
     server.use(...representativesHandlers(senators));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
@@ -227,7 +228,7 @@ describe("SenatorsTable", () => {
       }),
     );
     server.use(...representativesHandlers(senators));
-    render(<SenatorsTable />);
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       // 5 data rows + 1 header row

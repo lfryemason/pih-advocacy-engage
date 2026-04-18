@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { CongressTable } from "@/components/representatives/congress-table";
+import { EMPTY_FILTERS } from "@/components/representatives/representatives-filters";
 import {
   server,
   representativesHandlers,
@@ -37,7 +38,7 @@ function makeRep(
 describe("CongressTable", () => {
   it("shows loading state initially", () => {
     server.use(...representativesHandlers([]));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     expect(screen.getByText("Loading…")).toBeInTheDocument();
   });
@@ -53,7 +54,7 @@ describe("CongressTable", () => {
       }),
     ];
     server.use(...representativesHandlers(reps));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("April May")).toBeInTheDocument();
@@ -63,7 +64,7 @@ describe("CongressTable", () => {
 
   it("renders header columns including District", async () => {
     server.use(...representativesHandlers([makeRep()]));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(
@@ -92,7 +93,7 @@ describe("CongressTable", () => {
         }),
       ]),
     );
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("April May")).toBeInTheDocument();
@@ -112,7 +113,7 @@ describe("CongressTable", () => {
         }),
       ]),
     );
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Andy Skampt")).toBeInTheDocument();
@@ -142,7 +143,7 @@ describe("CongressTable", () => {
         }),
       ]),
     );
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("D")).toBeInTheDocument();
@@ -160,7 +161,7 @@ describe("CongressTable", () => {
         }),
       ]),
     );
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Peter Petrawicki")).toBeInTheDocument();
@@ -172,7 +173,7 @@ describe("CongressTable", () => {
 
   it("renders empty state when no representatives found", async () => {
     server.use(...representativesHandlers([]));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("No representatives found.")).toBeInTheDocument();
@@ -181,7 +182,7 @@ describe("CongressTable", () => {
 
   it("renders error state when query fails", async () => {
     server.use(...representativesHandlers([], "Something went wrong"));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(
@@ -192,7 +193,7 @@ describe("CongressTable", () => {
 
   it("does not show pagination when totalPages is 1", async () => {
     server.use(...representativesHandlers([makeRep()]));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByRole("table")).toBeInTheDocument();
@@ -212,7 +213,7 @@ describe("CongressTable", () => {
       }),
     );
     server.use(...representativesHandlers(reps));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
@@ -230,7 +231,7 @@ describe("CongressTable", () => {
       }),
     );
     server.use(...representativesHandlers(reps));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       expect(screen.getByText("Page 1 of 2")).toBeInTheDocument();
@@ -255,7 +256,7 @@ describe("CongressTable", () => {
       }),
     );
     server.use(...representativesHandlers(reps));
-    render(<CongressTable />);
+    render(<CongressTable filters={EMPTY_FILTERS} />);
 
     await waitFor(() => {
       // 5 data rows + 1 header row
