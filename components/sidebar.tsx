@@ -70,7 +70,8 @@ export function Sidebar() {
   return (
     <aside
       aria-label="Sidebar"
-      className="flex h-full flex-col border-r transition-[width] duration-300 ease-in-out"
+      className="hidden h-full flex-col border-r transition-[width] duration-300 ease-in-out md:flex"
+      data-breakpoint="md"
       style={{
         width: isCollapsed ? "50px" : "275px",
         backgroundColor: "var(--background)",
