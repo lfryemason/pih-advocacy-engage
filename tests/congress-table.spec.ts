@@ -39,4 +39,27 @@ test.describe("congress table (e2e)", () => {
     await page.waitForURL("/representatives/R000001");
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
+
+  test("party filter shows only representatives in that party", async ({
+    page,
+  }) => {
+    const table = page.getByRole("table", { name: "Representatives" });
+    await expect(
+      table.getByRole("link", { name: "Peter Petrawicki" }),
+    ).toBeVisible();
+    await expect(table.getByRole("link", { name: "April May" })).toBeVisible();
+    await expect(
+      table.getByRole("link", { name: "Andy Skampt" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Filter by party" }).click();
+    await page.getByRole("menuitem", { name: "Republican" }).click();
+    await page.keyboard.press("Escape");
+
+    await expect(
+      table.getByRole("link", { name: "Peter Petrawicki" }),
+    ).toBeVisible();
+    await expect(table.getByRole("link", { name: "April May" })).toBeHidden();
+    await expect(table.getByRole("link", { name: "Andy Skampt" })).toBeHidden();
+  });
 });

@@ -22,4 +22,17 @@ test.describe("senators table (e2e)", () => {
     await page.waitForURL(/\/representatives\/.+/);
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
+
+  test("state filter shows only senators from that state", async ({ page }) => {
+    const table = page.getByRole("table", { name: "Senators" });
+    await expect(table.getByRole("link", { name: "Hank Green" })).toBeVisible();
+    await expect(table.getByRole("link", { name: "John Green" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Filter by state" }).click();
+    await page.getByRole("menuitem", { name: "Montana" }).click();
+    await page.keyboard.press("Escape");
+
+    await expect(table.getByRole("link", { name: "Hank Green" })).toBeVisible();
+    await expect(table.getByRole("link", { name: "John Green" })).toBeHidden();
+  });
 });
