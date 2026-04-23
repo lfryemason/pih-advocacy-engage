@@ -63,6 +63,31 @@ export async function resetDatabase() {
     );
   }
 
+  // Reset the test user's profile to member of pihe. The auth trigger creates
+  // this row on user insert; the upsert here ensures tests that promote the
+  // user to org_admin/super_admin don't leak state across runs.
+  const { data: piheOrg, error: piheError } = await supabase
+    .from("organizations")
+    .select("id")
+    .eq("slug", "pihe")
+    .single();
+  if (piheError || !piheOrg) {
+    throw new Error(
+      `Failed to look up pihe org: ${piheError?.message ?? "not found"}`,
+    );
+  }
+  const { error: profileError } = await supabase
+    .from("user_profiles")
+    .upsert(
+      { user_id: TEST_USER_ID, role: "member", org_id: piheOrg.id },
+      { onConflict: "user_id" },
+    );
+  if (profileError) {
+    throw new Error(
+      `Failed to reset test user profile: ${profileError.message}`,
+    );
+  }
+
   // Reset representatives table to seed state. We only delete rows NOT in the
   // seed set (safe for parallel workers — never touches the seed rows), then
   // upsert to restore any seed rows that a test may have modified.

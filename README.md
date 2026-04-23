@@ -89,6 +89,33 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 \
 
 This script is idempotent — it upserts current legislators and marks any previously stored representatives no longer in the dataset as `in_office = false`.
 
+### Roles and bootstrapping a super admin
+
+Every user has one of three roles stored in `public.user_profiles`:
+
+- `member` — default role; read/write scoped to their org
+- `org_admin` — elevated write permissions within their org
+- `super_admin` — only role that can read/modify cross-org data and promote users
+
+New sign-ups are auto-assigned to the `pihe` org as `member` via an `auth.users` trigger. Only a super admin can change another user's role, so the first super admin has to be promoted manually:
+
+1. Sign up normally at `/auth/sign-up` (or have an existing user).
+2. In Supabase Studio → SQL editor, find the user id:
+
+```sql
+select id, email from auth.users where email = 'you@example.com';
+```
+
+3. Promote the user:
+
+```sql
+update public.user_profiles
+   set role = 'super_admin', org_id = null
+ where user_id = '<uuid>';
+```
+
+4. Log out and back in so server renders pick up the new role.
+
 ### Start the dev server
 
 ```bash

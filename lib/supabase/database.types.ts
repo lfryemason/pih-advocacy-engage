@@ -34,6 +34,72 @@ export type Database = {
   };
   public: {
     Tables: {
+      organizations: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      representative_org_links: {
+        Row: {
+          created_at: string;
+          id: string;
+          links: Json;
+          org_id: string;
+          representative_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          links?: Json;
+          org_id: string;
+          representative_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          links?: Json;
+          org_id?: string;
+          representative_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "representative_org_links_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "representative_org_links_representative_id_fkey";
+            columns: ["representative_id"];
+            isOneToOne: false;
+            referencedRelation: "representatives";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       representatives: {
         Row: {
           bioguide_id: string;
@@ -47,7 +113,6 @@ export type Database = {
           in_office: boolean;
           last_name: string;
           official_full_name: string | null;
-          org_links: Json;
           party: string;
           state: string;
           state_rank: string | null;
@@ -65,7 +130,6 @@ export type Database = {
           in_office?: boolean;
           last_name: string;
           official_full_name?: string | null;
-          org_links?: Json;
           party: string;
           state: string;
           state_rank?: string | null;
@@ -83,7 +147,6 @@ export type Database = {
           in_office?: boolean;
           last_name?: string;
           official_full_name?: string | null;
-          org_links?: Json;
           party?: string;
           state?: string;
           state_rank?: string | null;
@@ -91,15 +154,49 @@ export type Database = {
         };
         Relationships: [];
       };
+      user_profiles: {
+        Row: {
+          created_at: string;
+          org_id: string | null;
+          role: Database["public"]["Enums"]["user_role"];
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          org_id?: string | null;
+          role?: Database["public"]["Enums"]["user_role"];
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          org_id?: string | null;
+          role?: Database["public"]["Enums"]["user_role"];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_org_id_fkey";
+            columns: ["org_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      current_org_id: { Args: never; Returns: string };
+      is_org_admin_of: { Args: { target_org: string }; Returns: boolean };
+      is_super_admin: { Args: never; Returns: boolean };
     };
     Enums: {
-      [_ in never]: never;
+      user_role: "member" | "org_admin" | "super_admin";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -232,6 +329,8 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      user_role: ["member", "org_admin", "super_admin"],
+    },
   },
 } as const;
