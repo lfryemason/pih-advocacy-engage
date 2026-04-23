@@ -12,29 +12,21 @@ function adminClient() {
   });
 }
 
-test.describe("user profile auto-assignment", () => {
-  test("test user has a profile row in the pihe org", async () => {
+test.describe("user role auto-assignment", () => {
+  test("test user has a member role row", async () => {
     const supabase = adminClient();
 
-    const { data: profile, error: profileError } = await supabase
-      .from("user_profiles")
-      .select("role, org_id")
+    const { data: row, error } = await supabase
+      .from("user_role")
+      .select("role")
       .eq("user_id", TEST_USER_ID)
       .single();
 
-    expect(profileError).toBeNull();
-    expect(profile?.role).toBe("member");
-    expect(profile?.org_id).toBeTruthy();
-
-    const { data: org } = await supabase
-      .from("organizations")
-      .select("slug")
-      .eq("id", profile!.org_id!)
-      .single();
-    expect(org?.slug).toBe("pihe");
+    expect(error).toBeNull();
+    expect(row?.role).toBe("member");
   });
 
-  test("newly created users are auto-assigned to pihe as members", async () => {
+  test("newly created users are auto-assigned as members", async () => {
     const supabase = adminClient();
     const email = `trigger-test-${Date.now()}@example.com`;
 
@@ -48,18 +40,13 @@ test.describe("user profile auto-assignment", () => {
     const newId = created.user!.id;
 
     try {
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("role, org_id, organizations(slug)")
+      const { data: row } = await supabase
+        .from("user_role")
+        .select("role")
         .eq("user_id", newId)
-        .single<{
-          role: string;
-          org_id: string | null;
-          organizations: { slug: string } | null;
-        }>();
+        .single();
 
-      expect(profile?.role).toBe("member");
-      expect(profile?.organizations?.slug).toBe("pihe");
+      expect(row?.role).toBe("member");
     } finally {
       await supabase.auth.admin.deleteUser(newId);
     }

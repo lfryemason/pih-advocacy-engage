@@ -3,8 +3,7 @@ import { setupServer } from "msw/node";
 
 const SUPABASE_URL = "http://localhost";
 const REST_PATH = `${SUPABASE_URL}/rest/v1/representatives`;
-const ORG_REST_PATH = `${SUPABASE_URL}/rest/v1/organizations`;
-const PROFILE_REST_PATH = `${SUPABASE_URL}/rest/v1/user_profiles`;
+const USER_ROLE_REST_PATH = `${SUPABASE_URL}/rest/v1/user_role`;
 
 export interface MockRepresentative {
   id: string;
@@ -24,21 +23,9 @@ export interface MockRepresentative {
   updated_at: string;
 }
 
-export interface MockOrganization {
-  id: string;
-  slug: string;
-  name: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface MockUserProfile {
+export interface MockUserRole {
   user_id: string;
   role: "member" | "org_admin" | "super_admin";
-  org_id: string | null;
-  created_at: string;
-  updated_at: string;
-  organizations?: { slug: string } | null;
 }
 
 export function makeRepresentative(
@@ -64,29 +51,12 @@ export function makeRepresentative(
   };
 }
 
-export function makeOrganization(
-  overrides: Partial<MockOrganization> = {},
-): MockOrganization {
-  return {
-    id: "org-pihe",
-    slug: "pihe",
-    name: "Partners in Health Engage",
-    created_at: "2026-01-01T00:00:00Z",
-    updated_at: "2026-01-01T00:00:00Z",
-    ...overrides,
-  };
-}
-
-export function makeUserProfile(
-  overrides: Partial<MockUserProfile> = {},
-): MockUserProfile {
+export function makeUserRole(
+  overrides: Partial<MockUserRole> = {},
+): MockUserRole {
   return {
     user_id: "user-1",
     role: "member",
-    org_id: "org-pihe",
-    created_at: "2026-01-01T00:00:00Z",
-    updated_at: "2026-01-01T00:00:00Z",
-    organizations: { slug: "pihe" },
     ...overrides,
   };
 }
@@ -172,27 +142,9 @@ export function representativesHandlers(
   ];
 }
 
-export function organizationsHandlers(data: MockOrganization[]) {
+export function userRoleHandlers(data: MockUserRole[]) {
   return [
-    http.get(ORG_REST_PATH, ({ request }) => {
-      const url = new URL(request.url);
-      const filtered = applyFilters(data, url);
-      const accept = request.headers.get("accept") ?? "";
-      if (accept.includes("vnd.pgrst.object")) {
-        const item = filtered[0] ?? null;
-        if (!item) {
-          return HttpResponse.json({ message: "not found" }, { status: 406 });
-        }
-        return HttpResponse.json(item);
-      }
-      return HttpResponse.json(filtered);
-    }),
-  ];
-}
-
-export function userProfilesHandlers(data: MockUserProfile[]) {
-  return [
-    http.get(PROFILE_REST_PATH, ({ request }) => {
+    http.get(USER_ROLE_REST_PATH, ({ request }) => {
       const url = new URL(request.url);
       const filtered = applyFilters(data, url);
       const accept = request.headers.get("accept") ?? "";

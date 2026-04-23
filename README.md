@@ -91,13 +91,13 @@ This script is idempotent — it upserts current legislators and marks any previ
 
 ### Roles and bootstrapping a super admin
 
-Every user has one of three roles stored in `public.user_profiles`:
+Every user has one of three roles stored in `public.user_role`:
 
-- `member` — default role; read/write scoped to their org
-- `org_admin` — elevated write permissions within their org
-- `super_admin` — only role that can read/modify cross-org data and promote users
+- `member` — default role; read/write scoped to org-owned data
+- `org_admin` — elevated write permissions on org-owned data (e.g. `representative_org_info`)
+- `super_admin` — only role that can modify shared/reference data and promote users
 
-New sign-ups are auto-assigned to the `pihe` org as `member` via an `auth.users` trigger. Only a super admin can change another user's role, so the first super admin has to be promoted manually:
+Only one org exists today (`pihe`), so organization membership is implicit in the role. New sign-ups are auto-assigned as `member` via an `auth.users` trigger. Only a super admin can change another user's role, so the first super admin has to be promoted manually:
 
 1. Sign up normally at `/auth/sign-up` (or have an existing user).
 2. In Supabase Studio → SQL editor, find the user id:
@@ -109,8 +109,8 @@ select id, email from auth.users where email = 'you@example.com';
 3. Promote the user:
 
 ```sql
-update public.user_profiles
-   set role = 'super_admin', org_id = null
+update public.user_role
+   set role = 'super_admin'
  where user_id = '<uuid>';
 ```
 

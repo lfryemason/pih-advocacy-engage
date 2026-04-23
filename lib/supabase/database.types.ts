@@ -34,67 +34,30 @@ export type Database = {
   };
   public: {
     Tables: {
-      organizations: {
+      representative_org_info: {
         Row: {
           created_at: string;
-          id: string;
-          name: string;
-          slug: string;
-          updated_at: string;
-        };
-        Insert: {
-          created_at?: string;
-          id?: string;
-          name: string;
-          slug: string;
-          updated_at?: string;
-        };
-        Update: {
-          created_at?: string;
-          id?: string;
-          name?: string;
-          slug?: string;
-          updated_at?: string;
-        };
-        Relationships: [];
-      };
-      representative_org_links: {
-        Row: {
-          created_at: string;
-          id: string;
           links: Json;
-          org_id: string;
           representative_id: string;
           updated_at: string;
         };
         Insert: {
           created_at?: string;
-          id?: string;
           links?: Json;
-          org_id: string;
           representative_id: string;
           updated_at?: string;
         };
         Update: {
           created_at?: string;
-          id?: string;
           links?: Json;
-          org_id?: string;
           representative_id?: string;
           updated_at?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "representative_org_links_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "representative_org_links_representative_id_fkey";
+            foreignKeyName: "representative_org_info_representative_id_fkey";
             columns: ["representative_id"];
-            isOneToOne: false;
+            isOneToOne: true;
             referencedRelation: "representatives";
             referencedColumns: ["id"];
           },
@@ -154,49 +117,31 @@ export type Database = {
         };
         Relationships: [];
       };
-      user_profiles: {
+      user_role: {
         Row: {
-          created_at: string;
-          org_id: string | null;
-          role: Database["public"]["Enums"]["user_role"];
-          updated_at: string;
+          role: Database["public"]["Enums"]["app_role"];
           user_id: string;
         };
         Insert: {
-          created_at?: string;
-          org_id?: string | null;
-          role?: Database["public"]["Enums"]["user_role"];
-          updated_at?: string;
+          role?: Database["public"]["Enums"]["app_role"];
           user_id: string;
         };
         Update: {
-          created_at?: string;
-          org_id?: string | null;
-          role?: Database["public"]["Enums"]["user_role"];
-          updated_at?: string;
+          role?: Database["public"]["Enums"]["app_role"];
           user_id?: string;
         };
-        Relationships: [
-          {
-            foreignKeyName: "user_profiles_org_id_fkey";
-            columns: ["org_id"];
-            isOneToOne: false;
-            referencedRelation: "organizations";
-            referencedColumns: ["id"];
-          },
-        ];
+        Relationships: [];
       };
     };
     Views: {
       [_ in never]: never;
     };
     Functions: {
-      current_org_id: { Args: never; Returns: string | null };
-      is_org_admin_of: { Args: { target_org: string }; Returns: boolean };
+      is_org_admin: { Args: never; Returns: boolean };
       is_super_admin: { Args: never; Returns: boolean };
     };
     Enums: {
-      user_role: "member" | "org_admin" | "super_admin";
+      app_role: "member" | "org_admin" | "super_admin";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -330,7 +275,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      user_role: ["member", "org_admin", "super_admin"],
+      app_role: ["member", "org_admin", "super_admin"],
     },
   },
 } as const;

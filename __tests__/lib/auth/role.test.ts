@@ -1,10 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-type ProfileRow = {
+type RoleRow = {
   user_id: string;
   role: "member" | "org_admin" | "super_admin";
-  org_id: string | null;
-  organizations: { slug: string } | null;
 };
 
 const getUser = vi.fn();
@@ -29,12 +27,12 @@ vi.mock("react", async () => {
   };
 });
 
-async function loadProfile() {
-  const mod = await import("@/lib/auth/profile");
-  return mod.getCurrentProfile();
+async function loadRole() {
+  const mod = await import("@/lib/auth/role");
+  return mod.getCurrentRole();
 }
 
-describe("getCurrentProfile", () => {
+describe("getCurrentRole", () => {
   beforeEach(() => {
     vi.resetModules();
     getUser.mockReset();
@@ -44,59 +42,39 @@ describe("getCurrentProfile", () => {
   it("returns null when there is no authenticated user", async () => {
     getUser.mockResolvedValue({ data: { user: null } });
 
-    const result = await loadProfile();
+    const result = await loadRole();
 
     expect(result).toBeNull();
     expect(singleFn).not.toHaveBeenCalled();
   });
 
-  it("returns null when the profile row is missing", async () => {
+  it("returns null when the role row is missing", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
     singleFn.mockResolvedValue({ data: null });
 
-    const result = await loadProfile();
+    const result = await loadRole();
 
     expect(result).toBeNull();
   });
 
-  it("returns the joined profile + org slug", async () => {
+  it("returns the role row", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-    const row: ProfileRow = {
-      user_id: "user-1",
-      role: "member",
-      org_id: "org-pihe",
-      organizations: { slug: "pihe" },
-    };
+    const row: RoleRow = { user_id: "user-1", role: "member" };
     singleFn.mockResolvedValue({ data: row });
 
-    const result = await loadProfile();
+    const result = await loadRole();
 
-    expect(result).toEqual({
-      user_id: "user-1",
-      role: "member",
-      org_id: "org-pihe",
-      org_slug: "pihe",
-    });
+    expect(result).toEqual({ user_id: "user-1", role: "member" });
   });
 
-  it("returns null org_slug for super admins with no org", async () => {
+  it("returns super_admin role", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "u" } } });
     singleFn.mockResolvedValue({
-      data: {
-        user_id: "u",
-        role: "super_admin",
-        org_id: null,
-        organizations: null,
-      },
+      data: { user_id: "u", role: "super_admin" },
     });
 
-    const result = await loadProfile();
+    const result = await loadRole();
 
-    expect(result).toEqual({
-      user_id: "u",
-      role: "super_admin",
-      org_id: null,
-      org_slug: null,
-    });
+    expect(result).toEqual({ user_id: "u", role: "super_admin" });
   });
 });
