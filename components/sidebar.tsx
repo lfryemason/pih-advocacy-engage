@@ -16,7 +16,6 @@ import { createClient } from "@/lib/supabase/client";
 import logo from "@/app/assets/engage-logo.png";
 import React from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
-import type { UserRole } from "@/lib/auth/profile";
 
 function NavLink({
   href,
@@ -41,7 +40,7 @@ function NavLink({
   );
 }
 
-export function Sidebar({ role }: { role?: UserRole | null } = {}) {
+export function Sidebar() {
   const router = useRouter();
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -68,7 +67,6 @@ export function Sidebar({ role }: { role?: UserRole | null } = {}) {
   return (
     <aside
       aria-label="Sidebar"
-      data-role={role ?? undefined}
       className="hidden h-full flex-col border-r transition-[width] duration-300 ease-in-out md:flex"
       data-breakpoint="md"
       style={{
