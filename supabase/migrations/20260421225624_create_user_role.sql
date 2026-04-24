@@ -2,12 +2,18 @@
 -- Named app_role (not user_role) so the user_role table below can use that name.
 create type public.app_role as enum ('member', 'org_admin', 'super_admin');
 
--- One row per auth user storing their role. With a single hardcoded org
--- (pihe), role alone distinguishes super_admin (cross-org reach) from
--- member/org_admin (scoped to the hardcoded org).
+-- One row per auth user storing their role and org. The org_id is a slug
+-- (e.g. 'pihe') fed from the app-side PIHE_ORG_ID env var — there is no
+-- organizations table. super_admin has no org (cross-org reach);
+-- member/org_admin belong to exactly one org.
 create table public.user_role (
   user_id uuid primary key references auth.users(id) on delete cascade,
-  role public.app_role not null default 'member'
+  role public.app_role not null default 'member',
+  org_id text,
+  constraint chk_role_org_alignment check (
+    (role = 'super_admin' and org_id is null)
+    or (role in ('member', 'org_admin') and org_id is not null)
+  )
 );
 
 -- RLS helpers. SECURITY DEFINER bypasses RLS on user_role so policies
@@ -96,10 +102,12 @@ create policy "super admins delete representatives"
 alter table public.representatives drop column org_links;
 
 create table public.representative_org_info (
-  representative_id uuid primary key references public.representatives(id) on delete cascade,
+  representative_id uuid not null references public.representatives(id) on delete cascade,
+  org_id text not null,
   links jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  primary key (representative_id, org_id)
 );
 
 create trigger rep_org_info_updated_at
@@ -133,7 +141,8 @@ create policy "org admins delete rep org info"
   to authenticated
   using (public.is_org_admin() or public.is_super_admin());
 
--- Auto-assign new auth users as members
+-- Auto-assign new auth users as members of the default org. The 'pihe' slug
+-- must match the app-side PIHE_ORG_ID env var; keep in sync if changed.
 create or replace function public.handle_new_user()
   returns trigger
   language plpgsql
@@ -141,8 +150,8 @@ create or replace function public.handle_new_user()
   set search_path = public, pg_temp
   as $$
   begin
-    insert into public.user_role (user_id, role)
-      values (new.id, 'member')
+    insert into public.user_role (user_id, role, org_id)
+      values (new.id, 'member', 'pihe')
       on conflict (user_id) do nothing;
     return new;
   end;

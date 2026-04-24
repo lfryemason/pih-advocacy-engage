@@ -7,6 +7,7 @@ export type UserRole = Database["public"]["Enums"]["app_role"];
 export type CurrentRole = {
   user_id: string;
   role: UserRole;
+  org_id: string | null;
 };
 
 export const getCurrentRole = cache(async (): Promise<CurrentRole | null> => {
@@ -18,11 +19,11 @@ export const getCurrentRole = cache(async (): Promise<CurrentRole | null> => {
 
   const { data } = await supabase
     .from("user_role")
-    .select("user_id, role")
+    .select("user_id, role, org_id")
     .eq("user_id", user.id)
     .single();
 
   if (!data) return null;
 
-  return { user_id: data.user_id, role: data.role };
+  return { user_id: data.user_id, role: data.role, org_id: data.org_id };
 });

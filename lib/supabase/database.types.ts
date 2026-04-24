@@ -38,18 +38,21 @@ export type Database = {
         Row: {
           created_at: string;
           links: Json;
+          org_id: string;
           representative_id: string;
           updated_at: string;
         };
         Insert: {
           created_at?: string;
           links?: Json;
+          org_id: string;
           representative_id: string;
           updated_at?: string;
         };
         Update: {
           created_at?: string;
           links?: Json;
+          org_id?: string;
           representative_id?: string;
           updated_at?: string;
         };
@@ -57,7 +60,7 @@ export type Database = {
           {
             foreignKeyName: "representative_org_info_representative_id_fkey";
             columns: ["representative_id"];
-            isOneToOne: true;
+            isOneToOne: false;
             referencedRelation: "representatives";
             referencedColumns: ["id"];
           },
@@ -119,14 +122,17 @@ export type Database = {
       };
       user_role: {
         Row: {
+          org_id: string | null;
           role: Database["public"]["Enums"]["app_role"];
           user_id: string;
         };
         Insert: {
+          org_id?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
           user_id: string;
         };
         Update: {
+          org_id?: string | null;
           role?: Database["public"]["Enums"]["app_role"];
           user_id?: string;
         };

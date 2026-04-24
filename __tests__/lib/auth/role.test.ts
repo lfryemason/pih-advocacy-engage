@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 type RoleRow = {
   user_id: string;
   role: "member" | "org_admin" | "super_admin";
+  org_id: string | null;
 };
 
 const getUser = vi.fn();
@@ -57,24 +58,36 @@ describe("getCurrentRole", () => {
     expect(result).toBeNull();
   });
 
-  it("returns the role row", async () => {
+  it("returns the role row with org_id", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-    const row: RoleRow = { user_id: "user-1", role: "member" };
+    const row: RoleRow = {
+      user_id: "user-1",
+      role: "member",
+      org_id: "pihe",
+    };
     singleFn.mockResolvedValue({ data: row });
 
     const result = await loadRole();
 
-    expect(result).toEqual({ user_id: "user-1", role: "member" });
+    expect(result).toEqual({
+      user_id: "user-1",
+      role: "member",
+      org_id: "pihe",
+    });
   });
 
-  it("returns super_admin role", async () => {
+  it("returns super_admin role with null org_id", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "u" } } });
     singleFn.mockResolvedValue({
-      data: { user_id: "u", role: "super_admin" },
+      data: { user_id: "u", role: "super_admin", org_id: null },
     });
 
     const result = await loadRole();
 
-    expect(result).toEqual({ user_id: "u", role: "super_admin" });
+    expect(result).toEqual({
+      user_id: "u",
+      role: "super_admin",
+      org_id: null,
+    });
   });
 });

@@ -63,13 +63,13 @@ export async function resetDatabase() {
     );
   }
 
-  // Reset the test user's role to member. The auth trigger creates this row
-  // on user insert; the upsert here ensures tests that promote the user to
-  // org_admin/super_admin don't leak state across runs.
+  // Reset the test user's role to member of pihe. The auth trigger creates
+  // this row on user insert; the upsert here ensures tests that promote the
+  // user to org_admin/super_admin don't leak state across runs.
   const { error: roleError } = await supabase
     .from("user_role")
     .upsert(
-      { user_id: TEST_USER_ID, role: "member" },
+      { user_id: TEST_USER_ID, role: "member", org_id: "pihe" },
       { onConflict: "user_id" },
     );
   if (roleError) {

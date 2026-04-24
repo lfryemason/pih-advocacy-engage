@@ -22,6 +22,7 @@ function current(overrides: Partial<CurrentRole> = {}): CurrentRole {
   return {
     user_id: "user-1",
     role: "member",
+    org_id: "pihe",
     ...overrides,
   };
 }
@@ -65,7 +66,7 @@ describe("requireSuperAdmin", () => {
   });
 
   it("passes for super admins", async () => {
-    const superRole = current({ role: "super_admin" });
+    const superRole = current({ role: "super_admin", org_id: null });
     getCurrentRole.mockResolvedValue(superRole);
     const { requireSuperAdmin } = await loadGuards();
 
@@ -91,7 +92,9 @@ describe("requireOrgAdmin", () => {
   });
 
   it("passes for super admins", async () => {
-    getCurrentRole.mockResolvedValue(current({ role: "super_admin" }));
+    getCurrentRole.mockResolvedValue(
+      current({ role: "super_admin", org_id: null }),
+    );
     const { requireOrgAdmin } = await loadGuards();
 
     await expect(requireOrgAdmin()).resolves.toMatchObject({

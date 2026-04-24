@@ -26,6 +26,7 @@ export interface MockRepresentative {
 export interface MockUserRole {
   user_id: string;
   role: "member" | "org_admin" | "super_admin";
+  org_id: string | null;
 }
 
 export function makeRepresentative(
@@ -57,6 +58,7 @@ export function makeUserRole(
   return {
     user_id: "user-1",
     role: "member",
+    org_id: "pihe",
     ...overrides,
   };
 }
