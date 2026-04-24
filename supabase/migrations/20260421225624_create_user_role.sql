@@ -31,14 +31,22 @@ create or replace function public.is_super_admin()
     );
   $$;
 
-create or replace function public.current_org_id()
-  returns text
+-- Boolean-returning org scoping helpers. Returning a boolean (rather than
+-- exposing a nullable org_id) keeps the null case — super_admin or missing
+-- row — fully inside Postgres; nothing that calls these functions has to
+-- reason about null.
+create or replace function public.is_in_org(target_org_id text)
+  returns boolean
   language sql
   stable
   security definer
   set search_path = public, pg_temp
   as $$
-    select org_id from public.user_role where user_id = auth.uid();
+    select exists (
+      select 1 from public.user_role
+      where user_id = auth.uid()
+        and org_id = target_org_id
+    );
   $$;
 
 create or replace function public.is_org_admin_for(target_org_id text)
@@ -57,10 +65,10 @@ create or replace function public.is_org_admin_for(target_org_id text)
   $$;
 
 revoke execute on function public.is_super_admin() from public;
-revoke execute on function public.current_org_id() from public;
+revoke execute on function public.is_in_org(text) from public;
 revoke execute on function public.is_org_admin_for(text) from public;
 grant execute on function public.is_super_admin() to authenticated;
-grant execute on function public.current_org_id() to authenticated;
+grant execute on function public.is_in_org(text) to authenticated;
 grant execute on function public.is_org_admin_for(text) to authenticated;
 
 -- RLS: user_role
@@ -141,7 +149,7 @@ create policy "members read own-org rep org info"
   for select
   to authenticated
   using (
-    org_id = public.current_org_id() or public.is_super_admin()
+    public.is_in_org(org_id) or public.is_super_admin()
   );
 
 create policy "org admins insert own-org rep org info"

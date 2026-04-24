@@ -5,7 +5,6 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "gen-types": "node scripts/gen-types.mjs",
     "prepare": "husky"
   },
   "lint-staged": {

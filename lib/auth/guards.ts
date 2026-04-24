@@ -22,11 +22,14 @@ export async function requireSuperAdmin(): Promise<CurrentRole> {
   return current;
 }
 
-export async function requireOrgAdmin(): Promise<CurrentRole> {
+export async function requireOrgAdmin(orgId: string): Promise<CurrentRole> {
   const current = await requireRole();
   if (current.role === "super_admin") return current;
   if (current.role !== "org_admin") {
     throw new ForbiddenError("Org admin required");
+  }
+  if (current.org_id !== orgId) {
+    throw new ForbiddenError("Org admin of a different org");
   }
   return current;
 }

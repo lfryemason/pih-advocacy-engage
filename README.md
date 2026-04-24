@@ -118,16 +118,6 @@ update public.user_role
 
 4. Log out and back in so server renders pick up the new role.
 
-### Regenerating database types
-
-After adding or changing a migration, regenerate [lib/supabase/database.types.ts](lib/supabase/database.types.ts) with:
-
-```bash
-npm run gen-types
-```
-
-This wraps `supabase gen types typescript --local` and applies nullability overrides the generator gets wrong (see `scripts/gen-types.mjs`). Don't call the Supabase CLI directly — overrides will be lost.
-
 ### Start the dev server
 
 ```bash

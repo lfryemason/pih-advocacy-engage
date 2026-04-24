@@ -79,25 +79,40 @@ describe("requireOrgAdmin", () => {
     getCurrentRole.mockResolvedValue(current({ role: "member" }));
     const { requireOrgAdmin, ForbiddenError } = await loadGuards();
 
-    await expect(requireOrgAdmin()).rejects.toBeInstanceOf(ForbiddenError);
+    await expect(requireOrgAdmin("pihe")).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
   });
 
-  it("passes for org admins", async () => {
-    getCurrentRole.mockResolvedValue(current({ role: "org_admin" }));
+  it("passes for an org admin of the requested org", async () => {
+    getCurrentRole.mockResolvedValue(
+      current({ role: "org_admin", org_id: "pihe" }),
+    );
     const { requireOrgAdmin } = await loadGuards();
 
-    await expect(requireOrgAdmin()).resolves.toMatchObject({
+    await expect(requireOrgAdmin("pihe")).resolves.toMatchObject({
       role: "org_admin",
     });
   });
 
-  it("passes for super admins", async () => {
+  it("throws ForbiddenError for an org admin of a different org", async () => {
+    getCurrentRole.mockResolvedValue(
+      current({ role: "org_admin", org_id: "other" }),
+    );
+    const { requireOrgAdmin, ForbiddenError } = await loadGuards();
+
+    await expect(requireOrgAdmin("pihe")).rejects.toBeInstanceOf(
+      ForbiddenError,
+    );
+  });
+
+  it("passes for super admins regardless of orgId", async () => {
     getCurrentRole.mockResolvedValue(
       current({ role: "super_admin", org_id: null }),
     );
     const { requireOrgAdmin } = await loadGuards();
 
-    await expect(requireOrgAdmin()).resolves.toMatchObject({
+    await expect(requireOrgAdmin("pihe")).resolves.toMatchObject({
       role: "super_admin",
     });
   });
