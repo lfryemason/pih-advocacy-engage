@@ -31,7 +31,17 @@ create or replace function public.is_super_admin()
     );
   $$;
 
-create or replace function public.is_org_admin()
+create or replace function public.current_org_id()
+  returns text
+  language sql
+  stable
+  security definer
+  set search_path = public, pg_temp
+  as $$
+    select org_id from public.user_role where user_id = auth.uid();
+  $$;
+
+create or replace function public.is_org_admin_for(target_org_id text)
   returns boolean
   language sql
   stable
@@ -40,14 +50,18 @@ create or replace function public.is_org_admin()
   as $$
     select exists (
       select 1 from public.user_role
-      where user_id = auth.uid() and role = 'org_admin'
+      where user_id = auth.uid()
+        and role = 'org_admin'
+        and org_id = target_org_id
     );
   $$;
 
 revoke execute on function public.is_super_admin() from public;
-revoke execute on function public.is_org_admin() from public;
+revoke execute on function public.current_org_id() from public;
+revoke execute on function public.is_org_admin_for(text) from public;
 grant execute on function public.is_super_admin() to authenticated;
-grant execute on function public.is_org_admin() to authenticated;
+grant execute on function public.current_org_id() to authenticated;
+grant execute on function public.is_org_admin_for(text) to authenticated;
 
 -- RLS: user_role
 alter table public.user_role enable row level security;
@@ -119,30 +133,37 @@ create trigger rep_org_info_updated_at
 
 alter table public.representative_org_info enable row level security;
 
-create policy "authenticated read rep org info"
+-- Members read rows for their own org; super admins read all. Writes are
+-- scoped to the org admin's own org_id via is_org_admin_for so org A's
+-- admin can't insert/update/delete rows belonging to org B.
+create policy "members read own-org rep org info"
   on public.representative_org_info
   for select
   to authenticated
-  using (true);
+  using (
+    org_id = public.current_org_id() or public.is_super_admin()
+  );
 
-create policy "org admins insert rep org info"
+create policy "org admins insert own-org rep org info"
   on public.representative_org_info
   for insert
   to authenticated
-  with check (public.is_org_admin() or public.is_super_admin());
+  with check (
+    public.is_org_admin_for(org_id) or public.is_super_admin()
+  );
 
-create policy "org admins update rep org info"
+create policy "org admins update own-org rep org info"
   on public.representative_org_info
   for update
   to authenticated
-  using (public.is_org_admin() or public.is_super_admin())
-  with check (public.is_org_admin() or public.is_super_admin());
+  using (public.is_org_admin_for(org_id) or public.is_super_admin())
+  with check (public.is_org_admin_for(org_id) or public.is_super_admin());
 
-create policy "org admins delete rep org info"
+create policy "org admins delete own-org rep org info"
   on public.representative_org_info
   for delete
   to authenticated
-  using (public.is_org_admin() or public.is_super_admin());
+  using (public.is_org_admin_for(org_id) or public.is_super_admin());
 
 -- Auto-assign new auth users as members of the default org. The 'pihe' slug
 -- must match the app-side PIHE_ORG_ID env var; keep in sync if changed.

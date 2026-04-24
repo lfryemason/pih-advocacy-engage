@@ -143,7 +143,8 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      is_org_admin: { Args: never; Returns: boolean };
+      current_org_id: { Args: never; Returns: string };
+      is_org_admin_for: { Args: { target_org_id: string }; Returns: boolean };
       is_super_admin: { Args: never; Returns: boolean };
     };
     Enums: {
