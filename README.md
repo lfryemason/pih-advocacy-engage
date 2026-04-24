@@ -89,6 +89,35 @@ NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 \
 
 This script is idempotent — it upserts current legislators and marks any previously stored representatives no longer in the dataset as `in_office = false`.
 
+### Roles and bootstrapping a super admin
+
+Every user has one of three roles stored in `public.user_role`:
+
+- `member` — default role; read/write scoped to org-owned data
+- `org_admin` — elevated write permissions on org-owned data (e.g. `representative_org_info`)
+- `super_admin` — only role that can modify shared/reference data and promote users
+
+Every user also has an `org_id` on their `user_role` row (except for super admin). There is no `organizations` table — the slug is fed from the `PIHE_ORG_ID` env var (defaults to `pihe`) and stamped onto `user_role.org_id` and `representative_org_info.org_id` at insert time. The auth trigger that creates a new user's role row hardcodes `'pihe'`; if you change `PIHE_ORG_ID`, update the `handle_new_user` trigger in `supabase/migrations/20260421225624_create_user_role.sql` to match.
+
+New sign-ups are auto-assigned as `member` of the default org. Only a super admin can change another user's role, so the first super admin has to be promoted manually:
+
+1. Sign up normally at `/auth/sign-up` (or have an existing user).
+2. In Supabase Studio → SQL editor, find the user id:
+
+```sql
+select id, email from auth.users where email = 'you@example.com';
+```
+
+3. Promote the user (super admins must have `org_id = null`):
+
+```sql
+update public.user_role
+   set role = 'super_admin', org_id = null
+ where user_id = '<uuid>';
+```
+
+4. Log out and back in so server renders pick up the new role.
+
 ### Start the dev server
 
 ```bash

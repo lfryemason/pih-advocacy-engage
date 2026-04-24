@@ -34,6 +34,38 @@ export type Database = {
   };
   public: {
     Tables: {
+      representative_org_info: {
+        Row: {
+          created_at: string;
+          links: Json;
+          org_id: string;
+          representative_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          links?: Json;
+          org_id: string;
+          representative_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          links?: Json;
+          org_id?: string;
+          representative_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "representative_org_info_representative_id_fkey";
+            columns: ["representative_id"];
+            isOneToOne: false;
+            referencedRelation: "representatives";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       representatives: {
         Row: {
           bioguide_id: string;
@@ -47,7 +79,6 @@ export type Database = {
           in_office: boolean;
           last_name: string;
           official_full_name: string | null;
-          org_links: Json;
           party: string;
           state: string;
           state_rank: string | null;
@@ -65,7 +96,6 @@ export type Database = {
           in_office?: boolean;
           last_name: string;
           official_full_name?: string | null;
-          org_links?: Json;
           party: string;
           state: string;
           state_rank?: string | null;
@@ -83,11 +113,28 @@ export type Database = {
           in_office?: boolean;
           last_name?: string;
           official_full_name?: string | null;
-          org_links?: Json;
           party?: string;
           state?: string;
           state_rank?: string | null;
           updated_at?: string;
+        };
+        Relationships: [];
+      };
+      user_role: {
+        Row: {
+          org_id: string | null;
+          role: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
+        Insert: {
+          org_id?: string | null;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id: string;
+        };
+        Update: {
+          org_id?: string | null;
+          role?: Database["public"]["Enums"]["app_role"];
+          user_id?: string;
         };
         Relationships: [];
       };
@@ -96,10 +143,12 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      is_in_org: { Args: { target_org_id: string }; Returns: boolean };
+      is_org_admin_for: { Args: { target_org_id: string }; Returns: boolean };
+      is_super_admin: { Args: never; Returns: boolean };
     };
     Enums: {
-      [_ in never]: never;
+      app_role: "member" | "org_admin" | "super_admin";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -232,6 +281,8 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["member", "org_admin", "super_admin"],
+    },
   },
 } as const;
