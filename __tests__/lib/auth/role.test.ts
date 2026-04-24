@@ -7,14 +7,14 @@ type RoleRow = {
 };
 
 const getUser = vi.fn();
-const singleFn = vi.fn();
+const maybeSingleFn = vi.fn();
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: { getUser },
     from: () => ({
       select: () => ({
-        eq: () => ({ single: singleFn }),
+        eq: () => ({ maybeSingle: maybeSingleFn }),
       }),
     }),
   })),
@@ -37,7 +37,7 @@ describe("getCurrentRole", () => {
   beforeEach(() => {
     vi.resetModules();
     getUser.mockReset();
-    singleFn.mockReset();
+    maybeSingleFn.mockReset();
   });
 
   it("returns null when there is no authenticated user", async () => {
@@ -46,16 +46,24 @@ describe("getCurrentRole", () => {
     const result = await loadRole();
 
     expect(result).toBeNull();
-    expect(singleFn).not.toHaveBeenCalled();
+    expect(maybeSingleFn).not.toHaveBeenCalled();
   });
 
   it("returns null when the role row is missing", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
-    singleFn.mockResolvedValue({ data: null });
+    maybeSingleFn.mockResolvedValue({ data: null, error: null });
 
     const result = await loadRole();
 
     expect(result).toBeNull();
+  });
+
+  it("throws when the query returns an error", async () => {
+    getUser.mockResolvedValue({ data: { user: { id: "user-1" } } });
+    const error = { code: "42501", message: "permission denied" };
+    maybeSingleFn.mockResolvedValue({ data: null, error });
+
+    await expect(loadRole()).rejects.toEqual(error);
   });
 
   it("returns the role row with org_id", async () => {
@@ -65,7 +73,7 @@ describe("getCurrentRole", () => {
       role: "member",
       org_id: "pihe",
     };
-    singleFn.mockResolvedValue({ data: row });
+    maybeSingleFn.mockResolvedValue({ data: row });
 
     const result = await loadRole();
 
@@ -78,7 +86,7 @@ describe("getCurrentRole", () => {
 
   it("returns super_admin role with null org_id", async () => {
     getUser.mockResolvedValue({ data: { user: { id: "u" } } });
-    singleFn.mockResolvedValue({
+    maybeSingleFn.mockResolvedValue({
       data: { user_id: "u", role: "super_admin", org_id: null },
     });
 

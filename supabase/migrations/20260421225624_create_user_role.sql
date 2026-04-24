@@ -52,11 +52,14 @@ grant execute on function public.is_org_admin() to authenticated;
 -- RLS: user_role
 alter table public.user_role enable row level security;
 
-create policy "authenticated read roles"
+-- Users read only their own role row. Super admins read all rows so they
+-- can administer role assignments. This keeps the set of super_admin /
+-- org_admin accounts from being enumerable by regular authenticated users.
+create policy "users read own role"
   on public.user_role
   for select
   to authenticated
-  using (true);
+  using (user_id = auth.uid() or public.is_super_admin());
 
 create policy "super admins insert roles"
   on public.user_role

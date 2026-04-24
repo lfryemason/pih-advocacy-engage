@@ -17,12 +17,13 @@ export const getCurrentRole = cache(async (): Promise<CurrentRole | null> => {
   } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("user_role")
     .select("user_id, role, org_id")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
 
+  if (error) throw error;
   if (!data) return null;
 
   return { user_id: data.user_id, role: data.role, org_id: data.org_id };
