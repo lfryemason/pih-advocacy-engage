@@ -96,4 +96,14 @@ export async function resetDatabase() {
   if (upsertError) {
     throw new Error(`Failed to seed representatives: ${upsertError.message}`);
   }
+
+  // Staffers have no seed set — wipe everything between tests so suites that
+  // create staffers don't leak state. Filter is `id is not null` (matches all).
+  const { error: stafferError } = await supabase
+    .from("staffers")
+    .delete()
+    .not("id", "is", null);
+  if (stafferError) {
+    throw new Error(`Failed to clear staffers: ${stafferError.message}`);
+  }
 }

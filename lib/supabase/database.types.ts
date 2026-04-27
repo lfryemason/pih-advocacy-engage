@@ -120,6 +120,56 @@ export type Database = {
         };
         Relationships: [];
       };
+      staffers: {
+        Row: {
+          created_at: string;
+          email: string | null;
+          first_name: string;
+          id: string;
+          last_name: string;
+          notes: string | null;
+          org_id: string;
+          pronouns: string | null;
+          representative_id: string;
+          title: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          email?: string | null;
+          first_name: string;
+          id?: string;
+          last_name: string;
+          notes?: string | null;
+          org_id: string;
+          pronouns?: string | null;
+          representative_id: string;
+          title?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          email?: string | null;
+          first_name?: string;
+          id?: string;
+          last_name?: string;
+          notes?: string | null;
+          org_id?: string;
+          pronouns?: string | null;
+          representative_id?: string;
+          title?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "staffers_representative_id_fkey";
+            columns: ["representative_id"];
+            isOneToOne: false;
+            referencedRelation: "representatives";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       user_role: {
         Row: {
           org_id: string | null;
