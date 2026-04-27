@@ -5,16 +5,15 @@ import { getCurrentRole } from "@/lib/auth/role";
 import { ORG_ID } from "@/lib/org";
 import { StafferList } from "@/components/staffers/staffer-list";
 
-export default async function RepresentativePage({
+export default function RepresentativePage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
   return (
     <div className="p-8">
       <Suspense fallback={<RepresentativeLoading />}>
-        <RepresentativeContent id={id} />
+        <RepresentativeContent params={params} />
       </Suspense>
     </div>
   );
@@ -24,7 +23,12 @@ function RepresentativeLoading() {
   return <p className="text-muted-foreground">Loading…</p>;
 }
 
-async function RepresentativeContent({ id }: { id: string }) {
+async function RepresentativeContent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
   const supabase = await createClient();
 
   const { data: representative } = await supabase
