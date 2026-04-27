@@ -2,6 +2,17 @@ export const TEST_USER_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 export const TEST_EMAIL = "playwright@example.com";
 export const TEST_PASSWORD = "Playwright1!";
 
+export const SEED_PROFILE = {
+  user_id: TEST_USER_ID,
+  org_id: "pihe",
+  email: TEST_EMAIL,
+  first_name: "Test",
+  last_name: "Admin",
+  pronouns: "they/them",
+  state: "WA",
+  congressional_district: "9",
+};
+
 export const SEED_REPRESENTATIVES = [
   {
     bioguide_id: "S000001",

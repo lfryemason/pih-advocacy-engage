@@ -22,15 +22,23 @@ export function ProfileForm() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (data?.user) {
-        const meta = data.user.user_metadata ?? {};
         setEmail(data.user.email ?? "");
-        setFirstName(String(meta.first_name ?? ""));
-        setLastName(String(meta.last_name ?? ""));
-        setPronouns(String(meta.pronouns ?? ""));
-        setState(String(meta.state ?? ""));
-        setDistrict(String(meta.congressional_district ?? ""));
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select(
+            "first_name, last_name, pronouns, state, congressional_district",
+          )
+          .eq("user_id", data.user.id)
+          .single();
+        if (profile) {
+          setFirstName(profile.first_name ?? "");
+          setLastName(profile.last_name ?? "");
+          setPronouns(profile.pronouns ?? "");
+          setState(profile.state ?? "");
+          setDistrict(profile.congressional_district ?? "");
+        }
       }
       setIsLoadingUser(false);
     });
@@ -49,16 +57,20 @@ export function ProfileForm() {
 
     try {
       const supabase = createClient();
-      const metadata: Record<string, string> = {
-        first_name: firstName,
-        last_name: lastName,
-        pronouns,
-        state,
-      };
-      if (district) {
-        metadata.congressional_district = district;
-      }
-      const { error } = await supabase.auth.updateUser({ data: metadata });
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          first_name: firstName,
+          last_name: lastName,
+          pronouns,
+          state,
+          congressional_district: district || null,
+        })
+        .eq("user_id", user.id);
       if (error) throw error;
       setSuccess("Profile saved successfully.");
     } catch (err: unknown) {

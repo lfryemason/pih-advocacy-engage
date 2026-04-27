@@ -34,6 +34,45 @@ export type Database = {
   };
   public: {
     Tables: {
+      profiles: {
+        Row: {
+          congressional_district: string | null;
+          created_at: string;
+          email: string;
+          first_name: string | null;
+          last_name: string | null;
+          org_id: string;
+          pronouns: string | null;
+          state: string | null;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          congressional_district?: string | null;
+          created_at?: string;
+          email: string;
+          first_name?: string | null;
+          last_name?: string | null;
+          org_id: string;
+          pronouns?: string | null;
+          state?: string | null;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          congressional_district?: string | null;
+          created_at?: string;
+          email?: string;
+          first_name?: string | null;
+          last_name?: string | null;
+          org_id?: string;
+          pronouns?: string | null;
+          state?: string | null;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [];
+      };
       representative_org_info: {
         Row: {
           created_at: string;
