@@ -96,7 +96,10 @@ export function StafferRow({
               Notes
             </summary>
             <div className="prose prose-sm mt-1 max-w-none rounded border p-2 text-foreground dark:prose-invert prose-headings:my-1 prose-p:my-0 prose-a:text-primary prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none prose-pre:my-2 prose-pre:bg-muted">
-              <ReactMarkdown remarkPlugins={[remarkGfm, remarkBreaks]}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm, remarkBreaks]}
+                disallowedElements={["img"]}
+              >
                 {staffer.notes}
               </ReactMarkdown>
             </div>

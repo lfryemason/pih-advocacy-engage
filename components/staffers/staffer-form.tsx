@@ -43,13 +43,21 @@ export function StafferForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
-    setIsSaving(true);
     setError(null);
 
+    const firstNameTrimmed = firstName.trim();
+    const lastNameTrimmed = lastName.trim();
+    if (!firstNameTrimmed || !lastNameTrimmed) {
+      setError("First name and last name are required.");
+      return;
+    }
+
+    const supabase = createClient();
+    setIsSaving(true);
+
     const payload = {
-      first_name: firstName.trim(),
-      last_name: lastName.trim(),
+      first_name: firstNameTrimmed,
+      last_name: lastNameTrimmed,
       title: title.trim() || null,
       pronouns: pronouns.trim() || null,
       email: email.trim() || null,
