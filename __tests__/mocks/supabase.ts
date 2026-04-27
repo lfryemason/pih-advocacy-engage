@@ -63,6 +63,37 @@ export function makeUserRole(
   };
 }
 
+export interface MockStaffer {
+  id: string;
+  representative_id: string;
+  org_id: string;
+  first_name: string;
+  last_name: string;
+  title: string | null;
+  pronouns: string | null;
+  email: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export function makeStaffer(overrides: Partial<MockStaffer> = {}): MockStaffer {
+  return {
+    id: "staffer-uuid-1",
+    representative_id: "uuid-1",
+    org_id: "pihe",
+    first_name: "Sam",
+    last_name: "Jones",
+    title: "Chief of Staff",
+    pronouns: "they/them",
+    email: "sam@example.com",
+    notes: "Primary contact for healthcare policy.",
+    created_at: "2026-01-01T00:00:00Z",
+    updated_at: "2026-01-01T00:00:00Z",
+    ...overrides,
+  };
+}
+
 function applyFilters<T>(data: T[], url: URL): T[] {
   let filtered = [...data];
   for (const [key, value] of url.searchParams) {
