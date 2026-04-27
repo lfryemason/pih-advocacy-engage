@@ -48,13 +48,19 @@ export function Sidebar() {
 
   React.useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
-      const meta = data.user.user_metadata;
-      const first = meta?.first_name ?? "";
-      const last = meta?.last_name ?? "";
-      const combined = [first, last].filter(Boolean).join(" ");
-      setFullName(combined || meta?.full_name || null);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name, last_name")
+        .eq("user_id", data.user.id)
+        .single();
+      if (profile) {
+        const combined = [profile.first_name, profile.last_name]
+          .filter(Boolean)
+          .join(" ");
+        setFullName(combined || null);
+      }
     });
   }, []);
 
