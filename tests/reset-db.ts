@@ -4,6 +4,7 @@ import {
   TEST_EMAIL,
   TEST_PASSWORD,
   SEED_REPRESENTATIVES,
+  SEED_PROFILE,
 } from "./seed";
 
 const SUPABASE_URL =
@@ -48,18 +49,18 @@ export async function seedTestUser() {
   }
 }
 
-/** Reset user metadata and representatives table to seed state. */
+/** Reset profile, role, representatives, and staffers to seed state. */
 export async function resetDatabase() {
   const supabase = adminClient();
 
-  // Reset user metadata
-  const { error: updateError } = await supabase.auth.admin.updateUserById(
-    TEST_USER_ID,
-    { user_metadata: {} },
-  );
-  if (updateError) {
+  // Reset the test user's profile to the seed state (blank name/pronouns/state
+  // so profile tests always start from a known clean slate).
+  const { error: profileError } = await supabase
+    .from("profiles")
+    .upsert(SEED_PROFILE, { onConflict: "user_id" });
+  if (profileError) {
     throw new Error(
-      `Failed to reset test user metadata: ${updateError.message}`,
+      `Failed to reset test user profile: ${profileError.message}`,
     );
   }
 
