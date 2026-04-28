@@ -77,17 +77,22 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon key from supabase start output>
 supabase stop
 ```
 
-### Seed representatives data
+### Reset the local database and seed representatives
 
-Populate the `representatives` table with current members of Congress from the [congress-legislators](https://github.com/unitedstates/congress-legislators) dataset:
+To reset migrations and populate the `representatives` table with current members of Congress:
 
 ```bash
-NEXT_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321 \
-  SUPABASE_SERVICE_ROLE_KEY=<secret key from supabase status output> \
-  npx tsx scripts/seed-representatives.ts
+npm run db:reset
 ```
 
-This script is idempotent — it upserts current legislators and marks any previously stored representatives no longer in the dataset as `in_office = false`.
+
+To seed representatives without resetting migrations:
+
+```bash
+npx tsx scripts/seed-representatives.ts
+```
+
+> **Note:** `supabase db reset` alone will not seed representatives — use `npm run db:reset` for local development.
 
 ### Roles and bootstrapping a super admin
 

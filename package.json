@@ -5,7 +5,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:reset": "supabase db reset && eval $(supabase status -o env | grep '^[A-Z_]*=' | sed 's/^/export /') && npx tsx scripts/seed-representatives.ts"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
