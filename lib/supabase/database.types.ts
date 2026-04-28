@@ -34,6 +34,77 @@ export type Database = {
   };
   public: {
     Tables: {
+      team_memberships: {
+        Row: {
+          created_at: string;
+          org_id: string;
+          role: string;
+          team_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          org_id: string;
+          role: string;
+          team_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          org_id?: string;
+          role?: string;
+          team_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_memberships_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      teams: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          founded_date: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          slug: string;
+          state: string;
+          type: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          founded_date?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          slug?: string;
+          state: string;
+          type: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          founded_date?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          slug?: string;
+          state?: string;
+          type?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           congressional_district: string | null;
