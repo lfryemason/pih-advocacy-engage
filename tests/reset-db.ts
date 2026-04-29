@@ -5,6 +5,10 @@ import {
   TEST_PASSWORD,
   SEED_REPRESENTATIVES,
   SEED_PROFILE,
+  SEED_TEAMS,
+  SEED_TEAM_MEMBERSHIPS,
+  SEED_TEAM_ID,
+  SEED_TEAM_NO_MEMBER_ID,
 } from "./seed";
 
 const SUPABASE_URL =
@@ -106,5 +110,61 @@ export async function resetDatabase() {
     .not("id", "is", null);
   if (stafferError) {
     throw new Error(`Failed to clear staffers: ${stafferError.message}`);
+  }
+
+  // Reset team_memberships: wipe all non-seed memberships, then restore seed.
+  const seedTeamIds = [SEED_TEAM_ID, SEED_TEAM_NO_MEMBER_ID];
+  const { error: membershipDeleteError } = await supabase
+    .from("team_memberships")
+    .delete()
+    .not("team_id", "in", `(${seedTeamIds.join(",")})`);
+  if (membershipDeleteError) {
+    throw new Error(
+      `Failed to clear non-seed team memberships: ${membershipDeleteError.message}`,
+    );
+  }
+  // Also wipe any extra memberships on the seed teams (e.g. from join-team tests).
+  const { error: extraMembershipError } = await supabase
+    .from("team_memberships")
+    .delete()
+    .in("team_id", seedTeamIds)
+    .neq("user_id", TEST_USER_ID);
+  if (extraMembershipError) {
+    throw new Error(
+      `Failed to clear extra seed-team memberships: ${extraMembershipError.message}`,
+    );
+  }
+  // Also remove the test user's membership on the no-member team (from join tests).
+  await supabase
+    .from("team_memberships")
+    .delete()
+    .eq("team_id", SEED_TEAM_NO_MEMBER_ID)
+    .eq("user_id", TEST_USER_ID);
+
+  // Reset teams: delete non-seed teams, upsert seed teams.
+  const { error: teamDeleteError } = await supabase
+    .from("teams")
+    .delete()
+    .not("id", "in", `(${seedTeamIds.join(",")})`);
+  if (teamDeleteError) {
+    throw new Error(
+      `Failed to clear non-seed teams: ${teamDeleteError.message}`,
+    );
+  }
+  const { error: teamUpsertError } = await supabase
+    .from("teams")
+    .upsert(SEED_TEAMS, { onConflict: "id" });
+  if (teamUpsertError) {
+    throw new Error(`Failed to seed teams: ${teamUpsertError.message}`);
+  }
+
+  // Restore seed team memberships (upsert is idempotent on the composite PK).
+  const { error: membershipUpsertError } = await supabase
+    .from("team_memberships")
+    .upsert(SEED_TEAM_MEMBERSHIPS, { onConflict: "team_id,user_id,role" });
+  if (membershipUpsertError) {
+    throw new Error(
+      `Failed to seed team memberships: ${membershipUpsertError.message}`,
+    );
   }
 }

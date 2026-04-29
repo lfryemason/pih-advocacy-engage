@@ -1,4 +1,6 @@
 export const TEST_USER_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
+export const SEED_TEAM_ID = "22222222-2222-2222-2222-222222222222";
+export const SEED_TEAM_NO_MEMBER_ID = "33333333-3333-3333-3333-333333333333";
 export const TEST_EMAIL = "playwright@example.com";
 export const TEST_PASSWORD = "Playwright1!";
 
@@ -12,6 +14,38 @@ export const SEED_PROFILE = {
   state: "WA",
   congressional_district: "9",
 };
+
+export const SEED_TEAMS = [
+  {
+    id: SEED_TEAM_ID,
+    org_id: "pihe",
+    name: "Seattle High School",
+    slug: "seattle-high-school",
+    state: "WA",
+    type: "high_school",
+    description: null,
+    founded_date: null,
+  },
+  {
+    id: SEED_TEAM_NO_MEMBER_ID,
+    org_id: "pihe",
+    name: "Portland University",
+    slug: "portland-university",
+    state: "OR",
+    type: "university",
+    description: null,
+    founded_date: null,
+  },
+];
+
+export const SEED_TEAM_MEMBERSHIPS = [
+  {
+    team_id: SEED_TEAM_ID,
+    user_id: TEST_USER_ID,
+    org_id: "pihe",
+    role: "team_lead",
+  },
+];
 
 export const SEED_REPRESENTATIVES = [
   {
