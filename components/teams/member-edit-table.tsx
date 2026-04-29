@@ -43,7 +43,6 @@ export function MemberEditTable({
     const key = `${userId}-${currentRole}`;
     setChanging(key);
     const supabase = createClient();
-    // Insert first so a failed insert leaves the original row intact.
     const { error: insertError } = await supabase
       .from("team_memberships")
       .insert({
@@ -82,62 +81,65 @@ export function MemberEditTable({
     router.refresh();
   };
 
-  if (memberships.length === 0) {
-    return (
-      <p className="mt-2 text-sm text-muted-foreground">No members yet.</p>
-    );
-  }
-
   return (
-    <Table>
-      <caption className="sr-only">Team members</caption>
-      <TableHeader>
-        <TableRow>
-          <TableHead>First name</TableHead>
-          <TableHead>Last name</TableHead>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead />
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {memberships.map((m) => {
-          const key = `${m.user_id}-${m.role}`;
-          return (
-            <TableRow key={key}>
-              <TableCell>{m.profiles?.first_name ?? "—"}</TableCell>
-              <TableCell>{m.profiles?.last_name ?? "—"}</TableCell>
-              <TableCell>{m.profiles?.email ?? "—"}</TableCell>
-              <TableCell>
-                <Select
-                  value={m.role}
-                  disabled={changing === key || removing === key}
-                  onChange={(e) =>
-                    handleRoleChange(m.user_id, m.role, e.target.value)
-                  }
-                >
-                  {ROLE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </Select>
-              </TableCell>
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-muted-foreground hover:text-destructive"
-                  disabled={removing === key || changing === key}
-                  onClick={() => handleRemove(m)}
-                >
-                  {removing === key ? "Removing…" : "Remove"}
-                </Button>
-              </TableCell>
-            </TableRow>
-          );
-        })}
-      </TableBody>
-    </Table>
+    <div className="mt-8 max-w-2xl">
+      <h2 className="text-lg font-semibold">Members</h2>
+      <div className="mt-2">
+        {memberships.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No members yet.</p>
+        ) : (
+          <Table>
+            <caption className="sr-only">Team members</caption>
+            <TableHeader>
+              <TableRow>
+                <TableHead>First name</TableHead>
+                <TableHead>Last name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {memberships.map((m) => {
+                const key = `${m.user_id}-${m.role}`;
+                return (
+                  <TableRow key={key}>
+                    <TableCell>{m.profiles?.first_name ?? "—"}</TableCell>
+                    <TableCell>{m.profiles?.last_name ?? "—"}</TableCell>
+                    <TableCell>{m.profiles?.email ?? "—"}</TableCell>
+                    <TableCell>
+                      <Select
+                        value={m.role}
+                        disabled={changing === key || removing === key}
+                        onChange={(e) =>
+                          handleRoleChange(m.user_id, m.role, e.target.value)
+                        }
+                      >
+                        {ROLE_OPTIONS.map((opt) => (
+                          <option key={opt.value} value={opt.value}>
+                            {opt.label}
+                          </option>
+                        ))}
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-muted-foreground hover:text-destructive"
+                        disabled={removing === key || changing === key}
+                        onClick={() => handleRemove(m)}
+                      >
+                        {removing === key ? "Removing…" : "Remove"}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </div>
   );
 }

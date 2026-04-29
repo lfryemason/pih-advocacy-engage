@@ -1,11 +1,14 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { ORG_ID } from "@/lib/org";
-import { TeamPageClient } from "@/components/teams/team-page-client";
+import { Button } from "@/components/ui/button";
+import { TeamForm } from "@/components/teams/team-form";
+import { MemberEditTable } from "@/components/teams/member-edit-table";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
 
-export default function TeamPage({
+export default function EditTeamPage({
   params,
 }: {
   params: Promise<{ slug: string }>;
@@ -13,30 +16,28 @@ export default function TeamPage({
   return (
     <div className="p-8">
       <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
-        <TeamContent params={params} />
+        <EditTeamContent params={params} />
       </Suspense>
     </div>
   );
 }
 
-async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
+async function EditTeamContent({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  const [{ data: team }, { data: authData }] = await Promise.all([
-    supabase
-      .from("teams")
-      .select()
-      .eq("org_id", ORG_ID)
-      .eq("slug", slug)
-      .single(),
-    supabase.auth.getUser(),
-  ]);
+  const { data: team } = await supabase
+    .from("teams")
+    .select()
+    .eq("org_id", ORG_ID)
+    .eq("slug", slug)
+    .single();
 
-  if (!team) {
-    console.log("Team not found, redirecting to teams list page");
-    redirect("/teams");
-  }
+  if (!team) redirect("/teams");
 
   const { data: rawMemberships } = await supabase
     .from("team_memberships")
@@ -65,11 +66,19 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
   );
 
   return (
-    <TeamPageClient
-      team={team}
-      memberships={memberships}
-      orgId={ORG_ID}
-      currentUserId={authData.user?.id ?? null}
-    />
+    <>
+      <div>
+        <Button asChild variant="ghost" size="sm" className="-ml-3">
+          <Link href={`/teams/${slug}`}>← {team.name}</Link>
+        </Button>
+      </div>
+      <h1 className="mt-4 text-2xl font-bold">{team.name}</h1>
+      <TeamForm orgId={ORG_ID} team={team} />
+      <MemberEditTable
+        memberships={memberships}
+        teamId={team.id}
+        orgId={ORG_ID}
+      />
+    </>
   );
 }

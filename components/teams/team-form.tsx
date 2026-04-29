@@ -69,8 +69,12 @@ export function TeamForm({
           .update(payload)
           .eq("id", team.id);
         if (updateError) throw updateError;
-        router.refresh();
-        onDone?.();
+        if (onDone) {
+          router.refresh();
+          onDone();
+        } else {
+          router.replace(`/teams/${team.slug}`);
+        }
       } else {
         const { data, error: insertError } = await supabase
           .from("teams")
@@ -103,7 +107,9 @@ export function TeamForm({
   return (
     <form onSubmit={handleSubmit} className="mt-6 flex max-w-lg flex-col gap-6">
       <div className="grid gap-2">
-        <Label htmlFor="team-name">Name</Label>
+        <Label htmlFor="team-name">
+          Name <span className="text-destructive">*</span>
+        </Label>
         <Input
           id="team-name"
           required
@@ -112,7 +118,9 @@ export function TeamForm({
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="team-state">State</Label>
+        <Label htmlFor="team-state">
+          State <span className="text-destructive">*</span>
+        </Label>
         <Select
           id="team-state"
           required
@@ -128,7 +136,9 @@ export function TeamForm({
         </Select>
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="team-type">Type</Label>
+        <Label htmlFor="team-type">
+          Type <span className="text-destructive">*</span>
+        </Label>
         <Select
           id="team-type"
           required
