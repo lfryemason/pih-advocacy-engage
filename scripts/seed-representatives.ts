@@ -30,13 +30,15 @@ type RepresentativeInsert =
 
 async function main() {
   const supabaseUrl =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.API_URL;
+    process.env.API_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey =
-    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SERVICE_ROLE_KEY;
+    process.env.SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
     console.error(
-      "Missing Supabase credentials. Run: eval $(supabase status -o env)",
+      "Missing Supabase credentials.\n" +
+        "  Required: API_URL (or NEXT_PUBLIC_SUPABASE_URL) and SERVICE_ROLE_KEY (or SUPABASE_SERVICE_ROLE_KEY)\n" +
+        '  Run: eval "$(npx supabase status -o env)"',
     );
     process.exit(1);
   }

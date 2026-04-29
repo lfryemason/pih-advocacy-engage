@@ -86,9 +86,10 @@ npm run db:reset
 ```
 
 
-To seed representatives without resetting migrations:
+To seed representatives without resetting migrations, first export your local Supabase credentials, then run the script:
 
 ```bash
+eval "$(npx supabase status -o env)"
 npx tsx scripts/seed-representatives.ts
 ```
 
