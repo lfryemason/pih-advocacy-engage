@@ -60,7 +60,9 @@ schema_paths = []
 [db.seed]
 # If enabled, seeds the database after migrations during a db reset.
 enabled = false
-# Seeding is handled by the Playwright test setup (tests/seed.ts).
+# SQL-only seeding is not used here. For local dev, run `npm run db:reset`
+# which runs `supabase db reset` followed by scripts/seed-representatives.ts
+# (fetches real congress members). E2e test seeding is handled by global-setup.ts.
 sql_paths = []
 
 [db.network_restrictions]
