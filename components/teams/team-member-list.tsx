@@ -69,7 +69,7 @@ export function TeamMemberList({
       </div>
 
       <div className="mt-8">
-        <h3 className="text-lg font-semibold uppercase">General Members</h3>
+        <h2 className="text-lg font-semibold uppercase">General Members</h2>
         <div className="mt-2">
           <Table>
             <caption className="sr-only">General Members</caption>

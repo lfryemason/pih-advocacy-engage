@@ -141,7 +141,10 @@ export async function resetDatabase() {
     .eq("team_id", SEED_TEAM_NO_MEMBER_ID)
     .eq("user_id", TEST_USER_ID);
 
-  // Reset teams: delete non-seed teams, upsert seed teams.
+  // Reset teams: delete non-seed teams, restore seed teams via UPDATE.
+  // We must use UPDATE (not upsert/insert) because the BEFORE INSERT trigger
+  // fires on upsert's INSERT attempt, sees the existing row's slug, and
+  // increments it to "-2". UPDATE bypasses that trigger entirely.
   const { error: teamDeleteError } = await supabase
     .from("teams")
     .delete()
@@ -151,11 +154,31 @@ export async function resetDatabase() {
       `Failed to clear non-seed teams: ${teamDeleteError.message}`,
     );
   }
-  const { error: teamUpsertError } = await supabase
-    .from("teams")
-    .upsert(SEED_TEAMS, { onConflict: "id" });
-  if (teamUpsertError) {
-    throw new Error(`Failed to seed teams: ${teamUpsertError.message}`);
+  for (const { id, ...fields } of SEED_TEAMS) {
+    const { data: updated, error: updateError } = await supabase
+      .from("teams")
+      .update(fields)
+      .eq("id", id)
+      .select("id");
+    if (updateError) {
+      throw new Error(
+        `Failed to update seed team ${id}: ${updateError.message}`,
+      );
+    }
+    // On first run (empty DB) the UPDATE matches nothing — fall back to INSERT.
+    // The trigger then runs cleanly against an empty table and assigns the
+    // correct slug. This path only runs during global setup (serial), so there
+    // is no parallel-insert race.
+    if (!updated || updated.length === 0) {
+      const { error: insertError } = await supabase
+        .from("teams")
+        .insert({ id, ...fields });
+      if (insertError) {
+        throw new Error(
+          `Failed to insert seed team ${id}: ${insertError.message}`,
+        );
+      }
+    }
   }
 
   // Restore seed team memberships (upsert is idempotent on the composite PK).

@@ -73,6 +73,7 @@ export function TeamForm({
           router.refresh();
           onDone();
         } else {
+          router.refresh();
           router.replace(`/teams/${team.slug}`);
         }
       } else {

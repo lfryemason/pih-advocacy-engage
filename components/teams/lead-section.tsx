@@ -17,9 +17,9 @@ export function LeadSection({
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <h3 className="text-lg font-semibold uppercase tracking-wide">
+      <h2 className="text-lg font-semibold uppercase tracking-wide">
         {members.length > 1 ? `${title}s` : title}
-      </h3>
+      </h2>
       {members.length === 0 ? (
         <p className="text-muted-foreground">—</p>
       ) : (

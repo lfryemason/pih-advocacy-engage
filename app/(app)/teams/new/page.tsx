@@ -11,7 +11,7 @@ export default function NewTeamPage() {
           <Link href="/teams">← Teams</Link>
         </Button>
       </div>
-      <h1 className="mt-4 text-2xl font-bold">New Team</h1>
+      <h1 className="mt-4 text-2xl font-bold">Create a new team</h1>
       <TeamForm orgId={ORG_ID} />
     </div>
   );
