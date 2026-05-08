@@ -112,7 +112,6 @@ export function TeamForm({
         </Label>
         <Input
           id="team-name"
-          required
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
@@ -123,7 +122,6 @@ export function TeamForm({
         </Label>
         <Select
           id="team-state"
-          required
           value={state}
           onChange={(e) => setState(e.target.value)}
         >
@@ -141,7 +139,6 @@ export function TeamForm({
         </Label>
         <Select
           id="team-type"
-          required
           value={type}
           onChange={(e) => setType(e.target.value)}
         >
