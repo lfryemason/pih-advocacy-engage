@@ -1,9 +1,9 @@
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ORG_ID } from "@/lib/org";
 import { TeamPageClient } from "@/components/teams/team-page-client";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
+import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
 
 export default function TeamPage({
   params,
@@ -11,11 +11,9 @@ export default function TeamPage({
   params: Promise<{ slug: string }>;
 }) {
   return (
-    <div className="p-8">
-      <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
-        <TeamContent params={params} />
-      </Suspense>
-    </div>
+    <SuspenseWithDefaultFallback>
+      <TeamContent params={params} />
+    </SuspenseWithDefaultFallback>
   );
 }
 

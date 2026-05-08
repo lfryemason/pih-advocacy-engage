@@ -1,4 +1,3 @@
-import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
@@ -7,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { TeamForm } from "@/components/teams/team-form";
 import { MemberEditTable } from "@/components/teams/member-edit-table";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
+import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
 
 export default function EditTeamPage({
   params,
@@ -14,11 +14,9 @@ export default function EditTeamPage({
   params: Promise<{ slug: string }>;
 }) {
   return (
-    <div className="p-8">
-      <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
-        <EditTeamContent params={params} />
-      </Suspense>
-    </div>
+    <SuspenseWithDefaultFallback>
+      <EditTeamContent params={params} />
+    </SuspenseWithDefaultFallback>
   );
 }
 
