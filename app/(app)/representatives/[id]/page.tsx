@@ -1,9 +1,9 @@
-import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentRole } from "@/lib/auth/role";
 import { ORG_ID } from "@/lib/org";
 import { StafferList } from "@/components/staffers/staffer-list";
+import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
 
 export default function RepresentativePage({
   params,
@@ -11,16 +11,10 @@ export default function RepresentativePage({
   params: Promise<{ id: string }>;
 }) {
   return (
-    <div className="p-8">
-      <Suspense fallback={<RepresentativeLoading />}>
-        <RepresentativeContent params={params} />
-      </Suspense>
-    </div>
+    <SuspenseWithDefaultFallback>
+      <RepresentativeContent params={params} />
+    </SuspenseWithDefaultFallback>
   );
-}
-
-function RepresentativeLoading() {
-  return <p className="text-muted-foreground">Loading…</p>;
 }
 
 async function RepresentativeContent({

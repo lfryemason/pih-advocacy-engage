@@ -5,6 +5,10 @@ import {
   TEST_PASSWORD,
   SEED_REPRESENTATIVES,
   SEED_PROFILE,
+  SEED_TEAMS,
+  SEED_TEAM_MEMBERSHIPS,
+  SEED_TEAM_ID,
+  SEED_TEAM_NO_MEMBER_ID,
 } from "./seed";
 
 const SUPABASE_URL =
@@ -106,5 +110,80 @@ export async function resetDatabase() {
     .not("id", "is", null);
   if (stafferError) {
     throw new Error(`Failed to clear staffers: ${stafferError.message}`);
+  }
+
+  // Reset team_memberships: wipe all non-seed memberships, then restore seed.
+  const seedTeamIds = [SEED_TEAM_ID, SEED_TEAM_NO_MEMBER_ID];
+  const { error: membershipDeleteError } = await supabase
+    .from("team_memberships")
+    .delete()
+    .not("team_id", "in", `(${seedTeamIds.join(",")})`);
+  if (membershipDeleteError) {
+    throw new Error(
+      `Failed to clear non-seed team memberships: ${membershipDeleteError.message}`,
+    );
+  }
+  // Wipe all memberships on seed teams — restored from seed upsert below.
+  // This covers extra-role rows the test user may have from role-change tests
+  // (e.g. team_lead → member), other users joining seed teams, and the test
+  // user joining the no-member team from join-team tests.
+  const { error: extraMembershipError } = await supabase
+    .from("team_memberships")
+    .delete()
+    .in("team_id", seedTeamIds);
+  if (extraMembershipError) {
+    throw new Error(
+      `Failed to clear seed-team memberships: ${extraMembershipError.message}`,
+    );
+  }
+
+  // Reset teams: delete non-seed teams, restore seed teams via UPDATE.
+  // We must use UPDATE (not upsert/insert) because the BEFORE INSERT trigger
+  // fires on upsert's INSERT attempt, sees the existing row's slug, and
+  // increments it to "-2". UPDATE bypasses that trigger entirely.
+  const { error: teamDeleteError } = await supabase
+    .from("teams")
+    .delete()
+    .not("id", "in", `(${seedTeamIds.join(",")})`);
+  if (teamDeleteError) {
+    throw new Error(
+      `Failed to clear non-seed teams: ${teamDeleteError.message}`,
+    );
+  }
+  for (const { id, ...fields } of SEED_TEAMS) {
+    const { data: updated, error: updateError } = await supabase
+      .from("teams")
+      .update(fields)
+      .eq("id", id)
+      .select("id");
+    if (updateError) {
+      throw new Error(
+        `Failed to update seed team ${id}: ${updateError.message}`,
+      );
+    }
+    // On first run (empty DB) the UPDATE matches nothing — fall back to INSERT.
+    // The trigger then runs cleanly against an empty table and assigns the
+    // correct slug. This path only runs during global setup (serial), so there
+    // is no parallel-insert race.
+    if (!updated || updated.length === 0) {
+      const { error: insertError } = await supabase
+        .from("teams")
+        .insert({ id, ...fields });
+      if (insertError) {
+        throw new Error(
+          `Failed to insert seed team ${id}: ${insertError.message}`,
+        );
+      }
+    }
+  }
+
+  // Restore seed team memberships (upsert is idempotent on the composite PK).
+  const { error: membershipUpsertError } = await supabase
+    .from("team_memberships")
+    .upsert(SEED_TEAM_MEMBERSHIPS, { onConflict: "team_id,user_id,role" });
+  if (membershipUpsertError) {
+    throw new Error(
+      `Failed to seed team memberships: ${membershipUpsertError.message}`,
+    );
   }
 }
