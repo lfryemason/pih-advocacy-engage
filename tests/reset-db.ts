@@ -123,23 +123,19 @@ export async function resetDatabase() {
       `Failed to clear non-seed team memberships: ${membershipDeleteError.message}`,
     );
   }
-  // Also wipe any extra memberships on the seed teams (e.g. from join-team tests).
+  // Wipe all memberships on seed teams — restored from seed upsert below.
+  // This covers extra-role rows the test user may have from role-change tests
+  // (e.g. team_lead → member), other users joining seed teams, and the test
+  // user joining the no-member team from join-team tests.
   const { error: extraMembershipError } = await supabase
     .from("team_memberships")
     .delete()
-    .in("team_id", seedTeamIds)
-    .neq("user_id", TEST_USER_ID);
+    .in("team_id", seedTeamIds);
   if (extraMembershipError) {
     throw new Error(
-      `Failed to clear extra seed-team memberships: ${extraMembershipError.message}`,
+      `Failed to clear seed-team memberships: ${extraMembershipError.message}`,
     );
   }
-  // Also remove the test user's membership on the no-member team (from join tests).
-  await supabase
-    .from("team_memberships")
-    .delete()
-    .eq("team_id", SEED_TEAM_NO_MEMBER_ID)
-    .eq("user_id", TEST_USER_ID);
 
   // Reset teams: delete non-seed teams, restore seed teams via UPDATE.
   // We must use UPDATE (not upsert/insert) because the BEFORE INSERT trigger

@@ -96,7 +96,9 @@ export function MemberEditTable({
                 <TableHead>Last name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
-                <TableHead />
+                <TableHead>
+                  <span className="sr-only">Actions</span>
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -109,6 +111,7 @@ export function MemberEditTable({
                     <TableCell>{m.profiles?.email ?? "—"}</TableCell>
                     <TableCell>
                       <Select
+                        aria-label={`Role for ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"}`}
                         value={m.role}
                         disabled={changing === key || removing === key}
                         onChange={(e) =>

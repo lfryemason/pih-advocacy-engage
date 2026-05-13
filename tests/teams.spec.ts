@@ -37,13 +37,17 @@ test.describe("team detail page", () => {
       page.getByRole("heading", { name: "Seattle High School" }),
     ).toBeVisible();
     await expect(page.getByText(/WA/)).toBeVisible();
-    await expect(page.getByText(/High School/)).toBeVisible();
+    await expect(page.getByText(/High School team/)).toBeVisible();
   });
 
   test("shows the test user as a lead", async ({ page }) => {
     await page.goto("/teams/seattle-high-school");
-    // Test Admin is the seeded team_lead
-    await expect(page.getByText("Test Admin")).toBeVisible();
+    // Test Admin is the seeded team_lead — scope to the lead list so the
+    // sidebar nav link (which also shows the user's name) doesn't cause a
+    // strict-mode violation.
+    await expect(
+      page.getByRole("listitem").getByText("Test Admin"),
+    ).toBeVisible();
   });
 
   test("member sees Edit button and not Join team", async ({ page }) => {
@@ -119,8 +123,14 @@ test.describe("edit team page", () => {
   test("edit page shows the members section", async ({ page }) => {
     await page.goto("/teams/seattle-high-school/edit");
     await expect(page.getByRole("heading", { name: "Members" })).toBeVisible();
-    await expect(page.getByText("Test")).toBeVisible();
-    await expect(page.getByText("Admin")).toBeVisible();
+    // Scope to table cells so the sidebar nav (which also contains "Test Admin")
+    // doesn't cause a strict-mode violation.
+    await expect(
+      page.getByRole("cell", { name: "Test", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "Admin", exact: true }),
+    ).toBeVisible();
   });
 
   test("saving a field change returns to the team detail page", async ({
