@@ -124,7 +124,6 @@ export function TeamForm({
         <Input
           id="team-name"
           value={name}
-          required
           aria-required="true"
           onChange={(e) => setName(e.target.value)}
         />
@@ -139,7 +138,6 @@ export function TeamForm({
         <Select
           id="team-state"
           value={state}
-          required
           aria-required="true"
           onChange={(e) => setState(e.target.value)}
         >
@@ -161,7 +159,6 @@ export function TeamForm({
         <Select
           id="team-type"
           value={type}
-          required
           aria-required="true"
           onChange={(e) => setType(e.target.value)}
         >
