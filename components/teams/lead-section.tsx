@@ -1,12 +1,6 @@
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
+import { displayName } from "@/lib/teams";
 import { Dot, LucideAmpersand } from "lucide-react";
-
-function displayName(profiles: MembershipWithProfile["profiles"]) {
-  if (!profiles) return "—";
-  return (
-    [profiles.first_name, profiles.last_name].filter(Boolean).join(" ") || ""
-  );
-}
 
 export function LeadSection({
   title,
@@ -30,6 +24,7 @@ export function LeadSection({
                 <div className="flex justify-center py-2">
                   <LucideAmpersand
                     size={16}
+                    aria-hidden="true"
                     className="text-muted-foreground"
                   />
                 </div>
@@ -41,7 +36,7 @@ export function LeadSection({
 
                 {m.profiles?.pronouns && (
                   <>
-                    <Dot />
+                    <Dot aria-hidden="true" />
                     <span>{m.profiles.pronouns}</span>
                   </>
                 )}

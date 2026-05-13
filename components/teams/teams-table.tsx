@@ -1,8 +1,5 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
 import {
   Table,
   TableBody,
@@ -23,32 +20,17 @@ type TeamRow = {
   team_memberships: { count: number }[];
 };
 
-export function TeamsTable() {
-  const router = useRouter();
-  const [teams, setTeams] = useState<TeamRow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+export async function TeamsTable() {
+  const supabase = await createClient();
+  const { data: teams, error } = await supabase
+    .from("teams")
+    .select("id, name, slug, state, type, team_memberships(count)")
+    .eq("org_id", ORG_ID)
+    .order("name");
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase
-      .from("teams")
-      .select("id, name, slug, state, type, team_memberships(count)")
-      .eq("org_id", ORG_ID)
-      .order("name")
-      .then(({ data, error: queryError }) => {
-        if (queryError) {
-          setError(queryError.message);
-        } else {
-          setTeams((data as TeamRow[]) ?? []);
-        }
-        setIsLoading(false);
-      });
-  }, []);
-
-  if (isLoading) return <p className="mt-6 text-muted-foreground">Loading…</p>;
-  if (error) return <p className="mt-6 text-destructive">Error: {error}</p>;
-  if (teams.length === 0)
+  if (error)
+    return <p className="mt-6 text-destructive">Error: {error.message}</p>;
+  if (!teams?.length)
     return <p className="mt-6 text-muted-foreground">No teams yet.</p>;
 
   return (
@@ -64,19 +46,25 @@ export function TeamsTable() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {teams.map((team) => (
-            <TableRow
-              key={team.id}
-              className="cursor-pointer"
-              onClick={() => router.push(`/teams/${team.slug}`)}
-            >
-              <TableCell className="font-medium">{team.name}</TableCell>
+          {(teams as TeamRow[]).map((team) => (
+            <TableRow key={team.id} className="relative">
+              <TableCell className="font-medium">
+                <Link
+                  href={`/teams/${team.slug}`}
+                  className="after:absolute after:inset-0"
+                >
+                  {team.name}
+                </Link>
+              </TableCell>
               <TableCell>{team.state}</TableCell>
               <TableCell>
                 {TYPE_LABELS[team.type as keyof typeof TYPE_LABELS] ??
                   team.type}
               </TableCell>
-              <TableCell>{team.team_memberships[0]?.count ?? 0}</TableCell>
+              <TableCell>
+                {(team.team_memberships[0] as { count: number } | undefined)
+                  ?.count ?? 0}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

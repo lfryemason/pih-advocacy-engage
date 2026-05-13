@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { TeamsTable } from "@/components/teams/teams-table";
@@ -11,7 +12,11 @@ export default function TeamsPage() {
           <Link href="/teams/new">Create team</Link>
         </Button>
       </div>
-      <TeamsTable />
+      <Suspense
+        fallback={<p className="mt-6 text-muted-foreground">Loading…</p>}
+      >
+        <TeamsTable />
+      </Suspense>
     </div>
   );
 }

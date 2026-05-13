@@ -87,17 +87,21 @@ export function TeamForm({
           data: { user },
         } = await supabase.auth.getUser();
         if (user) {
-          await supabase.from("team_memberships").insert({
-            team_id: data.id,
-            user_id: user.id,
-            org_id: orgId,
-            role: "team_lead",
-          });
+          const { error: membershipError } = await supabase
+            .from("team_memberships")
+            .insert({
+              team_id: data.id,
+              user_id: user.id,
+              org_id: orgId,
+              role: "team_lead",
+            });
+          if (membershipError) throw membershipError;
         }
         router.replace(`/teams/${data.slug}`);
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to save team");
+    } finally {
       setIsSaving(false);
     }
   };
@@ -107,23 +111,36 @@ export function TeamForm({
 
   return (
     <form onSubmit={handleSubmit} className="mt-6 flex max-w-lg flex-col gap-6">
+      <p className="text-sm text-muted-foreground">
+        Fields marked <span aria-hidden="true">*</span> are required.
+      </p>
       <div className="grid gap-2">
         <Label htmlFor="team-name">
-          Name <span className="text-destructive">*</span>
+          Name{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
+          </span>
         </Label>
         <Input
           id="team-name"
           value={name}
+          required
+          aria-required="true"
           onChange={(e) => setName(e.target.value)}
         />
       </div>
       <div className="grid gap-2">
         <Label htmlFor="team-state">
-          State <span className="text-destructive">*</span>
+          State{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
+          </span>
         </Label>
         <Select
           id="team-state"
           value={state}
+          required
+          aria-required="true"
           onChange={(e) => setState(e.target.value)}
         >
           <option value="">Select a state</option>
@@ -136,11 +153,16 @@ export function TeamForm({
       </div>
       <div className="grid gap-2">
         <Label htmlFor="team-type">
-          Type <span className="text-destructive">*</span>
+          Type{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
+          </span>
         </Label>
         <Select
           id="team-type"
           value={type}
+          required
+          aria-required="true"
           onChange={(e) => setType(e.target.value)}
         >
           <option value="">Select a type</option>
@@ -170,7 +192,11 @@ export function TeamForm({
           onChange={(e) => setFoundedDate(e.target.value)}
         />
       </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && (
+        <p role="alert" className="text-sm text-red-500">
+          {error}
+        </p>
+      )}
       <div className="flex gap-2">
         <Button type="submit" disabled={isSaving}>
           {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}

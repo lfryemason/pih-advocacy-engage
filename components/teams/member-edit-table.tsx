@@ -25,11 +25,9 @@ const ROLE_OPTIONS = [
 export function MemberEditTable({
   memberships,
   teamId,
-  orgId,
 }: {
   memberships: MembershipWithProfile[];
   teamId: string;
-  orgId: string;
 }) {
   const router = useRouter();
   const [changing, setChanging] = useState<string | null>(null);
@@ -40,27 +38,22 @@ export function MemberEditTable({
     currentRole: string,
     newRole: string,
   ) => {
+    if (newRole === currentRole) return;
     const key = `${userId}-${currentRole}`;
     setChanging(key);
-    const supabase = createClient();
-    const { error: insertError } = await supabase
-      .from("team_memberships")
-      .insert({
-        team_id: teamId,
-        user_id: userId,
-        org_id: orgId,
-        role: newRole,
+    try {
+      const supabase = createClient();
+      const { error } = await supabase.rpc("change_member_role", {
+        p_team_id: teamId,
+        p_user_id: userId,
+        p_old_role: currentRole,
+        p_new_role: newRole,
       });
-    if (!insertError) {
-      await supabase
-        .from("team_memberships")
-        .delete()
-        .eq("team_id", teamId)
-        .eq("user_id", userId)
-        .eq("role", currentRole);
+      if (error) throw error;
+      router.refresh();
+    } finally {
+      setChanging(null);
     }
-    setChanging(null);
-    router.refresh();
   };
 
   const handleRemove = async (membership: MembershipWithProfile) => {
@@ -71,14 +64,19 @@ export function MemberEditTable({
     if (!window.confirm(`Remove ${name} from this team?`)) return;
     const key = `${membership.user_id}-${membership.role}`;
     setRemoving(key);
-    const supabase = createClient();
-    await supabase
-      .from("team_memberships")
-      .delete()
-      .eq("team_id", teamId)
-      .eq("user_id", membership.user_id)
-      .eq("role", membership.role);
-    router.refresh();
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from("team_memberships")
+        .delete()
+        .eq("team_id", teamId)
+        .eq("user_id", membership.user_id)
+        .eq("role", membership.role);
+      if (error) throw error;
+      router.refresh();
+    } finally {
+      setRemoving(null);
+    }
   };
 
   return (

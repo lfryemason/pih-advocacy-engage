@@ -9,6 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LeadSection } from "@/components/teams/lead-section";
+import { displayName } from "@/lib/teams";
 
 export type MembershipWithProfile = {
   role: string;
@@ -22,13 +23,6 @@ export type MembershipWithProfile = {
 };
 
 const LEAD_ROLES = ["team_lead", "fundraising_lead", "advocacy_lead"] as const;
-
-function displayName(profiles: MembershipWithProfile["profiles"]) {
-  if (!profiles) return "—";
-  return (
-    [profiles.first_name, profiles.last_name].filter(Boolean).join(" ") || "—"
-  );
-}
 
 export function TeamMemberList({
   memberships,
@@ -83,9 +77,9 @@ export function TeamMemberList({
             <TableBody>
               {generalMembers.length === 0 ? (
                 <TableRow>
-                  <TableCell>—</TableCell>
-                  <TableCell>—</TableCell>
-                  <TableCell>—</TableCell>
+                  <TableCell colSpan={3} className="text-muted-foreground">
+                    No general members.
+                  </TableCell>
                 </TableRow>
               ) : (
                 generalMembers.map((m) => (

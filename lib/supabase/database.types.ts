@@ -64,6 +64,13 @@ export type Database = {
             referencedRelation: "teams";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "team_memberships_user_id_profiles_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
         ];
       };
       teams: {
@@ -303,6 +310,15 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      change_member_role: {
+        Args: {
+          p_team_id: string;
+          p_user_id: string;
+          p_old_role: string;
+          p_new_role: string;
+        };
+        Returns: undefined;
+      };
       is_in_org: { Args: { target_org_id: string }; Returns: boolean };
       is_org_admin_for: { Args: { target_org_id: string }; Returns: boolean };
       is_super_admin: { Args: never; Returns: boolean };

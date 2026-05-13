@@ -24,41 +24,31 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
   const [{ data: team }, { data: authData }] = await Promise.all([
     supabase
       .from("teams")
-      .select()
+      .select(
+        "id, name, slug, org_id, state, type, description, founded_date, created_at, updated_at",
+      )
       .eq("org_id", ORG_ID)
       .eq("slug", slug)
       .single(),
     supabase.auth.getUser(),
   ]);
 
-  if (!team) {
-    console.log("Team not found, redirecting to teams list page");
-    redirect("/teams");
-  }
+  if (!team) redirect("/teams");
 
   const { data: rawMemberships } = await supabase
     .from("team_memberships")
-    .select("role, user_id")
+    .select(
+      "role, user_id, profiles(user_id, first_name, last_name, pronouns, email)",
+    )
     .eq("team_id", team.id);
-
-  const userIds = [...new Set((rawMemberships ?? []).map((m) => m.user_id))];
-
-  const { data: profiles } = userIds.length
-    ? await supabase
-        .from("profiles")
-        .select("user_id, first_name, last_name, pronouns, email")
-        .in("user_id", userIds)
-    : { data: [] };
-
-  const profileByUserId = Object.fromEntries(
-    (profiles ?? []).map((p) => [p.user_id, p]),
-  );
 
   const memberships: MembershipWithProfile[] = (rawMemberships ?? []).map(
     (m) => ({
       role: m.role,
       user_id: m.user_id,
-      profiles: profileByUserId[m.user_id] ?? null,
+      profiles: Array.isArray(m.profiles)
+        ? (m.profiles[0] ?? null)
+        : m.profiles,
     }),
   );
 

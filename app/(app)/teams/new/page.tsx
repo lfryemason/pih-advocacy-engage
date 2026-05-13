@@ -8,7 +8,9 @@ export default function NewTeamPage() {
     <div className="p-8">
       <div>
         <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/teams">← Teams</Link>
+          <Link href="/teams" aria-label="Back to Teams">
+            <span aria-hidden="true">← </span>Teams
+          </Link>
         </Button>
       </div>
       <h1 className="mt-4 text-2xl font-bold">Create a new team</h1>
