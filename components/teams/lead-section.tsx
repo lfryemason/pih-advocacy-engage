@@ -1,4 +1,4 @@
-import type { MembershipWithProfile } from "@/components/teams/team-member-list";
+import type { MembershipWithProfile } from "@/lib/teams";
 import { displayName } from "@/lib/teams";
 import { Dot, LucideAmpersand } from "lucide-react";
 

@@ -98,6 +98,14 @@ begin
     raise exception 'permission denied';
   end if;
 
+  -- Verify the old role actually exists for this user to prevent phantom-role injection.
+  if not exists (
+    select 1 from public.team_memberships
+    where team_id = p_team_id and user_id = p_user_id and role = p_old_role
+  ) then
+    raise exception 'role not found';
+  end if;
+
   insert into public.team_memberships (team_id, user_id, org_id, role)
   select p_team_id, p_user_id, t.org_id, p_new_role
   from public.teams t where t.id = p_team_id;

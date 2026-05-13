@@ -1,7 +1,10 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { TeamsTable } from "@/components/teams/teams-table";
+
+export const metadata: Metadata = { title: "Teams" };
 
 export default function TeamsPage() {
   return (

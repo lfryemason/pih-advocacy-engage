@@ -9,18 +9,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { LeadSection } from "@/components/teams/lead-section";
-import { displayName } from "@/lib/teams";
+import { displayName, type MembershipWithProfile } from "@/lib/teams";
 
-export type MembershipWithProfile = {
-  role: string;
-  user_id: string;
-  profiles: {
-    first_name: string | null;
-    last_name: string | null;
-    pronouns: string | null;
-    email: string;
-  } | null;
-};
+export type { MembershipWithProfile };
 
 const LEAD_ROLES = ["team_lead", "fundraising_lead", "advocacy_lead"] as const;
 

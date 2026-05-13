@@ -1,7 +1,10 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { TeamForm } from "@/components/teams/team-form";
 import { ORG_ID } from "@/lib/org";
+
+export const metadata: Metadata = { title: "Create a new team" };
 
 export default function NewTeamPage() {
   return (

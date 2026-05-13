@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import type { MembershipWithProfile } from "@/components/teams/team-member-list";
+import type { MembershipWithProfile } from "@/lib/teams";
 
 const ROLE_OPTIONS = [
   { value: "member", label: "Member" },
@@ -32,6 +32,7 @@ export function MemberEditTable({
   const router = useRouter();
   const [changing, setChanging] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
   const handleRoleChange = async (
     userId: string,
@@ -41,6 +42,7 @@ export function MemberEditTable({
     if (newRole === currentRole) return;
     const key = `${userId}-${currentRole}`;
     setChanging(key);
+    setActionError(null);
     try {
       const supabase = createClient();
       const { error } = await supabase.rpc("change_member_role", {
@@ -51,6 +53,10 @@ export function MemberEditTable({
       });
       if (error) throw error;
       router.refresh();
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to update role",
+      );
     } finally {
       setChanging(null);
     }
@@ -64,6 +70,7 @@ export function MemberEditTable({
     if (!window.confirm(`Remove ${name} from this team?`)) return;
     const key = `${membership.user_id}-${membership.role}`;
     setRemoving(key);
+    setActionError(null);
     try {
       const supabase = createClient();
       const { error } = await supabase
@@ -74,6 +81,10 @@ export function MemberEditTable({
         .eq("role", membership.role);
       if (error) throw error;
       router.refresh();
+    } catch (err) {
+      setActionError(
+        err instanceof Error ? err.message : "Failed to remove member",
+      );
     } finally {
       setRemoving(null);
     }
@@ -82,6 +93,11 @@ export function MemberEditTable({
   return (
     <div className="mt-8 max-w-2xl">
       <h2 className="text-lg font-semibold">Members</h2>
+      {actionError && (
+        <p role="alert" className="mt-2 text-sm text-destructive">
+          {actionError}
+        </p>
+      )}
       <div className="mt-2">
         {memberships.length === 0 ? (
           <p className="text-sm text-muted-foreground">No members yet.</p>
@@ -129,6 +145,7 @@ export function MemberEditTable({
                         size="sm"
                         className="text-muted-foreground hover:text-destructive"
                         disabled={removing === key || changing === key}
+                        aria-label={`Remove ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"} from team`}
                         onClick={() => handleRemove(m)}
                       >
                         {removing === key ? "Removing…" : "Remove"}

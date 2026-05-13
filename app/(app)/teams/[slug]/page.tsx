@@ -1,9 +1,26 @@
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ORG_ID } from "@/lib/org";
 import { TeamPageClient } from "@/components/teams/team-page-client";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("teams")
+    .select("name")
+    .eq("org_id", ORG_ID)
+    .eq("slug", slug)
+    .single();
+  return { title: data?.name ?? "Team" };
+}
 
 export default function TeamPage({
   params,

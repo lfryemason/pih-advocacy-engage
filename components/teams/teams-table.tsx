@@ -9,7 +9,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ORG_ID } from "@/lib/org";
-import { TYPE_LABELS } from "@/components/teams/team-form";
+import { TYPE_LABELS } from "@/lib/teams";
 
 type TeamRow = {
   id: string;

@@ -155,6 +155,8 @@ test.describe("edit team page", () => {
       .getByRole("row", { name: /Test/ })
       .getByRole("combobox");
     await roleSelect.selectOption("member");
+    await expect(roleSelect).toBeDisabled();
+    await expect(roleSelect).toBeEnabled();
     await page.reload();
     await expect(roleSelect).toHaveValue("member");
   });
@@ -169,7 +171,7 @@ test.describe("edit team page", () => {
     await expect(page.getByRole("row", { name: /Test/ })).toBeVisible();
 
     page.once("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: "Remove" }).click();
+    await page.getByRole("button", { name: /^Remove/ }).click();
 
     await expect(page.getByRole("row", { name: /Test/ })).toHaveCount(0);
   });

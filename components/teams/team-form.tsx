@@ -10,14 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { US_STATES } from "@/lib/us-districts";
 import { cn } from "@/lib/utils";
+import { TYPE_LABELS } from "@/lib/teams";
 
 type Team = Tables<"teams">;
-
-export const TYPE_LABELS = {
-  high_school: "High School",
-  university: "University",
-  city: "City",
-} as const;
 
 export function TeamForm({
   orgId,
@@ -110,7 +105,11 @@ export function TeamForm({
     "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex max-w-lg flex-col gap-6">
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      className="mt-6 flex max-w-lg flex-col gap-6"
+    >
       <p className="text-sm text-muted-foreground">
         Fields marked <span aria-hidden="true">*</span> are required.
       </p>
@@ -124,6 +123,7 @@ export function TeamForm({
         <Input
           id="team-name"
           value={name}
+          required
           aria-required="true"
           onChange={(e) => setName(e.target.value)}
         />
@@ -138,6 +138,7 @@ export function TeamForm({
         <Select
           id="team-state"
           value={state}
+          required
           aria-required="true"
           onChange={(e) => setState(e.target.value)}
         >
@@ -159,6 +160,7 @@ export function TeamForm({
         <Select
           id="team-type"
           value={type}
+          required
           aria-required="true"
           onChange={(e) => setType(e.target.value)}
         >

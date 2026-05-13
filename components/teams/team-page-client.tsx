@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
-import { TYPE_LABELS } from "@/components/teams/team-form";
+import { TYPE_LABELS } from "@/lib/teams";
 import {
   TeamMemberList,
   type MembershipWithProfile,
@@ -27,6 +27,7 @@ export function TeamPageClient({
 }) {
   const router = useRouter();
   const [isJoining, setIsJoining] = useState(false);
+  const [joinError, setJoinError] = useState<string | null>(null);
 
   const isMember =
     currentUserId !== null &&
@@ -35,14 +36,19 @@ export function TeamPageClient({
   const handleJoin = async () => {
     if (!currentUserId) return;
     setIsJoining(true);
+    setJoinError(null);
     const supabase = createClient();
-    await supabase.from("team_memberships").insert({
+    const { error } = await supabase.from("team_memberships").insert({
       team_id: team.id,
       user_id: currentUserId,
       org_id: orgId,
       role: "member",
     });
-    router.refresh();
+    if (error) {
+      setJoinError("Failed to join team");
+    } else {
+      router.refresh();
+    }
     setIsJoining(false);
   };
 
@@ -66,16 +72,23 @@ export function TeamPageClient({
             <p className="mt-3 text-sm">{team.description}</p>
           )}
         </div>
-        <div className="flex gap-2">
-          {!isMember && currentUserId && (
-            <Button size="sm" onClick={handleJoin} disabled={isJoining}>
-              {isJoining ? "Joining…" : "Join team"}
-            </Button>
-          )}
-          {isMember && (
-            <Button asChild variant="outline" size="sm">
-              <Link href={`/teams/${team.slug}/edit`}>Edit</Link>
-            </Button>
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex gap-2">
+            {!isMember && currentUserId && (
+              <Button size="sm" onClick={handleJoin} disabled={isJoining}>
+                {isJoining ? "Joining…" : "Join team"}
+              </Button>
+            )}
+            {isMember && (
+              <Button asChild variant="outline" size="sm">
+                <Link href={`/teams/${team.slug}/edit`}>Edit</Link>
+              </Button>
+            )}
+          </div>
+          {joinError && (
+            <p role="alert" className="text-sm text-destructive">
+              {joinError}
+            </p>
           )}
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ORG_ID } from "@/lib/org";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,22 @@ import { TeamForm } from "@/components/teams/team-form";
 import { MemberEditTable } from "@/components/teams/member-edit-table";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
+  const { slug } = await params;
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("teams")
+    .select("name")
+    .eq("org_id", ORG_ID)
+    .eq("slug", slug)
+    .single();
+  return { title: data ? `Edit ${data.name}` : "Edit team" };
+}
 
 export default function EditTeamPage({
   params,
