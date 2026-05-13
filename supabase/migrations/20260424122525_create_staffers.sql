@@ -22,6 +22,9 @@ create trigger staffers_updated_at
   before update on public.staffers
   for each row execute function public.handle_updated_at();
 
+grant select, insert, update, delete on public.staffers to authenticated;
+grant select, insert, update, delete on public.staffers to service_role;
+
 alter table public.staffers enable row level security;
 
 -- Members of the org can read/insert/update their own-org staffers (staffer

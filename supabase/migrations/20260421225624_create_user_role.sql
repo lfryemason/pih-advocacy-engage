@@ -71,6 +71,11 @@ grant execute on function public.is_super_admin() to authenticated;
 grant execute on function public.is_in_org(text) to authenticated;
 grant execute on function public.is_org_admin_for(text) to authenticated;
 
+grant select, insert, update, delete on public.user_role to authenticated;
+grant select, insert, update, delete on public.user_role to service_role;
+grant select, insert, update, delete on public.representative_org_info to authenticated;
+grant select, insert, update, delete on public.representative_org_info to service_role;
+
 -- RLS: user_role
 alter table public.user_role enable row level security;
 
