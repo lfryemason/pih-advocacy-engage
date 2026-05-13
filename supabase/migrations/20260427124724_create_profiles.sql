@@ -17,7 +17,7 @@ create trigger profiles_updated_at
   before update on public.profiles
   for each row execute function public.handle_updated_at();
 
-grant select, insert, update, delete on public.profiles to authenticated;
+grant select, update on public.profiles to authenticated;
 grant select, insert, update, delete on public.profiles to service_role;
 
 alter table public.profiles enable row level security;
