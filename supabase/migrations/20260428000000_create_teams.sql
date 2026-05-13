@@ -119,6 +119,11 @@ $$;
 
 grant execute on function public.change_member_role to authenticated;
 
+grant select, insert, update, delete on public.teams to authenticated;
+grant select, insert, update, delete on public.teams to service_role;
+grant select, insert, update, delete on public.team_memberships to authenticated;
+grant select, insert, update, delete on public.team_memberships to service_role;
+
 alter table public.teams enable row level security;
 alter table public.team_memberships enable row level security;
 
