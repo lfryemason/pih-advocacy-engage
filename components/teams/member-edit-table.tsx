@@ -150,10 +150,13 @@ export function MemberEditTable({
                         {isCoach && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <Info
-                                size={14}
+                              <button
+                                type="button"
+                                aria-label="Coach role info"
                                 className="shrink-0 text-muted-foreground"
-                              />
+                              >
+                                <Info size={14} aria-hidden="true" />
+                              </button>
                             </TooltipTrigger>
                             <TooltipContent>
                               Coaches are excluded from membership counts

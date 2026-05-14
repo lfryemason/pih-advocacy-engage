@@ -38,7 +38,6 @@
     --ring: hsl(0 0% 3.9%);
     --radius: 0.5rem;
     --bg-muted: hsl(0 0% 100%);
-    --muted-grey: hsl(0 0% 70%);
   }
   .high-contrast {
     --background: hsl(0 0% 100%);
@@ -69,7 +68,6 @@
     --border: hsl(0 0% 0%);
     --input: hsl(0 0% 0%);
     --ring: hsl(36 100% 40%);
-    --muted-grey: hsl(0 0% 60%);
   }
   .dark {
     --background: hsl(0 0% 16%);
@@ -100,7 +98,6 @@
     --border: hsl(0 0% 28%);
     --input: hsl(0 0% 28%);
     --ring: hsl(0 0% 83.1%);
-    --muted-grey: hsl(0 0% 30%);
   }
 }
 
