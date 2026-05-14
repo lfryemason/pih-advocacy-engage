@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { US_STATES } from "@/lib/us-districts";
+import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 import { cn } from "@/lib/utils";
 import { TYPE_LABELS } from "@/lib/teams";
 
@@ -33,8 +33,22 @@ export function TeamForm({
   const [type, setType] = useState(team?.type ?? "");
   const [description, setDescription] = useState(team?.description ?? "");
   const [foundedDate, setFoundedDate] = useState(team?.founded_date ?? "");
+  const [districts, setDistricts] = useState<string[]>(
+    team?.congressional_districts ?? [],
+  );
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setState(e.target.value);
+    setDistricts([]);
+  };
+
+  const handleDistrictToggle = (value: string) => {
+    setDistricts((prev) =>
+      prev.includes(value) ? prev.filter((d) => d !== value) : [...prev, value],
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,6 +69,7 @@ export function TeamForm({
       type,
       description: description.trim() || null,
       founded_date: foundedDate || null,
+      congressional_districts: districts,
     };
 
     try {
@@ -104,6 +119,8 @@ export function TeamForm({
   const textareaClass =
     "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50";
 
+  const districtOptions = getDistrictOptions(state);
+
   return (
     <form
       onSubmit={handleSubmit}
@@ -140,7 +157,7 @@ export function TeamForm({
           value={state}
           required
           aria-required="true"
-          onChange={(e) => setState(e.target.value)}
+          onChange={handleStateChange}
         >
           <option value="">Select a state</option>
           {US_STATES.map((s) => (
@@ -149,6 +166,36 @@ export function TeamForm({
             </option>
           ))}
         </Select>
+      </div>
+      <div className="grid gap-2">
+        <span className="text-sm font-medium leading-none">
+          Congressional Districts
+        </span>
+        {districtOptions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {state
+              ? "No districts available for this state."
+              : "Select a state first."}
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {districtOptions.map((d) => (
+              <label
+                key={d.value}
+                className="flex items-center gap-1.5 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  value={d.value}
+                  checked={districts.includes(d.value)}
+                  onChange={() => handleDistrictToggle(d.value)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                {d.label}
+              </label>
+            ))}
+          </div>
+        )}
       </div>
       <div className="grid gap-2">
         <Label htmlFor="team-type">

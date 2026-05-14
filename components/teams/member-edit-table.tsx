@@ -13,13 +13,20 @@ import {
 } from "@/components/ui/table";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import type { MembershipWithProfile } from "@/lib/teams";
+import { Info } from "lucide-react";
 
 const ROLE_OPTIONS = [
   { value: "member", label: "Member" },
   { value: "team_lead", label: "Team Lead" },
   { value: "fundraising_lead", label: "Fundraising Lead" },
   { value: "advocacy_lead", label: "Advocacy Lead" },
+  { value: "coach", label: "Coach" },
 ] as const;
 
 export function MemberEditTable({
@@ -118,26 +125,45 @@ export function MemberEditTable({
             <TableBody>
               {memberships.map((m) => {
                 const key = `${m.user_id}-${m.role}`;
+                const isCoach = m.role === "coach";
                 return (
                   <TableRow key={key}>
                     <TableCell>{m.profiles?.first_name ?? "—"}</TableCell>
                     <TableCell>{m.profiles?.last_name ?? "—"}</TableCell>
                     <TableCell>{m.profiles?.email ?? "—"}</TableCell>
                     <TableCell>
-                      <Select
-                        aria-label={`Role for ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"}`}
-                        value={m.role}
-                        disabled={changing === key || removing === key}
-                        onChange={(e) =>
-                          handleRoleChange(m.user_id, m.role, e.target.value)
-                        }
-                      >
-                        {ROLE_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </Select>
+                      <div className="flex items-center gap-1.5">
+                        <Select
+                          aria-label={`Role for ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"}`}
+                          value={m.role}
+                          disabled={changing === key || removing === key}
+                          onChange={(e) =>
+                            handleRoleChange(m.user_id, m.role, e.target.value)
+                          }
+                        >
+                          {ROLE_OPTIONS.map((opt) => (
+                            <option key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </Select>
+                        {isCoach && (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <button
+                                type="button"
+                                aria-label="Coach role info"
+                                className="shrink-0 text-muted-foreground"
+                              >
+                                <Info size={14} aria-hidden="true" />
+                              </button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Coaches are excluded from membership counts
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Button
