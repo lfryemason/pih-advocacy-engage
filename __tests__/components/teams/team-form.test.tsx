@@ -26,6 +26,7 @@ const SEED_TEAM: Team = {
   type: "high_school",
   description: null,
   founded_date: null,
+  congressional_districts: [],
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
 };
@@ -58,9 +59,10 @@ function makeInsertChain(
 }
 
 function mockEditClient(error: Error | null = null) {
+  const updateChain = makeUpdateChain(error);
   return {
     auth: { getUser: vi.fn() },
-    from: vi.fn().mockReturnValue(makeUpdateChain(error)),
+    from: vi.fn().mockReturnValue(updateChain),
   };
 }
 
@@ -85,14 +87,19 @@ beforeEach(() => {
 
 describe("TeamForm — required markers", () => {
   it("renders asterisks on Name, State, and Type labels only", () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockEditClient() as unknown as ReturnType<typeof createClient>,
+    );
     const { container } = render(<TeamForm orgId="pihe" />);
     const markers = container.querySelectorAll(".text-destructive");
     expect(markers).toHaveLength(3);
   });
 
   it("does not render an asterisk on Description or Founded date", () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockEditClient() as unknown as ReturnType<typeof createClient>,
+    );
     render(<TeamForm orgId="pihe" />);
-    // All labels without asterisks should still render
     expect(screen.getByLabelText(/Description/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Founded date/)).toBeInTheDocument();
   });
@@ -110,7 +117,7 @@ describe("TeamForm — validation", () => {
     ).toBeInTheDocument();
   });
 
-  it("does not call Supabase when validation fails", async () => {
+  it("does not mutate teams when validation fails", async () => {
     const client = mockEditClient();
     vi.mocked(createClient).mockReturnValue(
       client as unknown as ReturnType<typeof createClient>,
@@ -137,7 +144,7 @@ describe("TeamForm — create mode", () => {
     await waitFor(() => {
       const teamsFrom = (
         client.from as ReturnType<typeof vi.fn>
-      ).mock.calls.find(([t]: [string]) => t === "teams");
+      ).mock.calls.find(([t]) => t === "teams");
       expect(teamsFrom).toBeTruthy();
     });
   });
@@ -193,7 +200,11 @@ describe("TeamForm — edit mode", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => {
-      const updateFn = (client.from as ReturnType<typeof vi.fn>)().update;
+      const updateFn = (
+        client.from as unknown as (
+          t: string,
+        ) => ReturnType<typeof makeUpdateChain>
+      )("teams").update;
       expect(updateFn).toHaveBeenCalledWith(
         expect.objectContaining({ name: "Renamed Team" }),
       );
@@ -245,6 +256,9 @@ describe("TeamForm — edit mode", () => {
 
 describe("TeamForm — cancel button", () => {
   it("is not rendered without an onCancel prop", () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockEditClient() as unknown as ReturnType<typeof createClient>,
+    );
     render(<TeamForm orgId="pihe" team={SEED_TEAM} />);
     expect(
       screen.queryByRole("button", { name: "Cancel" }),
@@ -252,6 +266,9 @@ describe("TeamForm — cancel button", () => {
   });
 
   it("is rendered and calls onCancel when the prop is provided", async () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockEditClient() as unknown as ReturnType<typeof createClient>,
+    );
     const onCancel = vi.fn();
     render(<TeamForm orgId="pihe" team={SEED_TEAM} onCancel={onCancel} />);
     const cancelBtn = screen.getByRole("button", { name: "Cancel" });

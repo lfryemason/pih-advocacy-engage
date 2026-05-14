@@ -13,7 +13,12 @@ import { displayName, type MembershipWithProfile } from "@/lib/teams";
 
 export type { MembershipWithProfile };
 
-const LEAD_ROLES = ["team_lead", "fundraising_lead", "advocacy_lead"] as const;
+const LEAD_ROLES = [
+  "coach",
+  "team_lead",
+  "fundraising_lead",
+  "advocacy_lead",
+] as const;
 
 export function TeamMemberList({
   memberships,
@@ -39,6 +44,10 @@ export function TeamMemberList({
   return (
     <div className="mt-8">
       <div className="flex justify-center">
+        <LeadSection title="Coach" members={byRole["coach"] ?? []} />
+      </div>
+
+      <div className="mt-6 flex justify-center">
         <LeadSection title="Team Lead" members={byRole["team_lead"] ?? []} />
       </div>
 

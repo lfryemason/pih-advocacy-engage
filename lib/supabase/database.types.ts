@@ -75,6 +75,7 @@ export type Database = {
       };
       teams: {
         Row: {
+          congressional_districts: string[];
           created_at: string;
           description: string | null;
           founded_date: string | null;
@@ -87,6 +88,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          congressional_districts?: string[];
           created_at?: string;
           description?: string | null;
           founded_date?: string | null;
@@ -99,6 +101,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          congressional_districts?: string[];
           created_at?: string;
           description?: string | null;
           founded_date?: string | null;

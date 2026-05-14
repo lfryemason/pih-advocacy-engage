@@ -20,6 +20,7 @@ const ROLE_OPTIONS = [
   { value: "team_lead", label: "Team Lead" },
   { value: "fundraising_lead", label: "Fundraising Lead" },
   { value: "advocacy_lead", label: "Advocacy Lead" },
+  { value: "coach", label: "Coach" },
 ] as const;
 
 export function MemberEditTable({

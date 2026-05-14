@@ -17,14 +17,14 @@ type TeamRow = {
   slug: string;
   state: string;
   type: string;
-  team_memberships: { count: number }[];
+  team_memberships: { role: string }[];
 };
 
 export async function TeamsTable() {
   const supabase = await createClient();
   const { data: teams, error } = await supabase
     .from("teams")
-    .select("id, name, slug, state, type, team_memberships(count)")
+    .select("id, name, slug, state, type, team_memberships(role)")
     .eq("org_id", ORG_ID)
     .order("name");
 
@@ -62,8 +62,7 @@ export async function TeamsTable() {
                   team.type}
               </TableCell>
               <TableCell>
-                {(team.team_memberships[0] as { count: number } | undefined)
-                  ?.count ?? 0}
+                {team.team_memberships.filter((m) => m.role !== "coach").length}
               </TableCell>
             </TableRow>
           ))}

@@ -42,7 +42,7 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
     supabase
       .from("teams")
       .select(
-        "id, name, slug, org_id, state, type, description, founded_date, created_at, updated_at",
+        "id, name, slug, org_id, state, type, description, founded_date, congressional_districts, created_at, updated_at",
       )
       .eq("org_id", ORG_ID)
       .eq("slug", slug)
