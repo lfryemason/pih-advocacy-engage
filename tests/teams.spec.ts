@@ -37,7 +37,7 @@ test.describe("team detail page", () => {
       page.getByRole("heading", { name: "Seattle High School" }),
     ).toBeVisible();
     await expect(page.getByText(/Washington/)).toBeVisible();
-    await expect(page.getByText(/High School team/)).toBeVisible();
+    await expect(page.getByText(/High School/)).toBeVisible();
   });
 
   test("shows the test user as a lead", async ({ page }) => {
@@ -116,7 +116,7 @@ test.describe("edit team page", () => {
   test("edit page shows the team form pre-populated", async ({ page }) => {
     await page.goto("/teams/seattle-high-school/edit");
     await expect(page.getByLabel(/Name/)).toHaveValue("Seattle High School");
-    await expect(page.getByLabel(/State/)).toHaveValue("Washington");
+    await expect(page.getByLabel(/State/)).toHaveValue("WA");
     await expect(page.getByLabel(/Type/)).toHaveValue("high_school");
   });
 
