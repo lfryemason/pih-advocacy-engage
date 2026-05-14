@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
+
+export const metadata: Metadata = { title: "Home" };
 
 async function HomeContent() {
   const supabase = await createClient();

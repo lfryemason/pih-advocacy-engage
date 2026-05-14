@@ -8,7 +8,10 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "PIH Engage",
+  title: {
+    template: "%s | PIH Engage",
+    default: "PIH Engage",
+  },
   description: "Partners in Health Engage's advocacy coordination platform",
 };
 
