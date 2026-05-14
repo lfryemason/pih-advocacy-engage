@@ -80,7 +80,10 @@ async function RepresentativeContent({
     <>
       <div>
         <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/representatives">← Representatives</Link>
+          <Link href="/representatives" aria-label="Representatives">
+            <span aria-hidden="true">← </span>
+            Representatives
+          </Link>
         </Button>
       </div>
       <h1 className="mt-4 text-2xl font-bold">
