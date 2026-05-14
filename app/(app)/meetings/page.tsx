@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "Meetings" };
+
 export default function Meetings() {
   return (
     <div className="p-8">
