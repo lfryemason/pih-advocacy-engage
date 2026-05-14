@@ -37,7 +37,7 @@ test.describe("team detail page", () => {
       page.getByRole("heading", { name: "Seattle High School" }),
     ).toBeVisible();
     await expect(page.getByText(/Washington/)).toBeVisible();
-    await expect(page.getByText(/High School/)).toBeVisible();
+    await expect(page.getByText("High School", { exact: true })).toBeVisible();
   });
 
   test("shows the test user as a lead", async ({ page }) => {
