@@ -123,13 +123,8 @@ test.describe("edit team page", () => {
   test("edit page shows the members section", async ({ page }) => {
     await page.goto("/teams/seattle-high-school/edit");
     await expect(page.getByRole("heading", { name: "Members" })).toBeVisible();
-    // Scope to table cells so the sidebar nav (which also contains "Test Admin")
-    // doesn't cause a strict-mode violation.
     await expect(
-      page.getByRole("cell", { name: "Test", exact: true }),
-    ).toBeVisible();
-    await expect(
-      page.getByRole("cell", { name: "Admin", exact: true }),
+      page.getByRole("cell", { name: "Test Admin", exact: true }),
     ).toBeVisible();
   });
 

@@ -17,7 +17,9 @@ export default function NewTeamPage() {
         </Button>
       </div>
       <h1 className="mt-4 text-2xl font-bold">Create a new team</h1>
-      <TeamForm orgId={ORG_ID} />
+      <div className="mt-6">
+        <TeamForm orgId={ORG_ID} />
+      </div>
     </div>
   );
 }

@@ -122,141 +122,137 @@ export function TeamForm({
   const districtOptions = getDistrictOptions(state);
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      noValidate
-      className="mt-6 flex max-w-lg flex-col gap-6"
-    >
-      <p className="text-sm text-muted-foreground">
-        Fields marked <span aria-hidden="true">*</span> are required.
-      </p>
-      <div className="grid gap-2">
-        <Label htmlFor="team-name">
-          Name{" "}
-          <span aria-hidden="true" className="text-destructive">
-            *
-          </span>
-        </Label>
-        <Input
-          id="team-name"
-          value={name}
-          required
-          aria-required="true"
-          onChange={(e) => setName(e.target.value)}
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="team-state">
-          State{" "}
-          <span aria-hidden="true" className="text-destructive">
-            *
-          </span>
-        </Label>
-        <Select
-          id="team-state"
-          value={state}
-          required
-          aria-required="true"
-          onChange={handleStateChange}
-        >
-          <option value="">Select a state</option>
-          {US_STATES.map((s) => (
-            <option key={s.code} value={s.code}>
-              {s.name}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div className="grid gap-2">
-        <span className="text-sm font-medium leading-none">
-          Congressional Districts
-        </span>
-        {districtOptions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            {state
-              ? "No districts available for this state."
-              : "Select a state first."}
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-x-4 gap-y-2">
-            {districtOptions.map((d) => (
-              <label
-                key={d.value}
-                className="flex items-center gap-1.5 text-sm"
-              >
-                <input
-                  type="checkbox"
-                  value={d.value}
-                  checked={districts.includes(d.value)}
-                  onChange={() => handleDistrictToggle(d.value)}
-                  className="h-4 w-4 rounded border-input accent-primary"
-                />
-                {d.label}
-              </label>
-            ))}
-          </div>
-        )}
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="team-type">
-          Type{" "}
-          <span aria-hidden="true" className="text-destructive">
-            *
-          </span>
-        </Label>
-        <Select
-          id="team-type"
-          value={type}
-          required
-          aria-required="true"
-          onChange={(e) => setType(e.target.value)}
-        >
-          <option value="">Select a type</option>
-          {Object.entries(TYPE_LABELS).map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </Select>
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="team-description">Description</Label>
-        <textarea
-          id="team-description"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={3}
-          className={cn(textareaClass, "resize-none")}
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="team-founded-date">Founded date</Label>
-        <Input
-          id="team-founded-date"
-          type="date"
-          value={foundedDate}
-          onChange={(e) => setFoundedDate(e.target.value)}
-        />
-      </div>
-      {error && (
-        <p role="alert" className="text-sm text-red-500">
-          {error}
-        </p>
-      )}
-      <div className="flex gap-2">
-        <Button type="submit" disabled={isSaving}>
-          {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
-        </Button>
-        {onCancel && (
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSaving}
+    <form onSubmit={handleSubmit} noValidate className="flex max-w-lg flex-col">
+      <h2 className="text-lg font-semibold">Team settings</h2>
+      <div className="mt-2 flex max-w-lg flex-col gap-6">
+        <div className="grid gap-2">
+          <Label htmlFor="team-name">
+            Name{" "}
+            <span aria-hidden="true" className="text-destructive">
+              *
+            </span>
+          </Label>
+          <Input
+            id="team-name"
+            value={name}
+            required
+            aria-required="true"
+            onChange={(e) => setName(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="team-state">
+            State{" "}
+            <span aria-hidden="true" className="text-destructive">
+              *
+            </span>
+          </Label>
+          <Select
+            id="team-state"
+            value={state}
+            required
+            aria-required="true"
+            onChange={handleStateChange}
           >
-            Cancel
-          </Button>
+            <option value="">Select a state</option>
+            {US_STATES.map((s) => (
+              <option key={s.code} value={s.code}>
+                {s.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="grid gap-2">
+          <span className="text-sm font-medium leading-none">
+            Congressional Districts
+          </span>
+          {districtOptions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              {state
+                ? "No districts available for this state."
+                : "Select a state first."}
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-x-4 gap-y-2">
+              {districtOptions.map((d) => (
+                <label
+                  key={d.value}
+                  className="flex items-center gap-1.5 text-sm"
+                >
+                  <input
+                    type="checkbox"
+                    value={d.value}
+                    checked={districts.includes(d.value)}
+                    onChange={() => handleDistrictToggle(d.value)}
+                    className="h-4 w-4 rounded border-input accent-primary"
+                  />
+                  {d.label}
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="team-type">
+            Type{" "}
+            <span aria-hidden="true" className="text-destructive">
+              *
+            </span>
+          </Label>
+          <Select
+            id="team-type"
+            value={type}
+            required
+            aria-required="true"
+            onChange={(e) => setType(e.target.value)}
+          >
+            <option value="">Select a type</option>
+            {Object.entries(TYPE_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="team-description">Description</Label>
+          <textarea
+            id="team-description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className={cn(textareaClass, "resize-none")}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="team-founded-date">Founded date</Label>
+          <Input
+            id="team-founded-date"
+            type="date"
+            value={foundedDate}
+            onChange={(e) => setFoundedDate(e.target.value)}
+          />
+        </div>
+        {error && (
+          <p role="alert" className="text-sm text-red-500">
+            {error}
+          </p>
         )}
+        <div className="flex gap-2">
+          <Button type="submit" disabled={isSaving}>
+            {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
+          </Button>
+          {onCancel && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+          )}
+        </div>
       </div>
     </form>
   );
