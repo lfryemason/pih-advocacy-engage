@@ -19,7 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import type { MembershipWithProfile } from "@/lib/teams";
-import { Info } from "lucide-react";
+import { Info, X } from "lucide-react";
 
 const ROLE_OPTIONS = [
   { value: "member", label: "Member" },
@@ -98,7 +98,7 @@ export function MemberEditTable({
   };
 
   return (
-    <div className="mt-8 max-w-2xl">
+    <div>
       <h2 className="text-lg font-semibold">Members</h2>
       {actionError && (
         <p role="alert" className="mt-2 text-sm text-destructive">
@@ -113,8 +113,7 @@ export function MemberEditTable({
             <caption className="sr-only">Team members</caption>
             <TableHeader>
               <TableRow>
-                <TableHead>First name</TableHead>
-                <TableHead>Last name</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>
@@ -128,8 +127,11 @@ export function MemberEditTable({
                 const isCoach = m.role === "coach";
                 return (
                   <TableRow key={key}>
-                    <TableCell>{m.profiles?.first_name ?? "—"}</TableCell>
-                    <TableCell>{m.profiles?.last_name ?? "—"}</TableCell>
+                    <TableCell>
+                      {[m.profiles?.first_name, m.profiles?.last_name]
+                        .filter(Boolean)
+                        .join(" ") || "—"}
+                    </TableCell>
                     <TableCell>{m.profiles?.email ?? "—"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1.5">
@@ -140,6 +142,7 @@ export function MemberEditTable({
                           onChange={(e) =>
                             handleRoleChange(m.user_id, m.role, e.target.value)
                           }
+                          className="min-w-40"
                         >
                           {ROLE_OPTIONS.map((opt) => (
                             <option key={opt.value} value={opt.value}>
@@ -169,12 +172,12 @@ export function MemberEditTable({
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="text-muted-foreground hover:text-destructive"
+                        className="px-1 text-muted-foreground hover:text-destructive"
                         disabled={removing === key || changing === key}
                         aria-label={`Remove ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"} from team`}
                         onClick={() => handleRemove(m)}
                       >
-                        {removing === key ? "Removing…" : "Remove"}
+                        <X size={14} aria-hidden="true" />
                       </Button>
                     </TableCell>
                   </TableRow>

@@ -81,8 +81,10 @@ async function EditTeamContent({
         </Button>
       </div>
       <h1 className="mt-4 text-2xl font-bold">{team.name}</h1>
-      <TeamForm orgId={ORG_ID} team={team} />
-      <MemberEditTable memberships={memberships} teamId={team.id} />
+      <div className="mt-6 grid grid-cols-1 items-start gap-x-8 gap-y-8 lg:grid-cols-[3fr_5fr]">
+        <TeamForm orgId={ORG_ID} team={team} />
+        <MemberEditTable memberships={memberships} teamId={team.id} />
+      </div>
     </>
   );
 }
