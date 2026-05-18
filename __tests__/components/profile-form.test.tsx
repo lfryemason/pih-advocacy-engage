@@ -9,39 +9,51 @@ vi.mock("@/lib/supabase/client", () => ({
 }));
 
 const mockGetUser = vi.fn();
-const mockUpdateUser = vi.fn();
-const mockClient = {
-  auth: {
-    getUser: mockGetUser,
-    updateUser: mockUpdateUser,
-  },
+const mockProfileUpdate = vi.fn();
+
+const DEFAULT_PROFILE = {
+  first_name: "Alice",
+  last_name: "Smith",
+  pronouns: "she/her",
+  state: "PA",
+  congressional_district: "5",
 };
 
-function makeUserResult(metaOverrides: Record<string, string> = {}) {
+function makeProfileChain(
+  profile: Partial<typeof DEFAULT_PROFILE> | null = DEFAULT_PROFILE,
+  updateError: Error | null = null,
+) {
   return {
-    data: {
-      user: {
-        email: "test@example.com",
-        user_metadata: {
-          first_name: "Alice",
-          last_name: "Smith",
-          pronouns: "she/her",
-          state: "PA",
-          congressional_district: "5",
-          ...metaOverrides,
-        },
-      },
-    },
+    select: vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue({
+        single: vi.fn().mockResolvedValue({ data: profile, error: null }),
+      }),
+    }),
+    update: mockProfileUpdate.mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: updateError }),
+    }),
+  };
+}
+
+function mockClient(
+  profile: Partial<typeof DEFAULT_PROFILE> | null = DEFAULT_PROFILE,
+  updateError: Error | null = null,
+) {
+  return {
+    auth: { getUser: mockGetUser },
+    from: vi.fn().mockReturnValue(makeProfileChain(profile, updateError)),
   };
 }
 
 describe("ProfileForm", () => {
   beforeEach(() => {
     vi.mocked(createClient).mockReturnValue(
-      mockClient as unknown as ReturnType<typeof createClient>,
+      mockClient() as unknown as ReturnType<typeof createClient>,
     );
-    mockGetUser.mockResolvedValue(makeUserResult());
-    mockUpdateUser.mockResolvedValue({ error: null });
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-123", email: "test@example.com" } },
+    });
+    mockProfileUpdate.mockReset();
   });
 
   it("shows loading state initially", () => {
@@ -68,8 +80,12 @@ describe("ProfileForm", () => {
   });
 
   it("district dropdown is disabled until state is selected", async () => {
-    mockGetUser.mockResolvedValue(
-      makeUserResult({ state: "", congressional_district: "" }),
+    vi.mocked(createClient).mockReturnValue(
+      mockClient({
+        ...DEFAULT_PROFILE,
+        state: "",
+        congressional_district: "",
+      }) as unknown as ReturnType<typeof createClient>,
     );
     render(<ProfileForm />);
     await waitFor(() => {
@@ -91,8 +107,12 @@ describe("ProfileForm", () => {
   });
 
   it("at-large states show only 'At Large' district option", async () => {
-    mockGetUser.mockResolvedValue(
-      makeUserResult({ state: "", congressional_district: "" }),
+    vi.mocked(createClient).mockReturnValue(
+      mockClient({
+        ...DEFAULT_PROFILE,
+        state: "",
+        congressional_district: "",
+      }) as unknown as ReturnType<typeof createClient>,
     );
     render(<ProfileForm />);
     await waitFor(() => {
@@ -106,26 +126,34 @@ describe("ProfileForm", () => {
     ).toBeInTheDocument();
   });
 
-  it("calls updateUser with form data on submit", async () => {
+  it("saves profile data on submit", async () => {
+    const client = mockClient();
+    vi.mocked(createClient).mockReturnValue(
+      client as unknown as ReturnType<typeof createClient>,
+    );
+    mockProfileUpdate.mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
     render(<ProfileForm />);
     await waitFor(() => {
       expect(screen.getByLabelText("First Name")).toHaveValue("Alice");
     });
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
     await waitFor(() => {
-      expect(mockUpdateUser).toHaveBeenCalledWith({
-        data: {
-          first_name: "Alice",
-          last_name: "Smith",
-          pronouns: "she/her",
-          state: "PA",
-          congressional_district: "5",
-        },
+      expect(mockProfileUpdate).toHaveBeenCalledWith({
+        first_name: "Alice",
+        last_name: "Smith",
+        pronouns: "she/her",
+        state: "PA",
+        congressional_district: "5",
       });
     });
   });
 
   it("shows success message after saving", async () => {
+    mockProfileUpdate.mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: null }),
+    });
     render(<ProfileForm />);
     await waitFor(() => {
       expect(screen.getByLabelText("First Name")).toBeInTheDocument();
@@ -139,7 +167,9 @@ describe("ProfileForm", () => {
   });
 
   it("shows error message when save fails", async () => {
-    mockUpdateUser.mockResolvedValue({ error: new Error("Network error") });
+    mockProfileUpdate.mockReturnValue({
+      eq: vi.fn().mockResolvedValue({ error: new Error("Network error") }),
+    });
     render(<ProfileForm />);
     await waitFor(() => {
       expect(screen.getByLabelText("First Name")).toBeInTheDocument();

@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
@@ -41,6 +42,8 @@ export default {
         accent: {
           DEFAULT: "var(--accent)",
           foreground: "var(--accent-foreground)",
+          hover: "var(--accent-hover)",
+          "hover-foreground": "var(--accent-hover-foreground)",
         },
         destructive: {
           DEFAULT: "var(--destructive)",
@@ -60,5 +63,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate],
+  plugins: [tailwindcssAnimate, typography],
 } satisfies Config;

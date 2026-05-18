@@ -42,6 +42,10 @@ create trigger representatives_updated_at
   for each row
   execute function public.handle_updated_at();
 
+-- Grant table-level privileges (required when "Automatically expose new tables" is disabled)
+grant select on public.representatives to authenticated;
+grant select, insert, update, delete on public.representatives to service_role;
+
 -- Enable RLS: authenticated users can read, no write policies
 alter table public.representatives enable row level security;
 

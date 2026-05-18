@@ -42,11 +42,14 @@ export function MobileHeader() {
 
   React.useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
+    supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
-      const meta = data.user.user_metadata;
-      if (meta?.first_name) setFirstName(meta.first_name);
-      else if (meta?.full_name) setFirstName(meta.full_name.split(" ")[0]);
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("first_name")
+        .eq("user_id", data.user.id)
+        .single();
+      if (profile?.first_name) setFirstName(profile.first_name);
     });
   }, []);
 

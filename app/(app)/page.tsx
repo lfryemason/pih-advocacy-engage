@@ -1,6 +1,9 @@
-import { Suspense } from "react";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
+
+export const metadata: Metadata = { title: "Home" };
 
 async function HomeContent() {
   const supabase = await createClient();
@@ -10,23 +13,13 @@ async function HomeContent() {
     redirect("/auth/login");
   }
 
-  return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Homepage</h1>
-    </div>
-  );
+  return <h1 className="text-2xl font-bold">Homepage</h1>;
 }
 
 export default function Home() {
   return (
-    <Suspense
-      fallback={
-        <div className="p-8">
-          <h1 className="text-2xl font-bold">Loading...</h1>
-        </div>
-      }
-    >
+    <SuspenseWithDefaultFallback>
       <HomeContent />
-    </Suspense>
+    </SuspenseWithDefaultFallback>
   );
 }

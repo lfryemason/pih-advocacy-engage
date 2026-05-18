@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "next-themes";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "./globals.css";
 
 const defaultUrl = process.env.VERCEL_URL
@@ -8,7 +9,10 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "PIH Engage",
+  title: {
+    template: "%s | PIH Engage",
+    default: "PIH Engage",
+  },
   description: "Partners in Health Engage's advocacy coordination platform",
 };
 
@@ -27,7 +31,7 @@ export default function RootLayout({
           themes={["light", "dark", "high-contrast"]}
           disableTransitionOnChange
         >
-          {children}
+          <TooltipProvider>{children}</TooltipProvider>
         </ThemeProvider>
       </body>
     </html>

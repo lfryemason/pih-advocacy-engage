@@ -29,12 +29,16 @@ type RepresentativeInsert =
   Database["public"]["Tables"]["representatives"]["Insert"];
 
 async function main() {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const supabaseUrl =
+    process.env.API_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey =
+    process.env.SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !serviceRoleKey) {
     console.error(
-      "Missing NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY",
+      "Missing Supabase credentials.\n" +
+        "  Required: API_URL (or NEXT_PUBLIC_SUPABASE_URL) and SERVICE_ROLE_KEY (or SUPABASE_SERVICE_ROLE_KEY)\n" +
+        '  Run: eval "$(npx supabase status -o env)"',
     );
     process.exit(1);
   }
