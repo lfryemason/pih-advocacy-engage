@@ -218,6 +218,7 @@ export function TeamForm({
           <Label htmlFor="team-description">Description</Label>
           <textarea
             id="team-description"
+            aria-label="Description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}

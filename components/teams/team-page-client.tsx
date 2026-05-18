@@ -11,20 +11,25 @@ import {
   TeamMemberList,
   type MembershipWithProfile,
 } from "@/components/teams/team-member-list";
+import { TeamLeadSectionList } from "@/components/teams/team-lead-section-list";
+import { TeamRepList } from "@/components/teams/team-rep-list";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
 type Team = Tables<"teams">;
+type Representative = Tables<"representatives">;
 
 export function TeamPageClient({
   team,
   memberships,
   orgId,
   currentUserId,
+  representatives,
 }: {
   team: Team;
   memberships: MembershipWithProfile[];
   orgId: string;
   currentUserId: string | null;
+  representatives: Representative[];
 }) {
   const router = useRouter();
   const [isJoining, setIsJoining] = useState(false);
@@ -107,6 +112,8 @@ export function TeamPageClient({
           )}
         </div>
       </div>
+      <TeamLeadSectionList memberships={memberships} />
+      <TeamRepList representatives={representatives} />
       <TeamMemberList memberships={memberships} />
     </>
   );

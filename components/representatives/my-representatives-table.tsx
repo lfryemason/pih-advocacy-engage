@@ -26,9 +26,20 @@ export function MyRepresentativesTable() {
     const supabase = createClient();
 
     supabase.auth.getUser().then(async ({ data }) => {
-      const meta = data?.user?.user_metadata ?? {};
-      const state = String(meta.state ?? "");
-      const district = String(meta.congressional_district ?? "");
+      if (!data?.user) {
+        setMissingProfile(true);
+        setIsLoading(false);
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("state, congressional_district")
+        .eq("user_id", data.user.id)
+        .single();
+
+      const state = profile?.state ?? "";
+      const district = profile?.congressional_district ?? "";
 
       if (!state || !district) {
         setMissingProfile(true);

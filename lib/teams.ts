@@ -1,6 +1,6 @@
 export const TYPE_LABELS: Record<string, string> = {
   high_school: "High School",
-  university: "University",
+  university: "College/University",
   city: "City",
 };
 
