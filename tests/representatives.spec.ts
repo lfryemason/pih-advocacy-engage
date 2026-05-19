@@ -11,8 +11,12 @@ test.describe("My Representatives section", () => {
   }) => {
     await page.goto("/representatives");
     // Seed profile: WA, district 9 — matches W000001 (senator) and W000002 (rep)
-    await expect(page.getByText("Susan Collins")).toBeVisible();
-    await expect(page.getByText("Adam Smith")).toBeVisible();
+    const myRepsTable = page.getByRole("table", {
+      name: "My Representatives",
+      exact: true,
+    });
+    await expect(myRepsTable.getByText("Susan Collins")).toBeVisible();
+    await expect(myRepsTable.getByText("Adam Smith")).toBeVisible();
   });
 
   test("shows message when profile has no state set", async ({ page }) => {

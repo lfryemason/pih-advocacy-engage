@@ -73,24 +73,23 @@ test.describe("team detail page", () => {
     ).toBeVisible();
   });
 
-  test("shows collapsed Representatives toggle when team has districts", async ({
+  test("shows Representatives section open by default when team has districts", async ({
     page,
   }) => {
     await page.goto("/teams/seattle-high-school");
     await expect(
       page.getByRole("button", { name: /Representatives/ }),
     ).toBeVisible();
-    // Table should not be visible before expanding
-    await expect(page.getByText("Susan Collins")).toHaveCount(0);
+    await expect(page.getByText("Susan Collins")).toBeVisible();
+    await expect(page.getByText("Adam Smith")).toBeVisible();
   });
 
-  test("expanding Representatives toggle shows reps for the team's district", async ({
+  test("collapsing Representatives toggle hides the rep list", async ({
     page,
   }) => {
     await page.goto("/teams/seattle-high-school");
     await page.getByRole("button", { name: /Representatives/ }).click();
-    await expect(page.getByText("Susan Collins")).toBeVisible();
-    await expect(page.getByText("Adam Smith")).toBeVisible();
+    await expect(page.getByText("Susan Collins")).toHaveCount(0);
   });
 
   test("Representatives section is hidden when team has no districts", async ({

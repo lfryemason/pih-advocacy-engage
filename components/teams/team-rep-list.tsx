@@ -21,7 +21,7 @@ export function TeamRepList({
 }: {
   representatives: Representative[];
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   if (representatives.length === 0) return null;
 
