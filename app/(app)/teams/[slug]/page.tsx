@@ -5,7 +5,6 @@ import { ORG_ID } from "@/lib/org";
 import { TeamPageClient } from "@/components/teams/team-page-client";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
-import type { Tables } from "@/lib/supabase/database.types";
 
 export async function generateMetadata({
   params,
@@ -53,42 +52,12 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
 
   if (!team) redirect("/teams");
 
-  const numericDistricts = team.congressional_districts
-    .filter((d: string) => d !== "at-large")
-    .map((d: string) => parseInt(d));
-  const hasAtLarge = team.congressional_districts.includes("at-large");
-
-  let repQuery = supabase
-    .from("representatives")
-    .select("*")
-    .eq("chamber", "rep")
-    .eq("state", team.state)
-    .eq("in_office", true);
-
-  if (hasAtLarge) {
-    repQuery = repQuery.is("district", null);
-  } else if (numericDistricts.length > 0) {
-    repQuery = repQuery.in("district", numericDistricts);
-  }
-
-  const [{ data: senators }, { data: houseMembers }, { data: rawMemberships }] =
-    await Promise.all([
-      supabase
-        .from("representatives")
-        .select("*")
-        .eq("chamber", "sen")
-        .eq("state", team.state)
-        .eq("in_office", true),
-      team.congressional_districts.length > 0
-        ? repQuery
-        : Promise.resolve({ data: [] as Tables<"representatives">[] }),
-      supabase
-        .from("team_memberships")
-        .select(
-          "role, user_id, profiles(user_id, first_name, last_name, pronouns, email)",
-        )
-        .eq("team_id", team.id),
-    ]);
+  const { data: rawMemberships } = await supabase
+    .from("team_memberships")
+    .select(
+      "role, user_id, profiles(user_id, first_name, last_name, pronouns, email)",
+    )
+    .eq("team_id", team.id);
 
   const memberships: MembershipWithProfile[] = (rawMemberships ?? []).map(
     (m) => ({
@@ -100,18 +69,12 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
     }),
   );
 
-  const representatives: Tables<"representatives">[] = [
-    ...(senators ?? []),
-    ...(houseMembers ?? []),
-  ];
-
   return (
     <TeamPageClient
       team={team}
       memberships={memberships}
       orgId={ORG_ID}
       currentUserId={authData.user?.id ?? null}
-      representatives={representatives}
     />
   );
 }

@@ -16,20 +16,17 @@ import { TeamRepList } from "@/components/teams/team-rep-list";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
 type Team = Tables<"teams">;
-type Representative = Tables<"representatives">;
 
 export function TeamPageClient({
   team,
   memberships,
   orgId,
   currentUserId,
-  representatives,
 }: {
   team: Team;
   memberships: MembershipWithProfile[];
   orgId: string;
   currentUserId: string | null;
-  representatives: Representative[];
 }) {
   const router = useRouter();
   const [isJoining, setIsJoining] = useState(false);
@@ -78,7 +75,7 @@ export function TeamPageClient({
               <>
                 {" — "}
                 {team.congressional_districts
-                  .map((d) => {
+                  .map((d: string) => {
                     const opt = getDistrictOptions(team.state).find(
                       (o) => o.value === d,
                     );
@@ -113,7 +110,10 @@ export function TeamPageClient({
         </div>
       </div>
       <TeamLeadSectionList memberships={memberships} />
-      <TeamRepList representatives={representatives} />
+      <TeamRepList
+        state={team.state}
+        congressionalDistricts={team.congressional_districts}
+      />
       <TeamMemberList memberships={memberships} />
     </>
   );

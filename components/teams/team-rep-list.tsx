@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
 import { PartyBadge } from "@/components/representatives/party-badge";
 import {
@@ -17,11 +18,50 @@ import {
 type Representative = Tables<"representatives">;
 
 export function TeamRepList({
-  representatives,
+  state,
+  congressionalDistricts,
 }: {
-  representatives: Representative[];
+  state: string;
+  congressionalDistricts: string[];
 }) {
   const [open, setOpen] = useState(true);
+  const [representatives, setRepresentatives] = useState<Representative[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+
+    const numericDistricts = congressionalDistricts
+      .filter((d) => d !== "at-large")
+      .map((d) => parseInt(d));
+    const hasAtLarge = congressionalDistricts.includes("at-large");
+
+    let repQuery = supabase
+      .from("representatives")
+      .select("*")
+      .eq("chamber", "rep")
+      .eq("state", state)
+      .eq("in_office", true);
+
+    if (hasAtLarge) {
+      repQuery = repQuery.is("district", null);
+    } else if (numericDistricts.length > 0) {
+      repQuery = repQuery.in("district", numericDistricts);
+    }
+
+    Promise.all([
+      supabase
+        .from("representatives")
+        .select("*")
+        .eq("chamber", "sen")
+        .eq("state", state)
+        .eq("in_office", true),
+      congressionalDistricts.length > 0
+        ? repQuery
+        : Promise.resolve({ data: [] as Representative[] }),
+    ]).then(([{ data: senators }, { data: houseMembers }]) => {
+      setRepresentatives([...(senators ?? []), ...(houseMembers ?? [])]);
+    });
+  }, [state, congressionalDistricts]);
 
   if (representatives.length === 0) return null;
 
@@ -32,17 +72,16 @@ export function TeamRepList({
         onClick={() => setOpen((o) => !o)}
         className="flex items-center gap-2 text-lg font-semibold uppercase"
       >
-        <span>Representatives</span>
         {open ? (
-          <ChevronUp size={16} className="text-muted-foreground" />
-        ) : (
           <ChevronDown size={16} className="text-muted-foreground" />
+        ) : (
+          <ChevronRight size={16} className="text-muted-foreground" />
         )}
+        <span>Representatives</span>
       </button>
       {open && (
         <div className="mt-2">
-          <Table>
-            <caption className="sr-only">Representatives</caption>
+          <Table aria-label="Representatives">
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
