@@ -193,6 +193,7 @@ export type Database = {
           chamber: string;
           created_at: string;
           district: number | null;
+          email: string | null;
           first_name: string;
           general_links: Json;
           id: string;
@@ -200,6 +201,7 @@ export type Database = {
           last_name: string;
           official_full_name: string | null;
           party: string;
+          pronouns: string | null;
           state: string;
           state_rank: string | null;
           updated_at: string;
@@ -210,6 +212,7 @@ export type Database = {
           chamber: string;
           created_at?: string;
           district?: number | null;
+          email?: string | null;
           first_name: string;
           general_links?: Json;
           id?: string;
@@ -217,6 +220,7 @@ export type Database = {
           last_name: string;
           official_full_name?: string | null;
           party: string;
+          pronouns?: string | null;
           state: string;
           state_rank?: string | null;
           updated_at?: string;
@@ -227,6 +231,7 @@ export type Database = {
           chamber?: string;
           created_at?: string;
           district?: number | null;
+          email?: string | null;
           first_name?: string;
           general_links?: Json;
           id?: string;
@@ -234,6 +239,7 @@ export type Database = {
           last_name?: string;
           official_full_name?: string | null;
           party?: string;
+          pronouns?: string | null;
           state?: string;
           state_rank?: string | null;
           updated_at?: string;
