@@ -10,7 +10,7 @@ export default function TeamsPage() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Teams</h1>
+        <h1 className="text-3xl font-bold">Teams</h1>
         <Button asChild>
           <Link href="/teams/new">Create team</Link>
         </Button>

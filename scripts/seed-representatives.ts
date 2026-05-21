@@ -28,28 +28,18 @@ interface Legislator {
 type RepresentativeInsert =
   Database["public"]["Tables"]["representatives"]["Insert"];
 
-async function main() {
-  const supabaseUrl =
-    process.env.API_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const serviceRoleKey =
-    process.env.SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  if (!supabaseUrl || !serviceRoleKey) {
-    console.error(
-      "Missing Supabase credentials.\n" +
-        "  Required: API_URL (or NEXT_PUBLIC_SUPABASE_URL) and SERVICE_ROLE_KEY (or SUPABASE_SERVICE_ROLE_KEY)\n" +
-        '  Run: eval "$(npx supabase status -o env)"',
-    );
-    process.exit(1);
-  }
-
+export async function seedRepresentatives(
+  supabaseUrl: string,
+  serviceRoleKey: string,
+) {
   const supabase = createClient<Database>(supabaseUrl, serviceRoleKey);
 
   console.log(`Fetching legislators from ${LEGISLATORS_URL}...`);
   const response = await fetch(LEGISLATORS_URL);
   if (!response.ok) {
-    console.error(`Failed to fetch: ${response.status} ${response.statusText}`);
-    process.exit(1);
+    throw new Error(
+      `Failed to fetch: ${response.status} ${response.statusText}`,
+    );
   }
 
   const legislators: Legislator[] = await response.json();
@@ -77,8 +67,7 @@ async function main() {
     });
 
   if (records.length === 0) {
-    console.error("Upstream returned no legislators");
-    process.exit(1);
+    throw new Error("Upstream returned no legislators");
   }
 
   let upserted = 0;
@@ -90,8 +79,7 @@ async function main() {
       .upsert(batch, { onConflict: "bioguide_id" });
 
     if (error) {
-      console.error(`Error upserting batch at index ${i}:`, error);
-      process.exit(1);
+      throw new Error(`Error upserting batch at index ${i}: ${error.message}`);
     }
 
     upserted += batch.length;
@@ -106,12 +94,36 @@ async function main() {
     .not("bioguide_id", "in", `(${currentBioguideIds.join(",")})`);
 
   if (updateError) {
-    console.error("Error marking former representatives:", updateError);
-    process.exit(1);
+    throw new Error(
+      `Error marking former representatives: ${updateError.message}`,
+    );
   }
 
   console.log("Marked representatives not in current data as out of office");
   console.log("Done!");
+}
+
+async function main() {
+  const supabaseUrl =
+    process.env.API_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceRoleKey =
+    process.env.SERVICE_ROLE_KEY ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    console.error(
+      "Missing Supabase credentials.\n" +
+        "  Required: API_URL (or NEXT_PUBLIC_SUPABASE_URL) and SERVICE_ROLE_KEY (or SUPABASE_SERVICE_ROLE_KEY)\n" +
+        '  Run: eval "$(npx supabase status -o env)"',
+    );
+    process.exit(1);
+  }
+
+  try {
+    await seedRepresentatives(supabaseUrl, serviceRoleKey);
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
 }
 
 main();

@@ -11,6 +11,8 @@ import {
   TeamMemberList,
   type MembershipWithProfile,
 } from "@/components/teams/team-member-list";
+import { TeamLeadSectionList } from "@/components/teams/team-lead-section-list";
+import { TeamRepList } from "@/components/teams/team-rep-list";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
 type Team = Tables<"teams">;
@@ -73,7 +75,7 @@ export function TeamPageClient({
               <>
                 {" — "}
                 {team.congressional_districts
-                  .map((d) => {
+                  .map((d: string) => {
                     const opt = getDistrictOptions(team.state).find(
                       (o) => o.value === d,
                     );
@@ -107,6 +109,11 @@ export function TeamPageClient({
           )}
         </div>
       </div>
+      <TeamLeadSectionList memberships={memberships} />
+      <TeamRepList
+        state={team.state}
+        congressionalDistricts={team.congressional_districts}
+      />
       <TeamMemberList memberships={memberships} />
     </>
   );

@@ -25,6 +25,7 @@ if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
  */
 export default defineConfig({
   globalSetup: require.resolve("./tests/global-setup"),
+  globalTeardown: require.resolve("./tests/global-teardown"),
   testDir: "./tests",
   /*
    * Test suite selection:

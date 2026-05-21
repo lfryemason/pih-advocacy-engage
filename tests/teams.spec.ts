@@ -64,6 +64,43 @@ test.describe("team detail page", () => {
     await expect(page.getByRole("link", { name: "Edit" })).toHaveCount(0);
   });
 
+  test("shows College/University label for university type team", async ({
+    page,
+  }) => {
+    await page.goto("/teams/portland-university");
+    await expect(
+      page.getByText("College/University", { exact: true }),
+    ).toBeVisible();
+  });
+
+  test("shows Representatives section open by default when team has districts", async ({
+    page,
+  }) => {
+    await page.goto("/teams/seattle-high-school");
+    await expect(
+      page.getByRole("button", { name: /Representatives/ }),
+    ).toBeVisible();
+    await expect(page.getByText("Susan Collins")).toBeVisible();
+    await expect(page.getByText("Adam Smith")).toBeVisible();
+  });
+
+  test("collapsing Representatives toggle hides the rep list", async ({
+    page,
+  }) => {
+    await page.goto("/teams/seattle-high-school");
+    await page.getByRole("button", { name: /Representatives/ }).click();
+    await expect(page.getByText("Susan Collins")).toHaveCount(0);
+  });
+
+  test("Representatives section is hidden when team has no districts", async ({
+    page,
+  }) => {
+    await page.goto("/teams/portland-university");
+    await expect(
+      page.getByRole("button", { name: /Representatives/ }),
+    ).toHaveCount(0);
+  });
+
   test("joining a team hides the Join team button", async ({ page }) => {
     await page.goto("/teams/portland-university");
     await page.getByRole("button", { name: "Join team" }).click();

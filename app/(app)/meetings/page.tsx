@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Meetings" };
 export default function Meetings() {
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold">Meetings</h1>
+      <h1 className="text-3xl font-bold">Meetings</h1>
     </div>
   );
 }

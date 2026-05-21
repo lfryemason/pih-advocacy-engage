@@ -25,6 +25,7 @@ export const SEED_TEAMS = [
     type: "high_school",
     description: null,
     founded_date: null,
+    congressional_districts: ["9"],
   },
   {
     id: SEED_TEAM_NO_MEMBER_ID,
@@ -48,6 +49,32 @@ export const SEED_TEAM_MEMBERSHIPS = [
 ];
 
 export const SEED_REPRESENTATIVES = [
+  {
+    bioguide_id: "W000001",
+    first_name: "Susan",
+    last_name: "Collins",
+    official_full_name: "Susan Collins",
+    chamber: "sen",
+    state: "WA",
+    district: null,
+    party: "Democrat",
+    state_rank: "senior",
+    birthday: "1965-03-12",
+    in_office: true,
+  },
+  {
+    bioguide_id: "W000002",
+    first_name: "Adam",
+    last_name: "Smith",
+    official_full_name: "Adam Smith",
+    chamber: "rep",
+    state: "WA",
+    district: 9,
+    party: "Democrat",
+    state_rank: null,
+    birthday: "1970-06-15",
+    in_office: true,
+  },
   {
     bioguide_id: "S000001",
     first_name: "Hank",
