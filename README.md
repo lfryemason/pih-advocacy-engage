@@ -1,6 +1,6 @@
 # PIH Advocacy Engage
 
-This is a webapp to help the Partners in Health Engage team coordinate advocacy efforts.
+This is a webapp to help Partners in Health Engage teams coordinate advocacy efforts.
 
 TODO: fill out readme more fully
 
