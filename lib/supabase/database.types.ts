@@ -34,38 +34,54 @@ export type Database = {
   };
   public: {
     Tables: {
-      team_memberships: {
+      meeting_delegation_members: {
         Row: {
           created_at: string;
+          id: string;
+          meeting_id: string;
           org_id: string;
-          role: string;
-          team_id: string;
+          role: Database["public"]["Enums"]["delegation_role"];
+          team_id: string | null;
+          team_name_snapshot: string | null;
           user_id: string;
         };
         Insert: {
           created_at?: string;
+          id?: string;
+          meeting_id: string;
           org_id: string;
-          role: string;
-          team_id: string;
+          role: Database["public"]["Enums"]["delegation_role"];
+          team_id?: string | null;
+          team_name_snapshot?: string | null;
           user_id: string;
         };
         Update: {
           created_at?: string;
+          id?: string;
+          meeting_id?: string;
           org_id?: string;
-          role?: string;
-          team_id?: string;
+          role?: Database["public"]["Enums"]["delegation_role"];
+          team_id?: string | null;
+          team_name_snapshot?: string | null;
           user_id?: string;
         };
         Relationships: [
           {
-            foreignKeyName: "team_memberships_team_id_fkey";
+            foreignKeyName: "meeting_delegation_members_meeting_id_fkey";
+            columns: ["meeting_id"];
+            isOneToOne: false;
+            referencedRelation: "meetings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "meeting_delegation_members_team_id_fkey";
             columns: ["team_id"];
             isOneToOne: false;
             referencedRelation: "teams";
             referencedColumns: ["id"];
           },
           {
-            foreignKeyName: "team_memberships_user_id_profiles_fkey";
+            foreignKeyName: "meeting_delegation_members_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
@@ -73,47 +89,78 @@ export type Database = {
           },
         ];
       };
-      teams: {
+      meetings: {
         Row: {
-          congressional_districts: string[];
+          champion_score: number | null;
+          congressional_contact_id: string | null;
           created_at: string;
-          description: string | null;
-          founded_date: string | null;
+          created_by: string;
+          follow_up_date: string | null;
           id: string;
-          name: string;
+          links: Json;
+          location: string | null;
+          meeting_date: string;
+          meeting_time: string | null;
+          notes: string | null;
           org_id: string;
-          slug: string;
-          state: string;
-          type: string;
-          updated_at: string;
+          primary_team_id: string | null;
+          representative_id: string;
         };
         Insert: {
-          congressional_districts?: string[];
+          champion_score?: number | null;
+          congressional_contact_id?: string | null;
           created_at?: string;
-          description?: string | null;
-          founded_date?: string | null;
+          created_by: string;
+          follow_up_date?: string | null;
           id?: string;
-          name: string;
+          links?: Json;
+          location?: string | null;
+          meeting_date: string;
+          meeting_time?: string | null;
+          notes?: string | null;
           org_id: string;
-          slug?: string;
-          state: string;
-          type: string;
-          updated_at?: string;
+          primary_team_id?: string | null;
+          representative_id: string;
         };
         Update: {
-          congressional_districts?: string[];
+          champion_score?: number | null;
+          congressional_contact_id?: string | null;
           created_at?: string;
-          description?: string | null;
-          founded_date?: string | null;
+          created_by?: string;
+          follow_up_date?: string | null;
           id?: string;
-          name?: string;
+          links?: Json;
+          location?: string | null;
+          meeting_date?: string;
+          meeting_time?: string | null;
+          notes?: string | null;
           org_id?: string;
-          slug?: string;
-          state?: string;
-          type?: string;
-          updated_at?: string;
+          primary_team_id?: string | null;
+          representative_id?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "meetings_congressional_contact_id_fkey";
+            columns: ["congressional_contact_id"];
+            isOneToOne: false;
+            referencedRelation: "staffers";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "meetings_primary_team_id_fkey";
+            columns: ["primary_team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "meetings_representative_id_fkey";
+            columns: ["representative_id"];
+            isOneToOne: false;
+            referencedRelation: "representatives";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       profiles: {
         Row: {
@@ -290,6 +337,87 @@ export type Database = {
           },
         ];
       };
+      team_memberships: {
+        Row: {
+          created_at: string;
+          org_id: string;
+          role: string;
+          team_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          org_id: string;
+          role: string;
+          team_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          org_id?: string;
+          role?: string;
+          team_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "team_memberships_team_id_fkey";
+            columns: ["team_id"];
+            isOneToOne: false;
+            referencedRelation: "teams";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "team_memberships_user_id_profiles_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["user_id"];
+          },
+        ];
+      };
+      teams: {
+        Row: {
+          congressional_districts: string[];
+          created_at: string;
+          description: string | null;
+          founded_date: string | null;
+          id: string;
+          name: string;
+          org_id: string;
+          slug: string;
+          state: string;
+          type: string;
+          updated_at: string;
+        };
+        Insert: {
+          congressional_districts?: string[];
+          created_at?: string;
+          description?: string | null;
+          founded_date?: string | null;
+          id?: string;
+          name: string;
+          org_id: string;
+          slug: string;
+          state: string;
+          type: string;
+          updated_at?: string;
+        };
+        Update: {
+          congressional_districts?: string[];
+          created_at?: string;
+          description?: string | null;
+          founded_date?: string | null;
+          id?: string;
+          name?: string;
+          org_id?: string;
+          slug?: string;
+          state?: string;
+          type?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       user_role: {
         Row: {
           org_id: string | null;
@@ -315,10 +443,10 @@ export type Database = {
     Functions: {
       change_member_role: {
         Args: {
+          p_new_role: string;
+          p_old_role: string;
           p_team_id: string;
           p_user_id: string;
-          p_old_role: string;
-          p_new_role: string;
         };
         Returns: undefined;
       };
@@ -328,6 +456,12 @@ export type Database = {
     };
     Enums: {
       app_role: "member" | "org_admin" | "super_admin";
+      delegation_role:
+        | "scheduling_lead"
+        | "attendee_talking"
+        | "attendee_listening"
+        | "pih_team_member"
+        | "note_taker";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -462,6 +596,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["member", "org_admin", "super_admin"],
+      delegation_role: [
+        "scheduling_lead",
+        "attendee_talking",
+        "attendee_listening",
+        "pih_team_member",
+        "note_taker",
+      ],
     },
   },
 } as const;
