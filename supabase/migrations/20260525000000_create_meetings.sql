@@ -57,6 +57,6 @@ create policy "org members update own-org meetings"
   using (public.is_in_org(org_id) or public.is_super_admin())
   with check (public.is_in_org(org_id) or public.is_super_admin());
 
-create policy "org members delete own-org meetings"
+create policy "org admins delete own-org meetings"
   on public.meetings for delete to authenticated
-  using (public.is_in_org(org_id) or public.is_super_admin());
+  using (public.is_org_admin_for(org_id) or public.is_super_admin());
