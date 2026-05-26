@@ -105,6 +105,7 @@ export type Database = {
           org_id: string;
           primary_team_id: string | null;
           representative_id: string;
+          updated_at: string;
         };
         Insert: {
           champion_score?: number | null;
@@ -121,6 +122,7 @@ export type Database = {
           org_id: string;
           primary_team_id?: string | null;
           representative_id: string;
+          updated_at?: string;
         };
         Update: {
           champion_score?: number | null;
@@ -137,6 +139,7 @@ export type Database = {
           org_id?: string;
           primary_team_id?: string | null;
           representative_id?: string;
+          updated_at?: string;
         };
         Relationships: [
           {

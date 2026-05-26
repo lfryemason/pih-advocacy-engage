@@ -10,10 +10,15 @@ create table public.meetings (
   location                 text,
   follow_up_date           date,
   champion_score           integer     check (champion_score between 0 and 5),
-  links                    jsonb       not null default '[]',
+  links                    jsonb       not null default '[]'::jsonb,
   created_at               timestamptz not null default now(),
+  updated_at               timestamptz not null default now(),
   created_by               uuid        not null references auth.users(id)
 );
+
+create trigger meetings_updated_at
+  before update on public.meetings
+  for each row execute function public.handle_updated_at();
 
 create index idx_meetings_org_date on public.meetings (org_id, meeting_date desc);
 
@@ -28,7 +33,24 @@ create policy "org members read own-org meetings"
 
 create policy "org members insert own-org meetings"
   on public.meetings for insert to authenticated
-  with check (public.is_in_org(org_id) or public.is_super_admin());
+  with check (
+    (public.is_in_org(org_id) or public.is_super_admin())
+    and created_by = auth.uid()
+  );
+
+create or replace function public.meetings_lock_created_by()
+  returns trigger
+  language plpgsql
+as $$
+begin
+  new.created_by := old.created_by;
+  return new;
+end;
+$$;
+
+create trigger meetings_lock_created_by
+  before update on public.meetings
+  for each row execute function public.meetings_lock_created_by();
 
 create policy "org members update own-org meetings"
   on public.meetings for update to authenticated

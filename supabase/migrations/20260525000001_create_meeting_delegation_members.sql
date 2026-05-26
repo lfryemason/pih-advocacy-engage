@@ -10,7 +10,7 @@ create table public.meeting_delegation_members (
   id                 uuid                   primary key default gen_random_uuid(),
   meeting_id         uuid                   not null references public.meetings(id) on delete cascade,
   org_id             text                   not null,
-  user_id            uuid                   not null references public.profiles(user_id),
+  user_id            uuid                   not null references public.profiles(user_id) on delete cascade,
   role               public.delegation_role not null,
   team_id            uuid                   references public.teams(id) on delete set null,
   team_name_snapshot text,

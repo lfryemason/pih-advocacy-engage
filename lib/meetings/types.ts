@@ -1,9 +1,6 @@
-export type DelegationRole =
-  | "scheduling_lead"
-  | "attendee_talking"
-  | "attendee_listening"
-  | "pih_team_member"
-  | "note_taker";
+import type { Database } from "@/lib/supabase/database.types";
+
+export type DelegationRole = Database["public"]["Enums"]["delegation_role"];
 
 // ─── List-level types (used by meetings-section and meeting-row) ──────────────
 
@@ -57,16 +54,13 @@ export type MeetingFormValues = {
   representative_id: string;
   congressional_contact_id: string | null;
   primary_team_id: string | null;
-  notes: string;
-  location: string;
+  notes: string | null;
+  location: string | null;
   follow_up_date: string | null;
   champion_score: number | null;
 };
 
-export type LinkFormEntry = {
-  label: string;
-  url: string;
-};
+export type LinkFormEntry = MeetingLink;
 
 export type DelegationFormEntry = {
   user_id: string;
