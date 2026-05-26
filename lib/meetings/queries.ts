@@ -1,0 +1,90 @@
+import { createClient } from "@/lib/supabase/client";
+import { MeetingRow } from "@/lib/meetings/types";
+
+type SupabaseBrowserClient = ReturnType<typeof createClient>;
+
+type RawRow = {
+  id: string;
+  meeting_date: string;
+  meeting_time: string | null;
+  representative_id: string;
+  congressional_contact_id: string | null;
+  primary_team_id: string | null;
+  follow_up_date: string | null;
+  champion_score: number | null;
+  representatives: {
+    bioguide_id: string;
+    official_full_name: string | null;
+    state: string;
+    district: number | null;
+    party: string;
+  };
+  staffers: { first_name: string; last_name: string } | null;
+  teams: { name: string } | null;
+  meeting_delegation_members: {
+    role: string;
+    profiles: { first_name: string | null; last_name: string | null } | null;
+  }[];
+};
+
+export async function fetchMeetings(
+  supabase: SupabaseBrowserClient,
+): Promise<MeetingRow[]> {
+  const { data, error } = await supabase
+    .from("meetings")
+    .select(
+      `
+      id,
+      meeting_date,
+      meeting_time,
+      representative_id,
+      congressional_contact_id,
+      primary_team_id,
+      follow_up_date,
+      champion_score,
+      representatives!inner ( bioguide_id, official_full_name, state, district, party ),
+      staffers ( first_name, last_name ),
+      teams ( name ),
+      meeting_delegation_members ( role, profiles ( first_name, last_name ) )
+    `,
+    )
+    .order("meeting_date", { ascending: false });
+
+  if (error) throw error;
+
+  return (data as unknown as RawRow[]).map((row) => {
+    const rep = row.representatives;
+    const staffer = row.staffers;
+    const schedulingLead = row.meeting_delegation_members.find(
+      (m) => m.role === "scheduling_lead",
+    );
+
+    return {
+      id: row.id,
+      meeting_date: row.meeting_date,
+      meeting_time: row.meeting_time,
+      representative_id: row.representative_id,
+      representative_bioguide_id: rep.bioguide_id,
+      representative_name: rep.official_full_name ?? "",
+      representative_state: rep.state,
+      representative_district: rep.district,
+      representative_party: rep.party,
+      congressional_contact_id: row.congressional_contact_id,
+      congressional_contact_name: staffer
+        ? `${staffer.first_name} ${staffer.last_name}`
+        : (rep.official_full_name ?? ""),
+      primary_team_id: row.primary_team_id,
+      primary_team_name: row.teams?.name ?? null,
+      scheduling_lead_name: schedulingLead?.profiles
+        ? [
+            schedulingLead.profiles.first_name,
+            schedulingLead.profiles.last_name,
+          ]
+            .filter(Boolean)
+            .join(" ") || null
+        : null,
+      follow_up_date: row.follow_up_date,
+      champion_score: row.champion_score,
+    };
+  });
+}

@@ -9,6 +9,9 @@ import {
   SEED_TEAM_MEMBERSHIPS,
   SEED_TEAM_ID,
   SEED_TEAM_NO_MEMBER_ID,
+  SEED_MEETING_UPCOMING_ID,
+  SEED_MEETING_PAST_ID,
+  SEED_REP_WA_BIOGUIDE,
 } from "./seed";
 
 const SUPABASE_URL =
@@ -185,5 +188,51 @@ export async function resetDatabase() {
     throw new Error(
       `Failed to seed team memberships: ${membershipUpsertError.message}`,
     );
+  }
+
+  // Wipe all meetings (cascade removes delegation members) and re-seed.
+  const { error: meetingDeleteError } = await supabase
+    .from("meetings")
+    .delete()
+    .not("id", "is", null);
+  if (meetingDeleteError) {
+    throw new Error(`Failed to clear meetings: ${meetingDeleteError.message}`);
+  }
+
+  // Look up the UUID of the seeded WA representative (Adam Smith, W000002).
+  const { data: repRow, error: repLookupError } = await supabase
+    .from("representatives")
+    .select("id")
+    .eq("bioguide_id", SEED_REP_WA_BIOGUIDE)
+    .single();
+  if (repLookupError || !repRow) {
+    throw new Error(
+      `Failed to look up seed representative: ${repLookupError?.message ?? "not found"}`,
+    );
+  }
+
+  const seedMeetings = [
+    {
+      id: SEED_MEETING_UPCOMING_ID,
+      org_id: "pihe",
+      meeting_date: "2099-06-01",
+      representative_id: repRow.id,
+      created_by: TEST_USER_ID,
+      primary_team_id: SEED_TEAM_ID,
+    },
+    {
+      id: SEED_MEETING_PAST_ID,
+      org_id: "pihe",
+      meeting_date: "2020-01-15",
+      representative_id: repRow.id,
+      created_by: TEST_USER_ID,
+    },
+  ];
+
+  const { error: meetingInsertError } = await supabase
+    .from("meetings")
+    .insert(seedMeetings);
+  if (meetingInsertError) {
+    throw new Error(`Failed to seed meetings: ${meetingInsertError.message}`);
   }
 }

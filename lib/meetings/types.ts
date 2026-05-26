@@ -9,6 +9,7 @@ export type MeetingRow = {
   meeting_date: string;
   meeting_time: string | null;
   representative_id: string;
+  representative_bioguide_id: string;
   representative_name: string;
   representative_state: string;
   representative_district: number | null;
