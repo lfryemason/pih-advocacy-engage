@@ -19,6 +19,7 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
     congressional_contact_name: "Jane Rep",
     primary_team_id: null,
     primary_team_name: null,
+    primary_team_slug: null,
     scheduling_lead_name: null,
     follow_up_date: null,
     champion_score: null,
@@ -66,8 +67,8 @@ describe("MeetingsSection", () => {
       makeRow({ id: "m2", representative_name: "Bob" }),
     ];
     render(<MeetingsSection title="Upcoming Meetings" meetings={meetings} />);
-    expect(screen.getByText("Alice")).toBeInTheDocument();
-    expect(screen.getByText("Bob")).toBeInTheDocument();
+    expect(screen.getByText(/Alice/)).toBeInTheDocument();
+    expect(screen.getByText(/Bob/)).toBeInTheDocument();
   });
 
   it("displays formatted date in the date column", () => {
@@ -194,6 +195,7 @@ describe("MeetingRow (collapsed)", () => {
               representative_name: "Jane Rep",
               congressional_contact_name: "Jane Rep",
               primary_team_name: "Global Health",
+              primary_team_slug: "global-health",
               scheduling_lead_name: "Alice Lead",
               follow_up_date: "2099-06-15",
             })}
@@ -215,6 +217,7 @@ describe("MeetingRow (collapsed)", () => {
               representative_name: "Jane Rep",
               congressional_contact_name: "Jane Rep",
               primary_team_name: "Global Health",
+              primary_team_slug: "global-health",
               scheduling_lead_name: "Alice Lead",
               follow_up_date: "2020-02-01",
             })}

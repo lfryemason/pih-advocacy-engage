@@ -53,13 +53,22 @@ export function MeetingRow({
             href={`/representatives/${meeting.representative_bioguide_id}`}
             className="text-primary-dark underline-offset-4 hover:underline"
           >
+            {meeting.representative_district === null ? "Sen. " : "Rep. "}
             {meeting.representative_name}
           </Link>{" "}
           — {meeting.representative_state} ({meeting.representative_party[0]})
         </div>
       </TableCell>
       <TableCell className="max-w-0 truncate">
-        {meeting.congressional_contact_name}
+        {meeting.congressional_contact_id === null ? (
+          <em>
+            {meeting.representative_district === null
+              ? "Senator"
+              : "Congressperson"}
+          </em>
+        ) : (
+          meeting.congressional_contact_name
+        )}
       </TableCell>
       <TableCell className="max-w-0">
         {meeting.primary_team_slug ? (

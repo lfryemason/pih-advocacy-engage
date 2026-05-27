@@ -22,6 +22,7 @@ function makeRow(
     congressional_contact_name: "Jane Rep",
     primary_team_id: null,
     primary_team_name: null,
+    primary_team_slug: null,
     scheduling_lead_name: null,
     follow_up_date: null,
     champion_score: null,

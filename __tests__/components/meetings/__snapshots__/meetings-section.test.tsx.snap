@@ -12,6 +12,34 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           data-slot="table-cell"
         >
+          <button
+            aria-expanded="false"
+            aria-label="Expand meeting with Jane Rep"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-4 w-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </button>
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
           Jan 1, 2020
         </td>
         <td
@@ -31,7 +59,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
               class="text-primary-dark underline-offset-4 hover:underline"
               href="/representatives/R000001"
             >
-              Jane Rep
+              Rep. Jane Rep
             </a>
              — WA (D)
           </div>
@@ -40,13 +68,20 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
           data-slot="table-cell"
         >
-          Jane Rep
+          <em>
+            Congressperson
+          </em>
         </td>
         <td
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
           data-slot="table-cell"
         >
-          —
+          <a
+            class="block truncate text-primary-dark underline-offset-4 hover:underline"
+            href="/teams/global-health"
+          >
+            Global Health
+          </a>
         </td>
         <td
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
@@ -79,34 +114,6 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
             />
           </svg>
         </td>
-        <td
-          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
-          data-slot="table-cell"
-        >
-          <button
-            aria-expanded="false"
-            aria-label="Expand meeting with Jane Rep"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
-          >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-chevron-down h-4 w-4 transition-transform"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m6 9 6 6 6-6"
-              />
-            </svg>
-          </button>
-        </td>
       </tr>
     </tbody>
   </table>
@@ -121,6 +128,34 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
         class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
         data-slot="table-row"
       >
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
+          <button
+            aria-expanded="false"
+            aria-label="Expand meeting with Jane Rep"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-4 w-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </button>
+        </td>
         <td
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           data-slot="table-cell"
@@ -144,7 +179,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
               class="text-primary-dark underline-offset-4 hover:underline"
               href="/representatives/R000001"
             >
-              Jane Rep
+              Rep. Jane Rep
             </a>
              — WA (D)
           </div>
@@ -153,7 +188,9 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
           data-slot="table-cell"
         >
-          Jane Rep
+          <em>
+            Congressperson
+          </em>
         </td>
         <td
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
@@ -171,34 +208,6 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
           data-slot="table-cell"
         />
-        <td
-          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
-          data-slot="table-cell"
-        >
-          <button
-            aria-expanded="false"
-            aria-label="Expand meeting with Jane Rep"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
-          >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-chevron-down h-4 w-4 transition-transform"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m6 9 6 6 6-6"
-              />
-            </svg>
-          </button>
-        </td>
       </tr>
     </tbody>
   </table>
@@ -213,6 +222,34 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without is
         class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
         data-slot="table-row"
       >
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
+          <button
+            aria-expanded="false"
+            aria-label="Expand meeting with Jane Rep"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-right h-4 w-4"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m9 18 6-6-6-6"
+              />
+            </svg>
+          </button>
+        </td>
         <td
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           data-slot="table-cell"
@@ -236,7 +273,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without is
               class="text-primary-dark underline-offset-4 hover:underline"
               href="/representatives/R000001"
             >
-              Jane Rep
+              Rep. Jane Rep
             </a>
              — WA (D)
           </div>
@@ -245,47 +282,26 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without is
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
           data-slot="table-cell"
         >
-          Jane Rep
+          <em>
+            Congressperson
+          </em>
         </td>
         <td
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
           data-slot="table-cell"
         >
-          —
+          <a
+            class="block truncate text-primary-dark underline-offset-4 hover:underline"
+            href="/teams/global-health"
+          >
+            Global Health
+          </a>
         </td>
         <td
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
           data-slot="table-cell"
         >
           Alice Lead
-        </td>
-        <td
-          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
-          data-slot="table-cell"
-        >
-          <button
-            aria-expanded="false"
-            aria-label="Expand meeting with Jane Rep"
-            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
-          >
-            <svg
-              aria-hidden="true"
-              class="lucide lucide-chevron-down h-4 w-4 transition-transform"
-              fill="none"
-              height="24"
-              stroke="currentColor"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              viewBox="0 0 24 24"
-              width="24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="m6 9 6 6 6-6"
-              />
-            </svg>
-          </button>
         </td>
       </tr>
     </tbody>
@@ -346,6 +362,16 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
             data-slot="table-row"
           >
             <th
+              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-10"
+              data-slot="table-head"
+            >
+              <span
+                class="sr-only"
+              >
+                Actions
+              </span>
+            </th>
+            <th
               class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-28"
               data-slot="table-head"
             >
@@ -381,16 +407,6 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
             >
               Scheduling Lead
             </th>
-            <th
-              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-10"
-              data-slot="table-head"
-            >
-              <span
-                class="sr-only"
-              >
-                Actions
-              </span>
-            </th>
           </tr>
         </thead>
         <tbody
@@ -401,6 +417,34 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
             class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
             data-slot="table-row"
           >
+            <td
+              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              data-slot="table-cell"
+            >
+              <button
+                aria-expanded="false"
+                aria-label="Expand meeting with Jane Rep"
+                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+              >
+                <svg
+                  aria-hidden="true"
+                  class="lucide lucide-chevron-right h-4 w-4"
+                  fill="none"
+                  height="24"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  viewBox="0 0 24 24"
+                  width="24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="m9 18 6-6-6-6"
+                  />
+                </svg>
+              </button>
+            </td>
             <td
               class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
               data-slot="table-cell"
@@ -424,7 +468,7 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
                   class="text-primary-dark underline-offset-4 hover:underline"
                   href="/representatives/R000001"
                 >
-                  Jane Rep
+                  Rep. Jane Rep
                 </a>
                  — WA (D)
               </div>
@@ -433,7 +477,9 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
               class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
               data-slot="table-cell"
             >
-              Jane Rep
+              <em>
+                Congressperson
+              </em>
             </td>
             <td
               class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
@@ -446,34 +492,6 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
               data-slot="table-cell"
             >
               —
-            </td>
-            <td
-              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
-              data-slot="table-cell"
-            >
-              <button
-                aria-expanded="false"
-                aria-label="Expand meeting with Jane Rep"
-                class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
-              >
-                <svg
-                  aria-hidden="true"
-                  class="lucide lucide-chevron-down h-4 w-4 transition-transform"
-                  fill="none"
-                  height="24"
-                  stroke="currentColor"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  viewBox="0 0 24 24"
-                  width="24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    d="m6 9 6 6 6-6"
-                  />
-                </svg>
-              </button>
             </td>
           </tr>
         </tbody>

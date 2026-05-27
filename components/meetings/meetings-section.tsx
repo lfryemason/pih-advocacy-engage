@@ -32,7 +32,6 @@ export function MeetingsSection({
           <caption className="sr-only">{title}</caption>
           <TableHeader>
             <TableRow>
-              {" "}
               <TableHead className="w-10">
                 <span className="sr-only">Actions</span>
               </TableHead>
