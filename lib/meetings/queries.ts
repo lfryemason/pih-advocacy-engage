@@ -20,7 +20,7 @@ type RawRow = {
     party: string;
   };
   staffers: { first_name: string; last_name: string } | null;
-  teams: { name: string } | null;
+  teams: { name: string; slug: string } | null;
   meeting_delegation_members: {
     role: string;
     profiles: { first_name: string | null; last_name: string | null } | null;
@@ -44,7 +44,7 @@ export async function fetchMeetings(
       champion_score,
       representatives!inner ( bioguide_id, official_full_name, state, district, party ),
       staffers ( first_name, last_name ),
-      teams ( name ),
+      teams ( name, slug ),
       meeting_delegation_members ( role, profiles ( first_name, last_name ) )
     `,
     )
@@ -75,6 +75,7 @@ export async function fetchMeetings(
         : (rep.official_full_name ?? ""),
       primary_team_id: row.primary_team_id,
       primary_team_name: row.teams?.name ?? null,
+      primary_team_slug: row.teams?.slug ?? null,
       scheduling_lead_name: schedulingLead?.profiles
         ? [
             schedulingLead.profiles.first_name,

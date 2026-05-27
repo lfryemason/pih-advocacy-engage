@@ -18,6 +18,7 @@ export type MeetingRow = {
   congressional_contact_name: string;
   primary_team_id: string | null;
   primary_team_name: string | null;
+  primary_team_slug: string | null;
   scheduling_lead_name: string | null;
   follow_up_date: string | null;
   champion_score: number | null;

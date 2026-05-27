@@ -70,17 +70,38 @@ describe("MeetingsSection", () => {
     expect(screen.getByText("Bob")).toBeInTheDocument();
   });
 
-  it("displays formatted meeting date in each row", () => {
+  it("displays formatted date in the date column", () => {
     render(
       <MeetingsSection
         title="Upcoming Meetings"
-        meetings={[makeRow({ meeting_date: "2099-06-01" })]}
+        meetings={[makeRow({ meeting_date: "2099-06-01", meeting_time: null })]}
       />,
     );
     expect(screen.getByText("Jun 1, 2099")).toBeInTheDocument();
   });
 
-  it("shows em dash for null optional fields", () => {
+  it("displays time text in the time column when set", () => {
+    render(
+      <MeetingsSection
+        title="Upcoming Meetings"
+        meetings={[
+          makeRow({ meeting_date: "2099-06-01", meeting_time: "2:00PM ET" }),
+        ]}
+      />,
+    );
+    expect(screen.getByText("2:00PM ET")).toBeInTheDocument();
+  });
+
+  it("renders a Time column header", () => {
+    render(
+      <MeetingsSection title="Upcoming Meetings" meetings={[makeRow()]} />,
+    );
+    expect(
+      screen.getByRole("columnheader", { name: "Time" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows em dash for null optional fields in upcoming meetings", () => {
     render(
       <MeetingsSection
         title="Upcoming Meetings"
@@ -88,13 +109,63 @@ describe("MeetingsSection", () => {
           makeRow({
             primary_team_name: null,
             scheduling_lead_name: null,
-            follow_up_date: null,
           }),
         ]}
       />,
     );
     const dashes = screen.getAllByText("—");
-    expect(dashes.length).toBeGreaterThanOrEqual(3);
+    expect(dashes.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("does not show Follow-up column in upcoming meetings", () => {
+    render(
+      <MeetingsSection
+        title="Upcoming Meetings"
+        meetings={[makeRow({ follow_up_date: "2099-06-15" })]}
+      />,
+    );
+    expect(
+      screen.queryByRole("columnheader", { name: "Follow-up" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("shows Follow-up column in past meetings", () => {
+    render(
+      <MeetingsSection
+        title="Past Meetings"
+        meetings={[makeRow({ meeting_date: "2020-01-01" })]}
+        isPast
+      />,
+    );
+    expect(
+      screen.getByRole("columnheader", { name: "Follow-up" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows check icon when follow_up_date is set in past meetings", () => {
+    render(
+      <MeetingsSection
+        title="Past Meetings"
+        meetings={[
+          makeRow({ meeting_date: "2020-01-01", follow_up_date: "2020-02-01" }),
+        ]}
+        isPast
+      />,
+    );
+    expect(screen.getByLabelText("Follow-up sent")).toBeInTheDocument();
+  });
+
+  it("shows blank follow-up cell when follow_up_date is null in past meetings", () => {
+    render(
+      <MeetingsSection
+        title="Past Meetings"
+        meetings={[
+          makeRow({ meeting_date: "2020-01-01", follow_up_date: null }),
+        ]}
+        isPast
+      />,
+    );
+    expect(screen.queryByLabelText("Follow-up sent")).not.toBeInTheDocument();
   });
 
   it("matches snapshot with meetings", () => {
@@ -113,7 +184,7 @@ describe("MeetingsSection", () => {
 });
 
 describe("MeetingRow (collapsed)", () => {
-  it("matches snapshot in collapsed state", () => {
+  it("matches snapshot in collapsed state without isPast", () => {
     const { asFragment } = render(
       <table>
         <tbody>
@@ -125,6 +196,46 @@ describe("MeetingRow (collapsed)", () => {
               primary_team_name: "Global Health",
               scheduling_lead_name: "Alice Lead",
               follow_up_date: "2099-06-15",
+            })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it("matches snapshot in collapsed state with isPast and follow-up sent", () => {
+    const { asFragment } = render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            isPast
+            meeting={makeRow({
+              meeting_date: "2020-01-01",
+              representative_name: "Jane Rep",
+              congressional_contact_name: "Jane Rep",
+              primary_team_name: "Global Health",
+              scheduling_lead_name: "Alice Lead",
+              follow_up_date: "2020-02-01",
+            })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(asFragment()).toMatchSnapshot();
+  });
+
+  it("matches snapshot in collapsed state with isPast and no follow-up", () => {
+    const { asFragment } = render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            isPast
+            meeting={makeRow({
+              meeting_date: "2020-01-01",
+              representative_name: "Jane Rep",
+              congressional_contact_name: "Jane Rep",
+              follow_up_date: null,
             })}
           />
         </tbody>

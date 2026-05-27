@@ -85,7 +85,7 @@ export function MeetingsPage() {
       ) : (
         <div className="flex flex-col gap-10">
           <MeetingsSection title="Upcoming Meetings" meetings={upcoming} />
-          <MeetingsSection title="Past Meetings" meetings={past} />
+          <MeetingsSection title="Past Meetings" meetings={past} isPast />
         </div>
       )}
     </div>

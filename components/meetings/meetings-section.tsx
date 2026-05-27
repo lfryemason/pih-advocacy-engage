@@ -11,9 +11,11 @@ import {
 export function MeetingsSection({
   title,
   meetings,
+  isPast = false,
 }: {
   title: string;
   meetings: MeetingRowType[];
+  isPast?: boolean;
 }) {
   const headingId = title.toLowerCase().replace(/\s+/g, "-");
   return (
@@ -30,20 +32,24 @@ export function MeetingsSection({
           <caption className="sr-only">{title}</caption>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Member of Congress</TableHead>
-              <TableHead>Staff Contact</TableHead>
-              <TableHead>PIH Team</TableHead>
-              <TableHead>Scheduling Lead</TableHead>
-              <TableHead>Follow-up</TableHead>
+              {" "}
               <TableHead className="w-10">
                 <span className="sr-only">Actions</span>
               </TableHead>
+              <TableHead className="w-28">Date</TableHead>
+              <TableHead className="w-24">Time</TableHead>
+              <TableHead className="w-56">Member of Congress</TableHead>
+              <TableHead className="w-36">Staff Contact</TableHead>
+              <TableHead className="w-52">PIH Team</TableHead>
+              <TableHead className="w-36">Scheduling Lead</TableHead>
+              {isPast && (
+                <TableHead className="text-center">Follow-up</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {meetings.map((meeting) => (
-              <MeetingRow key={meeting.id} meeting={meeting} />
+              <MeetingRow key={meeting.id} meeting={meeting} isPast={isPast} />
             ))}
           </TableBody>
         </Table>

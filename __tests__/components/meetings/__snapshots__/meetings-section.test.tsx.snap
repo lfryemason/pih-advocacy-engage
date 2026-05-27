@@ -1,6 +1,211 @@
 // Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`MeetingRow (collapsed) > matches snapshot in collapsed state 1`] = `
+exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPast and follow-up sent 1`] = `
+<DocumentFragment>
+  <table>
+    <tbody>
+      <tr
+        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+        data-slot="table-row"
+      >
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
+          Jan 1, 2020
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
+          —
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
+          data-slot="table-cell"
+        >
+          <div
+            class="truncate"
+          >
+            <a
+              class="text-primary-dark underline-offset-4 hover:underline"
+              href="/representatives/R000001"
+            >
+              Jane Rep
+            </a>
+             — WA (D)
+          </div>
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
+          data-slot="table-cell"
+        >
+          Jane Rep
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
+          data-slot="table-cell"
+        >
+          —
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
+          data-slot="table-cell"
+        >
+          Alice Lead
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+          data-slot="table-cell"
+        >
+          <svg
+            aria-label="Follow-up sent"
+            class="lucide lucide-circle-check-big m-auto h-4 w-4 text-green-600"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M21.801 10A10 10 0 1 1 17 3.335"
+            />
+            <path
+              d="m9 11 3 3L22 4"
+            />
+          </svg>
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
+          <button
+            aria-expanded="false"
+            aria-label="Expand meeting with Jane Rep"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down h-4 w-4 transition-transform"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</DocumentFragment>
+`;
+
+exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPast and no follow-up 1`] = `
+<DocumentFragment>
+  <table>
+    <tbody>
+      <tr
+        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+        data-slot="table-row"
+      >
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
+          Jan 1, 2020
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
+          —
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
+          data-slot="table-cell"
+        >
+          <div
+            class="truncate"
+          >
+            <a
+              class="text-primary-dark underline-offset-4 hover:underline"
+              href="/representatives/R000001"
+            >
+              Jane Rep
+            </a>
+             — WA (D)
+          </div>
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
+          data-slot="table-cell"
+        >
+          Jane Rep
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
+          data-slot="table-cell"
+        >
+          —
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
+          data-slot="table-cell"
+        >
+          —
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] text-center"
+          data-slot="table-cell"
+        />
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          data-slot="table-cell"
+        >
+          <button
+            aria-expanded="false"
+            aria-label="Expand meeting with Jane Rep"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-accent hover:text-accent-foreground h-9 w-9"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevron-down h-4 w-4 transition-transform"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m6 9 6 6 6-6"
+              />
+            </svg>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</DocumentFragment>
+`;
+
+exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without isPast 1`] = `
 <DocumentFragment>
   <table>
     <tbody>
@@ -18,36 +223,41 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state 1`] = `
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
           data-slot="table-cell"
         >
-          <a
-            class="hover:underline"
-            href="/representatives/R000001"
-          >
-            Jane Rep
-          </a>
+          —
         </td>
         <td
-          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
+          data-slot="table-cell"
+        >
+          <div
+            class="truncate"
+          >
+            <a
+              class="text-primary-dark underline-offset-4 hover:underline"
+              href="/representatives/R000001"
+            >
+              Jane Rep
+            </a>
+             — WA (D)
+          </div>
+        </td>
+        <td
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
           data-slot="table-cell"
         >
           Jane Rep
         </td>
         <td
-          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
           data-slot="table-cell"
         >
-          Global Health
+          —
         </td>
         <td
-          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
           data-slot="table-cell"
         >
           Alice Lead
-        </td>
-        <td
-          class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
-          data-slot="table-cell"
-        >
-          Jun 15, 2099
         </td>
         <td
           class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
@@ -136,40 +346,40 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
             data-slot="table-row"
           >
             <th
-              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-28"
               data-slot="table-head"
             >
               Date
             </th>
             <th
-              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-24"
+              data-slot="table-head"
+            >
+              Time
+            </th>
+            <th
+              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-56"
               data-slot="table-head"
             >
               Member of Congress
             </th>
             <th
-              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-36"
               data-slot="table-head"
             >
               Staff Contact
             </th>
             <th
-              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-52"
               data-slot="table-head"
             >
               PIH Team
             </th>
             <th
-              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-36"
               data-slot="table-head"
             >
               Scheduling Lead
-            </th>
-            <th
-              class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
-              data-slot="table-head"
-            >
-              Follow-up
             </th>
             <th
               class="h-10 whitespace-nowrap px-2 text-left align-middle font-medium text-foreground [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] w-10"
@@ -201,33 +411,38 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
               class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
               data-slot="table-cell"
             >
-              <a
-                class="hover:underline"
-                href="/representatives/R000001"
-              >
-                Jane Rep
-              </a>
+              —
             </td>
             <td
-              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
+              data-slot="table-cell"
+            >
+              <div
+                class="truncate"
+              >
+                <a
+                  class="text-primary-dark underline-offset-4 hover:underline"
+                  href="/representatives/R000001"
+                >
+                  Jane Rep
+                </a>
+                 — WA (D)
+              </div>
+            </td>
+            <td
+              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
               data-slot="table-cell"
             >
               Jane Rep
             </td>
             <td
-              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0"
               data-slot="table-cell"
             >
               —
             </td>
             <td
-              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
-              data-slot="table-cell"
-            >
-              —
-            </td>
-            <td
-              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]"
+              class="whitespace-nowrap p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px] max-w-0 truncate"
               data-slot="table-cell"
             >
               —
