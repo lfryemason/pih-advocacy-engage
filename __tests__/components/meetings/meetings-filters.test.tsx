@@ -43,8 +43,8 @@ describe("MeetingsFilters", () => {
       screen.getByRole("button", { name: "Filter by state" }),
     ).toHaveTextContent("State");
     expect(
-      screen.getByRole("button", { name: "Filter by district" }),
-    ).toHaveTextContent("District");
+      screen.queryByRole("button", { name: "Filter by district" }),
+    ).not.toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Filter by party" }),
     ).toHaveTextContent("Party");
@@ -86,7 +86,7 @@ describe("MeetingsFilters", () => {
   it("shows district label when a single district is selected", () => {
     render(
       <MeetingsFilters
-        filters={{ ...EMPTY_MEETING_FILTERS, districts: ["9"] }}
+        filters={{ states: ["WA"], districts: ["9"], parties: [] }}
         onChange={vi.fn()}
       />,
     );
@@ -98,7 +98,7 @@ describe("MeetingsFilters", () => {
   it("shows count when multiple districts selected", () => {
     render(
       <MeetingsFilters
-        filters={{ ...EMPTY_MEETING_FILTERS, districts: ["1", "2"] }}
+        filters={{ states: ["WA"], districts: ["1", "2"], parties: [] }}
         onChange={vi.fn()}
       />,
     );
