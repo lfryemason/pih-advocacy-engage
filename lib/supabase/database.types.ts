@@ -253,8 +253,11 @@ export type Database = {
           first_name: string;
           id: string;
           last_name: string;
+          linkedin_url: string | null;
+          location: string | null;
           notes: string | null;
           org_id: string;
+          phone: string | null;
           pronouns: string | null;
           representative_id: string;
           title: string | null;
@@ -266,8 +269,11 @@ export type Database = {
           first_name: string;
           id?: string;
           last_name: string;
+          linkedin_url?: string | null;
+          location?: string | null;
           notes?: string | null;
           org_id: string;
+          phone?: string | null;
           pronouns?: string | null;
           representative_id: string;
           title?: string | null;
@@ -279,8 +285,11 @@ export type Database = {
           first_name?: string;
           id?: string;
           last_name?: string;
+          linkedin_url?: string | null;
+          location?: string | null;
           notes?: string | null;
           org_id?: string;
+          phone?: string | null;
           pronouns?: string | null;
           representative_id?: string;
           title?: string | null;

@@ -18,6 +18,8 @@ export interface MockRepresentative {
   state_rank: string | null;
   birthday: string | null;
   in_office: boolean;
+  pronouns: string | null;
+  email: string | null;
   general_links: unknown[];
   created_at: string;
   updated_at: string;
@@ -45,6 +47,8 @@ export function makeRepresentative(
     state_rank: "senior",
     birthday: "1960-01-01",
     in_office: true,
+    pronouns: null,
+    email: null,
     general_links: [],
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
@@ -72,6 +76,9 @@ export interface MockStaffer {
   title: string | null;
   pronouns: string | null;
   email: string | null;
+  phone: string | null;
+  location: string | null;
+  linkedin_url: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -87,6 +94,9 @@ export function makeStaffer(overrides: Partial<MockStaffer> = {}): MockStaffer {
     title: "Chief of Staff",
     pronouns: "they/them",
     email: "sam@example.com",
+    phone: null,
+    location: null,
+    linkedin_url: null,
     notes: "Primary contact for healthcare policy.",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",

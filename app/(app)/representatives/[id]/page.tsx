@@ -6,6 +6,11 @@ import { getCurrentRole } from "@/lib/auth/role";
 import { ORG_ID } from "@/lib/org";
 import { Button } from "@/components/ui/button";
 import { StafferList } from "@/components/staffers/staffer-list";
+import { RepTeamsSection } from "@/components/representatives/rep-teams-section";
+import {
+  RepExternalResources,
+  type GeneralLink,
+} from "@/components/representatives/rep-external-resources";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
 
 export async function generateMetadata({
@@ -39,6 +44,19 @@ export default function RepresentativePage({
     </SuspenseWithDefaultFallback>
   );
 }
+
+const partyAvatarClass: Record<string, string> = {
+  Democrat: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  Republican: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  Independent:
+    "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+};
+
+const partyTextClass: Record<string, string> = {
+  Democrat: "text-blue-700 dark:text-blue-300",
+  Republican: "text-red-700 dark:text-red-300",
+  Independent: "text-purple-700 dark:text-purple-300",
+};
 
 async function RepresentativeContent({
   params,
@@ -76,6 +94,22 @@ async function RepresentativeContent({
     role?.role === "super_admin" ||
     (role?.role === "org_admin" && role.org_id === ORG_ID);
 
+  const canEdit =
+    role?.role === "super_admin" ||
+    (role?.role === "org_admin" && role.org_id === ORG_ID);
+
+  const name =
+    representative.official_full_name ??
+    `${representative.first_name} ${representative.last_name}`;
+  const initial = representative.first_name[0].toUpperCase();
+  const chamber = representative.chamber === "sen" ? "Senate" : "House";
+  const avatarClass =
+    partyAvatarClass[representative.party] ?? "bg-muted text-muted-foreground";
+  const textClass = partyTextClass[representative.party] ?? "";
+  const generalLinks = Array.isArray(representative.general_links)
+    ? (representative.general_links as GeneralLink[])
+    : [];
+
   return (
     <>
       <div>
@@ -86,18 +120,72 @@ async function RepresentativeContent({
           </Link>
         </Button>
       </div>
-      <h1 className="mt-4 text-2xl font-bold">
-        {representative.official_full_name ??
-          `${representative.first_name} ${representative.last_name}`}
-      </h1>
-      <p className="mt-1 text-muted-foreground">
-        {representative.party} — {representative.state}
-      </p>
+
+      {/* Header */}
+      <div className="mt-4 flex items-center gap-4 rounded-lg border p-4">
+        <div
+          className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-bold ${avatarClass}`}
+          aria-hidden="true"
+        >
+          {initial}
+        </div>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-baseline gap-x-2">
+            <h1 className="text-xl font-bold">{name}</h1>
+            {representative.pronouns && (
+              <span className="text-sm text-muted-foreground">
+                {representative.pronouns}
+              </span>
+            )}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+            <span className={`font-medium ${textClass}`}>
+              {representative.party}
+            </span>
+            <span className="text-muted-foreground" aria-hidden="true">
+              ·
+            </span>
+            <span className="text-muted-foreground">{chamber}</span>
+            <span className="text-muted-foreground" aria-hidden="true">
+              ·
+            </span>
+            <span className="text-muted-foreground">
+              {representative.state}
+            </span>
+            {representative.email && (
+              <>
+                <span className="text-muted-foreground" aria-hidden="true">
+                  ·
+                </span>
+                <a
+                  href={`mailto:${representative.email}`}
+                  className="text-primary hover:underline"
+                >
+                  {representative.email}
+                </a>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
       <StafferList
         representativeId={representative.id}
         orgId={ORG_ID}
         staffers={staffers ?? []}
         canDelete={canDelete}
+      />
+
+      <RepTeamsSection
+        repState={representative.state}
+        chamber={representative.chamber}
+        district={representative.district}
+      />
+
+      <RepExternalResources
+        representativeId={representative.id}
+        initialLinks={generalLinks}
+        canEdit={canEdit}
       />
     </>
   );

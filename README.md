@@ -59,7 +59,7 @@ supabase init
 2. Start the local Supabase stack (requires Docker):
 
 ```bash
-supabase start
+npm run supabase:start
 ```
 
 This starts a local Postgres database, Auth server, and API. Once running, the CLI prints connection details — copy the `API URL` and `anon key` values.

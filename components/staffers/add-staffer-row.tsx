@@ -17,7 +17,7 @@ export function AddStafferRow({
 
   if (isOpen) {
     return (
-      <li className="p-4">
+      <div className="rounded-lg border p-4">
         <StafferForm
           representativeId={representativeId}
           orgId={orgId}
@@ -27,20 +27,18 @@ export function AddStafferRow({
           }}
           onCancel={() => setIsOpen(false)}
         />
-      </li>
+      </div>
     );
   }
 
   return (
-    <li>
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className="flex w-full items-center gap-2 bg-accent px-4 py-2 text-left text-sm text-accent-foreground transition-colors hover:bg-accent-hover hover:text-accent-hover-foreground"
-      >
-        <Plus className="size-4" />
-        Staffer
-      </button>
-    </li>
+    <button
+      type="button"
+      onClick={() => setIsOpen(true)}
+      className="flex items-center gap-2 rounded-md border border-dashed px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
+    >
+      <Plus className="size-4" />
+      Add office staff
+    </button>
   );
 }
