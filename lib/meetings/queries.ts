@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { MeetingFilters, MeetingRow } from "@/lib/meetings/types";
+import { localDateString } from "@/lib/utils";
 
 type SupabaseBrowserClient = ReturnType<typeof createClient>;
 
@@ -90,7 +91,7 @@ export async function fetchMeetings(
     limit: number;
   },
 ): Promise<{ meetings: MeetingRow[]; count: number }> {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = localDateString();
 
   let query = supabase
     .from("meetings")
@@ -107,21 +108,31 @@ export async function fetchMeetings(
     query = query.filter(
       "representatives.state",
       "in",
-      `(${filters.states.join(",")})`,
+      `(${filters.states.map((s) => `"${s}"`).join(",")})`,
     );
   }
   if (filters.districts.length > 0) {
-    query = query.filter(
-      "representatives.district",
-      "in",
-      `(${filters.districts.join(",")})`,
-    );
+    const numbers = filters.districts.filter((d) => d !== "at-large");
+    const includesAtLarge = filters.districts.includes("at-large");
+    if (numbers.length > 0 && includesAtLarge) {
+      query = query.or(`district.in.(${numbers.join(",")}),district.is.null`, {
+        referencedTable: "representatives",
+      });
+    } else if (numbers.length > 0) {
+      query = query.filter(
+        "representatives.district",
+        "in",
+        `(${numbers.join(",")})`,
+      );
+    } else {
+      query = query.filter("representatives.district", "is", null);
+    }
   }
   if (filters.parties.length > 0) {
     query = query.filter(
       "representatives.party",
       "in",
-      `(${filters.parties.join(",")})`,
+      `(${filters.parties.map((p) => `"${p}"`).join(",")})`,
     );
   }
 

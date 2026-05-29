@@ -48,51 +48,58 @@ export function MeetingsPage() {
     null,
   );
   const [error, setError] = useState<string | null>(null);
+  const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MeetingFilters>(() =>
     filtersFromParams(searchParams),
   );
 
-  const loadInitial = useCallback(
-    async (f: MeetingFilters, isFirst: boolean) => {
-      if (isFirst) setInitialLoading(true);
-      else setFiltering(true);
-      setError(null);
-      const supabase = createClient();
-      try {
-        const [up, past] = await Promise.all([
-          fetchMeetings(supabase, {
-            filters: f,
-            section: "upcoming",
-            offset: 0,
-            limit: PAGE_SIZE,
-          }),
-          fetchMeetings(supabase, {
-            filters: f,
-            section: "past",
-            offset: 0,
-            limit: PAGE_SIZE,
-          }),
-        ]);
-        setUpcoming(up);
-        setPast(past);
-      } catch (e: unknown) {
-        setError(e instanceof Error ? e.message : "Failed to load meetings");
-      } finally {
-        if (isFirst) setInitialLoading(false);
-        else setFiltering(false);
-      }
-    },
-    [],
-  );
+  // Always reflects the latest committed filters so loadMore doesn't close over stale values
+  const filtersRef = useRef(filters);
+  useEffect(() => {
+    filtersRef.current = filters;
+  }, [filters]);
 
-  const isFirstRef = useRef(true);
+  // Incremented on every loadInitial call; stale responses are discarded
+  const fetchGenRef = useRef(0);
+
+  const loadInitial = useCallback(async (f: MeetingFilters) => {
+    const gen = ++fetchGenRef.current;
+    setFiltering(true);
+    setError(null);
+    const supabase = createClient();
+    try {
+      const [up, pastResult] = await Promise.all([
+        fetchMeetings(supabase, {
+          filters: f,
+          section: "upcoming",
+          offset: 0,
+          limit: PAGE_SIZE,
+        }),
+        fetchMeetings(supabase, {
+          filters: f,
+          section: "past",
+          offset: 0,
+          limit: PAGE_SIZE,
+        }),
+      ]);
+      if (gen !== fetchGenRef.current) return;
+      setUpcoming(up);
+      setPast(pastResult);
+    } catch (e: unknown) {
+      if (gen !== fetchGenRef.current) return;
+      setError(e instanceof Error ? e.message : "Failed to load meetings");
+    } finally {
+      if (gen === fetchGenRef.current) {
+        setFiltering(false);
+        setInitialLoading(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     const f = filtersFromParams(searchParams);
     setFilters(f);
-    const isFirst = isFirstRef.current;
-    isFirstRef.current = false;
-    loadInitial(f, isFirst);
+    loadInitial(f);
   }, [searchParams, loadInitial]);
 
   const handleFiltersChange = (f: MeetingFilters) => {
@@ -101,6 +108,7 @@ export function MeetingsPage() {
 
   const loadMore = async (section: "upcoming" | "past") => {
     setLoadingMore(section);
+    setLoadMoreError(null);
     const supabase = createClient();
     try {
       const offset =
@@ -108,7 +116,7 @@ export function MeetingsPage() {
           ? upcoming.meetings.length
           : past.meetings.length;
       const result = await fetchMeetings(supabase, {
-        filters,
+        filters: filtersRef.current,
         section,
         offset,
         limit: PAGE_SIZE,
@@ -124,8 +132,10 @@ export function MeetingsPage() {
           meetings: [...prev.meetings, ...result.meetings],
         }));
       }
-    } catch {
-      // user can retry by clicking again
+    } catch (e: unknown) {
+      setLoadMoreError(
+        e instanceof Error ? e.message : "Failed to load more meetings",
+      );
     } finally {
       setLoadingMore(null);
     }
@@ -164,6 +174,11 @@ export function MeetingsPage() {
             disableLoadMore={loadingMore === "past" || filtering}
             isPast
           />
+          {loadMoreError && (
+            <p role="alert" className="text-center text-sm text-destructive">
+              {loadMoreError}
+            </p>
+          )}
         </div>
       )}
     </div>

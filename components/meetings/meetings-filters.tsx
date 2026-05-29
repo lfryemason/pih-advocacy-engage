@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { xor } from "es-toolkit";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { US_STATES } from "@/lib/us-districts";
+import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 import { PARTIES } from "@/lib/parties";
 import { MeetingFilters } from "@/lib/meetings/types";
 
@@ -22,8 +23,6 @@ export const EMPTY_MEETING_FILTERS: MeetingFilters = {
 export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
   return f.states.length > 0 || f.districts.length > 0 || f.parties.length > 0;
 }
-
-const DISTRICTS = Array.from({ length: 52 }, (_, i) => String(i + 1));
 
 const FILTER_WIDTH = "w-40";
 
@@ -51,6 +50,24 @@ export function MeetingsFilters({
     onChange({ ...filters, ...patch });
   const active = hasActiveMeetingFilters(filters);
 
+  const availableDistricts = useMemo(() => {
+    const seen = new Set<string>();
+    const result: { value: string; label: string }[] = [];
+    for (const state of filters.states) {
+      for (const opt of getDistrictOptions(state)) {
+        if (!seen.has(opt.value)) {
+          seen.add(opt.value);
+          result.push(opt);
+        }
+      }
+    }
+    return result.sort((a, b) => {
+      if (a.value === "at-large") return -1;
+      if (b.value === "at-large") return 1;
+      return Number(a.value) - Number(b.value);
+    });
+  }, [filters.states]);
+
   const stateLabel = summarize(
     filters.states,
     "State",
@@ -60,7 +77,7 @@ export function MeetingsFilters({
   const districtLabel = summarize(
     filters.districts,
     "District",
-    (d) => `District ${d}`,
+    (d) => availableDistricts.find((o) => o.value === d)?.label ?? d,
     "districts",
   );
   const partyLabel = summarize(filters.parties, "Party", (p) => p, "parties");
@@ -87,7 +104,20 @@ export function MeetingsFilters({
               checked={filters.states.includes(state.code)}
               onSelect={(e) => {
                 e.preventDefault();
-                set({ states: xor(filters.states, [state.code]) });
+                const newStates = xor(filters.states, [state.code]);
+                const validValues = new Set(
+                  newStates.flatMap((s) =>
+                    getDistrictOptions(s).map((o) => o.value),
+                  ),
+                );
+                const newDistricts = filters.districts.filter((d) =>
+                  validValues.has(d),
+                );
+                onChange({
+                  ...filters,
+                  states: newStates,
+                  districts: newDistricts,
+                });
               }}
             >
               {state.name}
@@ -96,34 +126,36 @@ export function MeetingsFilters({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant={filters.districts.length > 0 ? "default" : "outline"}
-            size="sm"
-            aria-label="Filter by district"
-            className={`${FILTER_WIDTH} justify-between`}
-            disabled={disabled}
-          >
-            <span className="truncate">{districtLabel}</span>
-            <ChevronDown aria-hidden="true" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="max-h-64 overflow-y-auto">
-          {DISTRICTS.map((d) => (
-            <DropdownMenuCheckboxItem
-              key={d}
-              checked={filters.districts.includes(d)}
-              onSelect={(e) => {
-                e.preventDefault();
-                set({ districts: xor(filters.districts, [d]) });
-              }}
+      {filters.states.length > 0 && (
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant={filters.districts.length > 0 ? "default" : "outline"}
+              size="sm"
+              aria-label="Filter by district"
+              className={`${FILTER_WIDTH} justify-between`}
+              disabled={disabled}
             >
-              District {d}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+              <span className="truncate">{districtLabel}</span>
+              <ChevronDown aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="max-h-64 overflow-y-auto">
+            {availableDistricts.map(({ value, label }) => (
+              <DropdownMenuCheckboxItem
+                key={value}
+                checked={filters.districts.includes(value)}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  set({ districts: xor(filters.districts, [value]) });
+                }}
+              >
+                {label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+      )}
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

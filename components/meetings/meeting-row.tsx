@@ -52,7 +52,8 @@ export function MeetingRow({
             {meeting.representative_district === null ? "Sen. " : "Rep. "}
             {meeting.representative_name}
           </Link>{" "}
-          — {meeting.representative_state} ({meeting.representative_party[0]})
+          — {meeting.representative_state} (
+          {meeting.representative_party[0] ?? "?"})
         </div>
       </TableCell>
       <TableCell className="max-w-0 truncate">
