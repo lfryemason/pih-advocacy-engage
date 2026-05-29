@@ -17,7 +17,7 @@ describe("StafferList", () => {
         canDelete={false}
       />,
     );
-    expect(screen.getByRole("button", { name: "Staffer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Staffer" })).toBeInTheDocument(); // "+ Staffer" add button
     expect(asFragment()).toMatchSnapshot();
   });
 

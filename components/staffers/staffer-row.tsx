@@ -71,7 +71,7 @@ export function StafferRow({
             </span>
             {staffer.pronouns && (
               <span className="text-sm text-muted-foreground">
-                {staffer.pronouns}
+                ({staffer.pronouns})
               </span>
             )}
           </div>

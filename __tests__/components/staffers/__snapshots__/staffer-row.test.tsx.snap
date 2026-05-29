@@ -3,91 +3,122 @@
 exports[`StafferRow > renders all fields when present 1`] = `
 <DocumentFragment>
   <ul>
-    <li
-      class="flex items-start justify-between gap-4 px-4 py-2"
+    <div
+      class="rounded-lg border p-4"
     >
       <div
-        class="min-w-0 flex-1"
+        class="flex items-start justify-between gap-4"
       >
         <div
-          class="flex flex-wrap items-center gap-x-2"
+          class="min-w-0 flex-1"
         >
-          <span
-            class="font-bold"
+          <div
+            class="flex flex-wrap items-baseline gap-x-2"
           >
-            Sam Jones
-          </span>
-          <span
-            class="text-sm text-muted-foreground"
-          >
-            (they/them)
-          </span>
-          <span
-            aria-hidden="true"
-            class="text-sm text-muted-foreground"
-          >
-            •
-          </span>
-          <span
-            class="text-sm text-muted-foreground"
+            <span
+              class="font-bold"
+            >
+              Sam Jones
+            </span>
+            <span
+              class="text-sm text-muted-foreground"
+            >
+              (they/them)
+            </span>
+          </div>
+          <p
+            class="mt-0.5 text-sm text-primary"
           >
             Chief of Staff
-          </span>
-        </div>
-        <p
-          class="mt-1 text-sm text-muted-foreground"
-        >
-          sam@example.com
-        </p>
-        <details
-          class="mt-2 text-sm"
-        >
-          <summary
-            class="cursor-pointer text-muted-foreground"
-          >
-            Notes
-          </summary>
+          </p>
           <div
-            class="prose prose-sm mt-1 max-w-none rounded border p-2 text-foreground dark:prose-invert prose-headings:my-1 prose-p:my-0 prose-a:text-primary prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none prose-pre:my-2 prose-pre:bg-muted"
+            class="mt-2 flex flex-col gap-1 text-sm text-muted-foreground"
           >
-            <p>
-              Primary contact for healthcare policy.
-            </p>
+            <span
+              class="flex items-center gap-1.5"
+            >
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-mail shrink-0"
+                fill="none"
+                height="13"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="13"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m22 7-8.991 5.727a2 2 0 0 1-2.009 0L2 7"
+                />
+                <rect
+                  height="16"
+                  rx="2"
+                  width="20"
+                  x="2"
+                  y="4"
+                />
+              </svg>
+              <a
+                class="text-primary hover:underline"
+                href="mailto:sam@example.com"
+              >
+                sam@example.com
+              </a>
+            </span>
           </div>
-        </details>
-      </div>
-      <div
-        class="flex shrink-0 gap-2"
-      >
-        <button
-          aria-label="Edit staffer"
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 w-8"
-        >
-          <svg
-            aria-hidden="true"
-            class="lucide lucide-settings"
-            fill="none"
-            height="24"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            width="24"
-            xmlns="http://www.w3.org/2000/svg"
+          <details
+            class="mt-3 text-sm"
           >
-            <path
-              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
-            />
-            <circle
-              cx="12"
-              cy="12"
-              r="3"
-            />
-          </svg>
-        </button>
+            <summary
+              class="cursor-pointer text-muted-foreground"
+            >
+              Notes
+            </summary>
+            <div
+              class="prose prose-sm mt-1 max-w-none rounded border p-2 text-foreground dark:prose-invert prose-headings:my-1 prose-p:my-0 prose-a:text-primary prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none prose-pre:my-2 prose-pre:bg-muted"
+            >
+              <p>
+                Primary contact for healthcare policy.
+              </p>
+            </div>
+          </details>
+        </div>
+        <div
+          class="flex shrink-0 gap-2"
+        >
+          <button
+            aria-label="Edit staffer"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 w-8"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-settings"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="3"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
-    </li>
+    </div>
   </ul>
 </DocumentFragment>
 `;
@@ -95,54 +126,61 @@ exports[`StafferRow > renders all fields when present 1`] = `
 exports[`StafferRow > renders minimal staffer with only name 1`] = `
 <DocumentFragment>
   <ul>
-    <li
-      class="flex items-start justify-between gap-4 px-4 py-2"
+    <div
+      class="rounded-lg border p-4"
     >
       <div
-        class="min-w-0 flex-1"
+        class="flex items-start justify-between gap-4"
       >
         <div
-          class="flex flex-wrap items-center gap-x-2"
+          class="min-w-0 flex-1"
         >
-          <span
-            class="font-bold"
+          <div
+            class="flex flex-wrap items-baseline gap-x-2"
           >
-            Sam Jones
-          </span>
+            <span
+              class="font-bold"
+            >
+              Sam Jones
+            </span>
+          </div>
+          <div
+            class="mt-2 flex flex-col gap-1 text-sm text-muted-foreground"
+          />
+        </div>
+        <div
+          class="flex shrink-0 gap-2"
+        >
+          <button
+            aria-label="Edit staffer"
+            class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 w-8"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-settings"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
+              />
+              <circle
+                cx="12"
+                cy="12"
+                r="3"
+              />
+            </svg>
+          </button>
         </div>
       </div>
-      <div
-        class="flex shrink-0 gap-2"
-      >
-        <button
-          aria-label="Edit staffer"
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 w-8"
-        >
-          <svg
-            aria-hidden="true"
-            class="lucide lucide-settings"
-            fill="none"
-            height="24"
-            stroke="currentColor"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            viewBox="0 0 24 24"
-            width="24"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"
-            />
-            <circle
-              cx="12"
-              cy="12"
-              r="3"
-            />
-          </svg>
-        </button>
-      </div>
-    </li>
+    </div>
   </ul>
 </DocumentFragment>
 `;

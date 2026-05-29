@@ -38,7 +38,7 @@ export function AddStafferRow({
       className="flex items-center gap-2 rounded-md border border-dashed px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-foreground hover:text-foreground"
     >
       <Plus className="size-4" />
-      Add office staff
+      Staffer
     </button>
   );
 }

@@ -51,7 +51,9 @@ test.beforeEach(resetDatabase);
 test.describe("staffers on rep detail page", () => {
   test("page renders the staffer section", async ({ page }) => {
     await page.goto("/representatives/S000001");
-    await expect(page.getByRole("heading", { name: "Staffers" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Office Staff" }),
+    ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Staffer", exact: true }),
     ).toBeVisible();
@@ -107,7 +109,9 @@ test.describe("staffers on rep detail page", () => {
     await seedStafferFor("S000001");
     // Different rep — should not show the staffer
     await page.goto("/representatives/S000002");
-    await expect(page.getByRole("heading", { name: "Staffers" })).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Office Staff" }),
+    ).toBeVisible();
     await expect(page.getByText("Existing Staffer")).toHaveCount(0);
   });
 });
