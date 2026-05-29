@@ -6,6 +6,7 @@
     "start": "next start",
     "lint": "eslint .",
     "prepare": "husky",
+    "db:migrate": "supabase migration up --local",
     "db:reset": "node scripts/db-reset.mjs",
     "supabase:start": "node scripts/supabase-start.mjs"
   },
