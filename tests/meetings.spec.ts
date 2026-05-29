@@ -20,7 +20,9 @@ test.describe("meetings list page", () => {
     page,
   }) => {
     await page.goto("/meetings");
-    await expect(page.getByText("Adam Smith")).toBeVisible();
+    await expect(
+      page.getByLabel("Upcoming Meetings").getByText("Adam Smith"),
+    ).toBeVisible();
   });
 
   test("shows seed past meeting in the Past section", async ({ page }) => {
@@ -35,7 +37,7 @@ test.describe("meetings list page", () => {
     await page.goto("/meetings");
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
-    await expect(page.getByText("Adam Smith")).toBeVisible();
+    await expect(page.getByText("Adam Smith").first()).toBeVisible();
   });
 
   test("filter by state OR shows empty state in both sections", async ({
@@ -54,8 +56,9 @@ test.describe("meetings list page", () => {
     await page.goto("/meetings");
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
+    await page.keyboard.press("Escape");
     await page.getByRole("button", { name: /Clear all/i }).click();
-    await expect(page.getByText("Adam Smith")).toBeVisible();
+    await expect(page.getByText("Adam Smith").first()).toBeVisible();
     await expect(page.getByRole("button", { name: /Clear all/i })).toHaveCount(
       0,
     );

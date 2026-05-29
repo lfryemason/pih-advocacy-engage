@@ -30,11 +30,7 @@ export function MeetingRow({
         <Button
           variant="ghost"
           size="icon"
-          aria-label={
-            isExpanded
-              ? `Collapse meeting with ${meeting.representative_name}`
-              : `Expand meeting with ${meeting.representative_name}`
-          }
+          aria-label={`Expand meeting with ${meeting.representative_name}`}
           aria-expanded={isExpanded}
           onClick={() => setIsExpanded((v) => !v)}
         >
