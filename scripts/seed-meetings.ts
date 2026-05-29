@@ -29,23 +29,30 @@ async function main() {
     `Using created_by: ${createdBy} (${profile?.first_name ?? "unknown"})`,
   );
 
-  // Get some representatives
+  // Get some representatives (mix of House and Senate)
   const { data: reps, error: repsError } = await supabase
     .from("representatives")
     .select("id, official_full_name, state, district, party")
     .eq("in_office", true)
-    .in("state", ["MA", "WA", "CA", "TX", "NY"])
     .order("state")
-    .limit(6);
+    .limit(40);
 
   if (repsError || !reps?.length)
     throw new Error(`No reps: ${repsError?.message}`);
+
+  // Ensure at least one senator is included
+  const hasSenator = reps.some((r) => r.district === null);
+  if (!hasSenator) {
+    const { data: senator } = await supabase
+      .from("representatives")
+      .select("id, official_full_name, state, district, party")
+      .eq("in_office", true)
+      .is("district", null)
+      .limit(1)
+      .single();
+    if (senator) reps.unshift(senator);
+  }
   console.log(`Found ${reps.length} representatives`);
-  reps.forEach((r) =>
-    console.log(
-      `  ${r.official_full_name} (${r.state}-${r.district ?? "S"}, ${r.party})`,
-    ),
-  );
 
   // Get a team if available
   const { data: teams } = await supabase
@@ -54,8 +61,6 @@ async function main() {
     .eq("org_id", ORG_ID)
     .limit(3);
 
-  const team1 = teams?.[0] ?? null;
-  const team2 = teams?.[1] ?? null;
   console.log(`\nTeams: ${teams?.map((t) => t.name).join(", ") ?? "none"}`);
 
   // Get staffers if available
@@ -63,7 +68,7 @@ async function main() {
     .from("staffers")
     .select("id, first_name, last_name, representative_id")
     .eq("org_id", ORG_ID)
-    .limit(5);
+    .limit(10);
 
   console.log(
     `Staffers: ${staffers?.map((s) => `${s.first_name} ${s.last_name}`).join(", ") ?? "none"}`,
@@ -80,100 +85,64 @@ async function main() {
     return d.toISOString().slice(0, 10);
   };
 
+  const times = [
+    "9:00 AM ET",
+    "10:00 AM ET",
+    "10:30 AM ET",
+    "11:00 AM ET",
+    "1:00 PM ET",
+    "2:00 PM ET",
+    "2:30 PM ET",
+    "3:30 PM ET",
+    null,
+  ];
+  const locations = [
+    "Virtual",
+    "509 Hart Senate Office Building",
+    "2268 Rayburn House Office Building",
+    "1003 Longworth House Office Building",
+    "Russell Senate Office Building",
+    null,
+  ];
+  const pick = <T>(arr: T[], i: number) => arr[i % arr.length];
+
   const meetings = [
-    {
+    // 30 upcoming meetings spread over the next ~6 months
+    ...Array.from({ length: 30 }, (_, i) => ({
       org_id: ORG_ID,
-      meeting_date: date(7),
-      meeting_time: "2:00 PM ET",
-      representative_id: reps[0].id,
+      meeting_date: date(i * 6 + 1),
+      meeting_time: pick(times, i),
+      representative_id: pick(reps, i).id,
       congressional_contact_id:
-        staffers?.[0]?.representative_id === reps[0].id ? staffers[0].id : null,
-      primary_team_id: team1?.id ?? null,
-      location: "Virtual",
+        staffers?.[i % (staffers?.length ?? 1)]?.id ?? null,
+      primary_team_id: teams?.[i % (teams?.length ?? 1)]?.id ?? null,
+      location: pick(locations, i),
+      notes: i % 4 === 0 ? "Discuss global health funding priorities." : null,
+      follow_up_date: null,
+      champion_score: i % 6 === 0 ? null : (i % 5) + 1,
+      links:
+        i % 3 === 0
+          ? [{ label: "PIH One-Pager", url: "https://pih.org/one-pager" }]
+          : [],
+      created_by: createdBy,
+    })),
+    // 30 past meetings spread over the last ~6 months
+    ...Array.from({ length: 30 }, (_, i) => ({
+      org_id: ORG_ID,
+      meeting_date: date(-(i * 6 + 1)),
+      meeting_time: pick(times, i + 3),
+      representative_id: pick(reps, i + 15).id,
+      congressional_contact_id:
+        staffers?.[i % (staffers?.length ?? 1)]?.id ?? null,
+      primary_team_id: teams?.[i % (teams?.length ?? 1)]?.id ?? null,
+      location: pick(locations, i + 2),
       notes:
-        "Discussing H.R. 1234 — Global Health Security Act. Follow up on TB funding.",
-      follow_up_date: null,
-      champion_score: 4,
-      links: [
-        { label: "PIH One-Pager", url: "https://pih.org/one-pager" },
-        { label: "H.R. 1234 Summary", url: "https://congress.gov/hr1234" },
-      ],
-      created_by: createdBy,
-    },
-    {
-      org_id: ORG_ID,
-      meeting_date: date(14),
-      meeting_time: "10:30 AM ET",
-      representative_id: reps[1]?.id ?? reps[0].id,
-      congressional_contact_id: null,
-      primary_team_id: team2?.id ?? team1?.id ?? null,
-      location: "509 Hart Senate Office Building, Washington DC",
-      notes: "Introductory meeting with new staff. Prioritize maternal health.",
-      follow_up_date: null,
-      champion_score: null,
+        i % 3 === 0 ? "Discussed FY2026 global health appropriations." : null,
+      follow_up_date: i % 4 === 0 ? date(-(i * 6 - 3)) : null,
+      champion_score: i % 5 === 0 ? null : (i % 5) + 1,
       links: [],
       created_by: createdBy,
-    },
-    {
-      org_id: ORG_ID,
-      meeting_date: date(21),
-      meeting_time: "3:30 PM ET",
-      representative_id: reps[2]?.id ?? reps[0].id,
-      congressional_contact_id: null,
-      primary_team_id: team1?.id ?? null,
-      location: "Virtual",
-      notes: null,
-      follow_up_date: null,
-      champion_score: 2,
-      links: [{ label: "Briefing Doc", url: "https://pih.org/brief" }],
-      created_by: createdBy,
-    },
-    {
-      org_id: ORG_ID,
-      meeting_date: date(-10),
-      meeting_time: "1:00 PM ET",
-      representative_id: reps[3]?.id ?? reps[0].id,
-      congressional_contact_id: staffers?.[1]?.id ?? null,
-      primary_team_id: team1?.id ?? null,
-      location: "2268 Rayburn House Office Building",
-      notes:
-        "Discussed FY2026 global health appropriations. Rep was very engaged.",
-      follow_up_date: date(-3),
-      champion_score: 5,
-      links: [
-        { label: "Appropriations Brief", url: "https://pih.org/approp" },
-        { label: "Meeting Notes", url: "https://docs.google.com/notes" },
-      ],
-      created_by: createdBy,
-    },
-    {
-      org_id: ORG_ID,
-      meeting_date: date(-30),
-      meeting_time: "11:00 AM ET",
-      representative_id: reps[4]?.id ?? reps[0].id,
-      congressional_contact_id: null,
-      primary_team_id: team2?.id ?? null,
-      location: "Virtual",
-      notes: "Budget advocacy call — cholera response in Haiti.",
-      follow_up_date: date(-20),
-      champion_score: 3,
-      links: [],
-      created_by: createdBy,
-    },
-    {
-      org_id: ORG_ID,
-      meeting_date: date(-90),
-      meeting_time: null,
-      representative_id: reps[5]?.id ?? reps[0].id,
-      congressional_contact_id: null,
-      primary_team_id: null,
-      location: "1003 Longworth House Office Building",
-      notes: null,
-      follow_up_date: null,
-      champion_score: null,
-      links: [],
-      created_by: createdBy,
-    },
+    })),
   ];
 
   const { error: insertError } = await supabase
@@ -181,19 +150,12 @@ async function main() {
     .insert(meetings);
   if (insertError) throw new Error(`Insert failed: ${insertError.message}`);
 
+  const todayStr = today.toISOString().slice(0, 10);
+  const upcoming = meetings.filter((m) => m.meeting_date >= todayStr);
+  const past = meetings.filter((m) => m.meeting_date < todayStr);
   console.log(`\nInserted ${meetings.length} meetings:`);
-  const upcoming = meetings.filter(
-    (m) => m.meeting_date >= today.toISOString().slice(0, 10),
-  );
-  const past = meetings.filter(
-    (m) => m.meeting_date < today.toISOString().slice(0, 10),
-  );
-  console.log(
-    `  Upcoming: ${upcoming.length} (${upcoming.map((m) => m.meeting_date).join(", ")})`,
-  );
-  console.log(
-    `  Past:     ${past.length} (${past.map((m) => m.meeting_date).join(", ")})`,
-  );
+  console.log(`  Upcoming: ${upcoming.length}`);
+  console.log(`  Past:     ${past.length}`);
   console.log("\nDone!");
 }
 

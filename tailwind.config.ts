@@ -22,6 +22,7 @@ export default {
         popover: {
           DEFAULT: "var(--popover)",
           foreground: "var(--popover-foreground)",
+          accent: "var(--popover-accent)",
         },
         primary: {
           DEFAULT: "var(--primary)",

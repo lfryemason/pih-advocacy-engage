@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchMeetings } from "@/lib/meetings/queries";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
@@ -8,73 +8,113 @@ import { MeetingsSection } from "@/components/meetings/meetings-section";
 import {
   MeetingsFilters,
   EMPTY_MEETING_FILTERS,
-  hasActiveMeetingFilters,
 } from "@/components/meetings/meetings-filters";
 
-export function categorizeMeetings(meetings: MeetingRow[]): {
-  upcoming: MeetingRow[];
-  past: MeetingRow[];
-} {
-  const now = new Date();
-  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-  const upcoming = meetings
-    .filter((m) => m.meeting_date >= today)
-    .sort((a, b) => a.meeting_date.localeCompare(b.meeting_date));
-  const past = meetings
-    .filter((m) => m.meeting_date < today)
-    .sort((a, b) => b.meeting_date.localeCompare(a.meeting_date));
-  return { upcoming, past };
-}
+const PAGE_SIZE = 15;
 
-export function applyMeetingFilters(
-  meetings: MeetingRow[],
-  filters: MeetingFilters,
-): MeetingRow[] {
-  if (!hasActiveMeetingFilters(filters)) return meetings;
-  return meetings.filter((m) => {
-    if (
-      filters.states.length > 0 &&
-      !filters.states.includes(m.representative_state)
-    )
-      return false;
-    if (
-      filters.districts.length > 0 &&
-      !filters.districts.includes(String(m.representative_district ?? ""))
-    )
-      return false;
-    if (
-      filters.parties.length > 0 &&
-      !filters.parties.includes(m.representative_party)
-    )
-      return false;
-    return true;
-  });
-}
+type SectionState = {
+  meetings: MeetingRow[];
+  count: number;
+};
 
 export function MeetingsPage() {
-  const [meetings, setMeetings] = useState<MeetingRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [upcoming, setUpcoming] = useState<SectionState>({
+    meetings: [],
+    count: 0,
+  });
+  const [past, setPast] = useState<SectionState>({ meetings: [], count: 0 });
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [filtering, setFiltering] = useState(false);
+  const [loadingMore, setLoadingMore] = useState<"upcoming" | "past" | null>(
+    null,
+  );
   const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MeetingFilters>(EMPTY_MEETING_FILTERS);
 
+  const loadInitial = useCallback(
+    async (f: MeetingFilters, isFirst: boolean) => {
+      if (isFirst) setInitialLoading(true);
+      else setFiltering(true);
+      setError(null);
+      const supabase = createClient();
+      try {
+        const [up, past] = await Promise.all([
+          fetchMeetings(supabase, {
+            filters: f,
+            section: "upcoming",
+            offset: 0,
+            limit: PAGE_SIZE,
+          }),
+          fetchMeetings(supabase, {
+            filters: f,
+            section: "past",
+            offset: 0,
+            limit: PAGE_SIZE,
+          }),
+        ]);
+        setUpcoming(up);
+        setPast(past);
+      } catch (e: unknown) {
+        setError(e instanceof Error ? e.message : "Failed to load meetings");
+      } finally {
+        if (isFirst) setInitialLoading(false);
+        else setFiltering(false);
+      }
+    },
+    [],
+  );
+
   useEffect(() => {
-    const supabase = createClient();
-    fetchMeetings(supabase)
-      .then(setMeetings)
-      .catch((e: unknown) =>
-        setError(e instanceof Error ? e.message : "Failed to load meetings"),
-      )
-      .finally(() => setLoading(false));
+    loadInitial(filters, true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filtered = applyMeetingFilters(meetings, filters);
-  const { upcoming, past } = categorizeMeetings(filtered);
+  const handleFiltersChange = (f: MeetingFilters) => {
+    setFilters(f);
+    loadInitial(f, false);
+  };
+
+  const loadMore = async (section: "upcoming" | "past") => {
+    setLoadingMore(section);
+    const supabase = createClient();
+    try {
+      const offset =
+        section === "upcoming"
+          ? upcoming.meetings.length
+          : past.meetings.length;
+      const result = await fetchMeetings(supabase, {
+        filters,
+        section,
+        offset,
+        limit: PAGE_SIZE,
+      });
+      if (section === "upcoming") {
+        setUpcoming((prev) => ({
+          count: result.count,
+          meetings: [...prev.meetings, ...result.meetings],
+        }));
+      } else {
+        setPast((prev) => ({
+          count: result.count,
+          meetings: [...prev.meetings, ...result.meetings],
+        }));
+      }
+    } catch {
+      // user can retry by clicking again
+    } finally {
+      setLoadingMore(null);
+    }
+  };
 
   return (
     <div className="flex flex-col p-8">
       <h1 className="mb-6 text-3xl font-bold">Meetings</h1>
-      <MeetingsFilters filters={filters} onChange={setFilters} />
-      {loading ? (
+      <MeetingsFilters
+        filters={filters}
+        onChange={handleFiltersChange}
+        disabled={filtering || initialLoading}
+      />
+      {initialLoading ? (
         <p role="status" className="py-8 text-center text-muted-foreground">
           Loading meetings…
         </p>
@@ -84,8 +124,21 @@ export function MeetingsPage() {
         </p>
       ) : (
         <div className="flex flex-col gap-10">
-          <MeetingsSection title="Upcoming Meetings" meetings={upcoming} />
-          <MeetingsSection title="Past Meetings" meetings={past} isPast />
+          <MeetingsSection
+            title="Upcoming Meetings"
+            meetings={upcoming.meetings}
+            totalCount={upcoming.count}
+            onShowMore={() => loadMore("upcoming")}
+            disableLoadMore={loadingMore === "upcoming" || filtering}
+          />
+          <MeetingsSection
+            title="Past Meetings"
+            meetings={past.meetings}
+            totalCount={past.count}
+            onShowMore={() => loadMore("past")}
+            disableLoadMore={loadingMore === "past" || filtering}
+            isPast
+          />
         </div>
       )}
     </div>

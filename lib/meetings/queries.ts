@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import { MeetingRow } from "@/lib/meetings/types";
+import { MeetingFilters, MeetingRow } from "@/lib/meetings/types";
 
 type SupabaseBrowserClient = ReturnType<typeof createClient>;
 
@@ -27,65 +27,111 @@ type RawRow = {
   }[];
 };
 
+function mapRow(row: RawRow): MeetingRow {
+  const rep = row.representatives;
+  const staffer = row.staffers;
+  const schedulingLead = row.meeting_delegation_members.find(
+    (m) => m.role === "scheduling_lead",
+  );
+
+  return {
+    id: row.id,
+    meeting_date: row.meeting_date,
+    meeting_time: row.meeting_time,
+    representative_id: row.representative_id,
+    representative_bioguide_id: rep.bioguide_id,
+    representative_name: rep.official_full_name ?? "",
+    representative_state: rep.state,
+    representative_district: rep.district,
+    representative_party: rep.party,
+    congressional_contact_id: row.congressional_contact_id,
+    congressional_contact_name: staffer
+      ? `${staffer.first_name} ${staffer.last_name}`
+      : (rep.official_full_name ?? ""),
+    primary_team_id: row.primary_team_id,
+    primary_team_name: row.teams?.name ?? null,
+    primary_team_slug: row.teams?.slug ?? null,
+    scheduling_lead_name: schedulingLead?.profiles
+      ? [schedulingLead.profiles.first_name, schedulingLead.profiles.last_name]
+          .filter(Boolean)
+          .join(" ") || null
+      : null,
+    follow_up_date: row.follow_up_date,
+    champion_score: row.champion_score,
+  };
+}
+
+const SELECT = `
+  id,
+  meeting_date,
+  meeting_time,
+  representative_id,
+  congressional_contact_id,
+  primary_team_id,
+  follow_up_date,
+  champion_score,
+  representatives!inner ( bioguide_id, official_full_name, state, district, party ),
+  staffers ( first_name, last_name ),
+  teams ( name, slug ),
+  meeting_delegation_members ( role, profiles ( first_name, last_name ) )
+`;
+
 export async function fetchMeetings(
   supabase: SupabaseBrowserClient,
-): Promise<MeetingRow[]> {
-  const { data, error } = await supabase
-    .from("meetings")
-    .select(
-      `
-      id,
-      meeting_date,
-      meeting_time,
-      representative_id,
-      congressional_contact_id,
-      primary_team_id,
-      follow_up_date,
-      champion_score,
-      representatives!inner ( bioguide_id, official_full_name, state, district, party ),
-      staffers ( first_name, last_name ),
-      teams ( name, slug ),
-      meeting_delegation_members ( role, profiles ( first_name, last_name ) )
-    `,
-    )
-    .order("meeting_date", { ascending: false });
+  {
+    filters,
+    section,
+    offset,
+    limit,
+  }: {
+    filters: MeetingFilters;
+    section: "upcoming" | "past";
+    offset: number;
+    limit: number;
+  },
+): Promise<{ meetings: MeetingRow[]; count: number }> {
+  const today = new Date().toISOString().slice(0, 10);
 
+  let query = supabase
+    .from("meetings")
+    .select(SELECT, { count: "exact" })
+    .order("meeting_date", { ascending: section === "upcoming" });
+
+  if (section === "upcoming") {
+    query = query.gte("meeting_date", today);
+  } else {
+    query = query.lt("meeting_date", today);
+  }
+
+  if (filters.states.length > 0) {
+    query = query.filter(
+      "representatives.state",
+      "in",
+      `(${filters.states.join(",")})`,
+    );
+  }
+  if (filters.districts.length > 0) {
+    query = query.filter(
+      "representatives.district",
+      "in",
+      `(${filters.districts.join(",")})`,
+    );
+  }
+  if (filters.parties.length > 0) {
+    query = query.filter(
+      "representatives.party",
+      "in",
+      `(${filters.parties.join(",")})`,
+    );
+  }
+
+  query = query.range(offset, offset + limit - 1);
+
+  const { data, error, count } = await query;
   if (error) throw error;
 
-  return (data as unknown as RawRow[]).map((row) => {
-    const rep = row.representatives;
-    const staffer = row.staffers;
-    const schedulingLead = row.meeting_delegation_members.find(
-      (m) => m.role === "scheduling_lead",
-    );
-
-    return {
-      id: row.id,
-      meeting_date: row.meeting_date,
-      meeting_time: row.meeting_time,
-      representative_id: row.representative_id,
-      representative_bioguide_id: rep.bioguide_id,
-      representative_name: rep.official_full_name ?? "",
-      representative_state: rep.state,
-      representative_district: rep.district,
-      representative_party: rep.party,
-      congressional_contact_id: row.congressional_contact_id,
-      congressional_contact_name: staffer
-        ? `${staffer.first_name} ${staffer.last_name}`
-        : (rep.official_full_name ?? ""),
-      primary_team_id: row.primary_team_id,
-      primary_team_name: row.teams?.name ?? null,
-      primary_team_slug: row.teams?.slug ?? null,
-      scheduling_lead_name: schedulingLead?.profiles
-        ? [
-            schedulingLead.profiles.first_name,
-            schedulingLead.profiles.last_name,
-          ]
-            .filter(Boolean)
-            .join(" ") || null
-        : null,
-      follow_up_date: row.follow_up_date,
-      champion_score: row.champion_score,
-    };
-  });
+  return {
+    meetings: (data as unknown as RawRow[]).map(mapRow),
+    count: count ?? 0,
+  };
 }

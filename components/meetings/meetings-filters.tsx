@@ -41,9 +41,11 @@ function summarize(
 export function MeetingsFilters({
   filters,
   onChange,
+  disabled = false,
 }: {
   filters: MeetingFilters;
   onChange: (f: MeetingFilters) => void;
+  disabled?: boolean;
 }) {
   const set = (patch: Partial<MeetingFilters>) =>
     onChange({ ...filters, ...patch });
@@ -72,6 +74,7 @@ export function MeetingsFilters({
             size="sm"
             aria-label="Filter by state"
             className={`${FILTER_WIDTH} justify-between`}
+            disabled={disabled}
           >
             <span className="truncate">{stateLabel}</span>
             <ChevronDown aria-hidden="true" />
@@ -100,6 +103,7 @@ export function MeetingsFilters({
             size="sm"
             aria-label="Filter by district"
             className={`${FILTER_WIDTH} justify-between`}
+            disabled={disabled}
           >
             <span className="truncate">{districtLabel}</span>
             <ChevronDown aria-hidden="true" />
@@ -128,6 +132,7 @@ export function MeetingsFilters({
             size="sm"
             aria-label="Filter by party"
             className={`${FILTER_WIDTH} justify-between`}
+            disabled={disabled}
           >
             <span className="truncate">{partyLabel}</span>
             <ChevronDown aria-hidden="true" />
@@ -154,6 +159,7 @@ export function MeetingsFilters({
           variant="outline"
           size="sm"
           onClick={() => onChange(EMPTY_MEETING_FILTERS)}
+          disabled={disabled}
         >
           <X aria-hidden="true" />
           Clear all

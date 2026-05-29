@@ -1,8 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  categorizeMeetings,
-  applyMeetingFilters,
-} from "@/components/meetings/meetings-page";
+import { categorizeMeetings, applyMeetingFilters } from "@/lib/meetings/utils";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
 import { EMPTY_MEETING_FILTERS } from "@/components/meetings/meetings-filters";
 
