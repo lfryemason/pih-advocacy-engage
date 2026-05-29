@@ -1,14 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { fetchMeetings } from "@/lib/meetings/queries";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
 import { MeetingsSection } from "@/components/meetings/meetings-section";
-import {
-  MeetingsFilters,
-  EMPTY_MEETING_FILTERS,
-} from "@/components/meetings/meetings-filters";
+import { MeetingsFilters } from "@/components/meetings/meetings-filters";
 
 const PAGE_SIZE = 15;
 
@@ -17,7 +15,28 @@ type SectionState = {
   count: number;
 };
 
+function filtersFromParams(params: URLSearchParams): MeetingFilters {
+  return {
+    states: params.getAll("state"),
+    districts: params.getAll("district"),
+    parties: params.getAll("party"),
+  };
+}
+
+function filtersToSearch(f: MeetingFilters): string {
+  const params = new URLSearchParams();
+  f.states.forEach((s) => params.append("state", s));
+  f.districts.forEach((d) => params.append("district", d));
+  f.parties.forEach((p) => params.append("party", p));
+  const str = params.toString();
+  return str ? `?${str}` : "";
+}
+
 export function MeetingsPage() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+
   const [upcoming, setUpcoming] = useState<SectionState>({
     meetings: [],
     count: 0,
@@ -29,7 +48,9 @@ export function MeetingsPage() {
     null,
   );
   const [error, setError] = useState<string | null>(null);
-  const [filters, setFilters] = useState<MeetingFilters>(EMPTY_MEETING_FILTERS);
+  const [filters, setFilters] = useState<MeetingFilters>(() =>
+    filtersFromParams(searchParams),
+  );
 
   const loadInitial = useCallback(
     async (f: MeetingFilters, isFirst: boolean) => {
@@ -64,14 +85,18 @@ export function MeetingsPage() {
     [],
   );
 
+  const isFirstRef = useRef(true);
+
   useEffect(() => {
-    loadInitial(filters, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const f = filtersFromParams(searchParams);
+    setFilters(f);
+    const isFirst = isFirstRef.current;
+    isFirstRef.current = false;
+    loadInitial(f, isFirst);
+  }, [searchParams, loadInitial]);
 
   const handleFiltersChange = (f: MeetingFilters) => {
-    setFilters(f);
-    loadInitial(f, false);
+    router.replace(pathname + filtersToSearch(f), { scroll: false });
   };
 
   const loadMore = async (section: "upcoming" | "past") => {
