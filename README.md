@@ -59,7 +59,7 @@ supabase init
 2. Start the local Supabase stack (requires Docker):
 
 ```bash
-supabase start
+npm run supabase:start
 ```
 
 This starts a local Postgres database, Auth server, and API. Once running, the CLI prints connection details — copy the `API URL` and `anon key` values.
@@ -77,23 +77,33 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=<anon key from supabase start output>
 supabase stop
 ```
 
-### Reset the local database and seed representatives
+### Database commands
 
-To reset migrations and populate the `representatives` table with current members of Congress:
+| Command | When to use |
+|---|---|
+| `npm run supabase:start` | Start Supabase after a restart — **preserves all data** |
+| `npm run db:migrate` | Apply new migration files to your existing local DB — **preserves all data** |
+| `npm run db:reset` | Wipe everything and re-seed from scratch — **destroys all local data** |
+
+**In production** migrations are applied incrementally by the CI/CD pipeline — no data is ever dropped. `db:reset` is a local-only development tool and is never used in production.
+
+#### When you pull new migrations from main
+
+Just run:
+
+```bash
+npm run db:migrate
+```
+
+This applies only the new migration files that haven't run yet. Your account and all existing data are preserved.
+
+#### First-time setup or intentional clean slate
 
 ```bash
 npm run db:reset
 ```
 
-
-To seed representatives without resetting migrations, first export your local Supabase credentials, then run the script:
-
-```bash
-eval "$(npx supabase status -o env)"
-npx tsx scripts/seed-representatives.ts
-```
-
-> **Note:** `supabase db reset` alone will not seed representatives — use `npm run db:reset` for local development.
+Wipes the local database, re-applies all migrations from scratch, and re-seeds the `representatives` table with current members of Congress.
 
 ### Roles and bootstrapping a super admin
 
