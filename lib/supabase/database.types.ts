@@ -303,7 +303,6 @@ export type Database = {
           first_name: string;
           id: string;
           last_name: string;
-          linkedin_url: string | null;
           location: string | null;
           notes: string | null;
           org_id: string;
@@ -319,7 +318,6 @@ export type Database = {
           first_name: string;
           id?: string;
           last_name: string;
-          linkedin_url?: string | null;
           location?: string | null;
           notes?: string | null;
           org_id: string;
@@ -335,7 +333,6 @@ export type Database = {
           first_name?: string;
           id?: string;
           last_name?: string;
-          linkedin_url?: string | null;
           location?: string | null;
           notes?: string | null;
           org_id?: string;

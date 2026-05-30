@@ -31,7 +31,6 @@ export function StafferForm({
   const [email, setEmail] = useState(staffer?.email ?? "");
   const [phone, setPhone] = useState(staffer?.phone ?? "");
   const [location, setLocation] = useState(staffer?.location ?? "");
-  const [linkedinUrl, setLinkedinUrl] = useState(staffer?.linkedin_url ?? "");
   const [notes, setNotes] = useState(staffer?.notes ?? "");
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -66,7 +65,6 @@ export function StafferForm({
       email: email.trim() || null,
       phone: phone.trim() || null,
       location: location.trim() || null,
-      linkedin_url: linkedinUrl.trim() || null,
       notes: notes.trim() || null,
     };
 
@@ -154,23 +152,13 @@ export function StafferForm({
             placeholder="e.g. (202) 555-0100"
           />
         </div>
-        <div className="grid gap-2">
+        <div className="grid gap-2 sm:col-span-2">
           <Label htmlFor="staffer-location">Location</Label>
           <Input
             id="staffer-location"
             value={location}
             onChange={(e) => setLocation(e.target.value)}
             placeholder="e.g. Washington, D.C."
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="staffer-linkedin">LinkedIn URL</Label>
-          <Input
-            id="staffer-linkedin"
-            type="url"
-            value={linkedinUrl}
-            onChange={(e) => setLinkedinUrl(e.target.value)}
-            placeholder="https://linkedin.com/in/..."
           />
         </div>
         <div className="grid gap-2 sm:col-span-2">

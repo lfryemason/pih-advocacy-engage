@@ -104,22 +104,6 @@ export function StafferRow({
                 </a>
               </span>
             )}
-            {staffer.linkedin_url && (
-              <span className="flex items-center gap-1.5">
-                <span
-                  className="h-[13px] w-[13px] shrink-0"
-                  aria-hidden="true"
-                />
-                <a
-                  href={staffer.linkedin_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline"
-                >
-                  LinkedIn profile
-                </a>
-              </span>
-            )}
           </div>
           {staffer.notes && (
             <details className="mt-3 text-sm">

@@ -78,7 +78,6 @@ export interface MockStaffer {
   email: string | null;
   phone: string | null;
   location: string | null;
-  linkedin_url: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -96,7 +95,6 @@ export function makeStaffer(overrides: Partial<MockStaffer> = {}): MockStaffer {
     email: "sam@example.com",
     phone: null,
     location: null,
-    linkedin_url: null,
     notes: "Primary contact for healthcare policy.",
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
