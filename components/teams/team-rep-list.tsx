@@ -82,7 +82,7 @@ export function TeamRepList({
       {open && (
         <div className="mt-2">
           <Table aria-label="Representatives">
-            <TableHeader>
+            <TableHeader className="[&_th]:text-white [&_tr]:bg-pink-600 [&_tr]:hover:bg-pink-600">
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Chamber</TableHead>

@@ -3,10 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
-import { TYPE_LABELS } from "@/lib/teams";
+import { TYPE_LABELS, displayName } from "@/lib/teams";
 import {
   TeamMemberList,
   type MembershipWithProfile,
@@ -22,11 +23,13 @@ export function TeamPageClient({
   memberships,
   orgId,
   currentUserId,
+  meetingCounts = {},
 }: {
   team: Team;
   memberships: MembershipWithProfile[];
   orgId: string;
   currentUserId: string | null;
+  meetingCounts?: Record<string, number>;
 }) {
   const router = useRouter();
   const [isJoining, setIsJoining] = useState(false);
@@ -35,6 +38,8 @@ export function TeamPageClient({
   const isMember =
     currentUserId !== null &&
     memberships.some((m) => m.user_id === currentUserId);
+
+  const coaches = memberships.filter((m) => m.role === "coach");
 
   const handleJoin = async () => {
     if (!currentUserId) return;
@@ -85,6 +90,34 @@ export function TeamPageClient({
               </>
             )}
           </p>
+          {coaches.length > 0 && (
+            <p className="mt-1 text-muted-foreground">
+              {coaches.length === 1 ? "Coach" : "Coaches"}:{" "}
+              {coaches.map((c, i) => (
+                <span key={c.user_id}>
+                  {i > 0 && ", "}
+                  {displayName(c.profiles)}
+                  {c.profiles?.pronouns && (
+                    <span className="ml-1 text-sm italic text-muted-foreground">
+                      {c.profiles.pronouns}
+                    </span>
+                  )}
+                  {c.profiles?.email && (
+                    <>
+                      {" "}
+                      <a
+                        href={`mailto:${c.profiles.email}`}
+                        className="inline-flex items-center gap-0.5 hover:underline"
+                      >
+                        <Mail size={13} aria-hidden="true" />
+                        {c.profiles.email}
+                      </a>
+                    </>
+                  )}
+                </span>
+              ))}
+            </p>
+          )}
           {team.description && (
             <p className="mt-3 text-sm">{team.description}</p>
           )}
@@ -109,12 +142,15 @@ export function TeamPageClient({
           )}
         </div>
       </div>
-      <TeamLeadSectionList memberships={memberships} />
+      <TeamLeadSectionList
+        memberships={memberships}
+        meetingCounts={meetingCounts}
+      />
       <TeamRepList
         state={team.state}
         congressionalDistricts={team.congressional_districts}
       />
-      <TeamMemberList memberships={memberships} />
+      <TeamMemberList memberships={memberships} meetingCounts={meetingCounts} />
     </>
   );
 }

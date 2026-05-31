@@ -23,9 +23,10 @@ import { Info, X } from "lucide-react";
 
 const ROLE_OPTIONS = [
   { value: "member", label: "Member" },
-  { value: "team_lead", label: "Team Lead" },
-  { value: "fundraising_lead", label: "Fundraising Lead" },
+  { value: "team_coordinator", label: "Team Coordinator" },
   { value: "advocacy_lead", label: "Advocacy Lead" },
+  { value: "community_building_lead", label: "Community Building Lead" },
+  { value: "fundraising_lead", label: "Fundraising Lead" },
   { value: "coach", label: "Coach" },
 ] as const;
 

@@ -1,12 +1,19 @@
 export const TEST_USER_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 export const SEED_TEAM_ID = "22222222-2222-2222-2222-222222222222";
 export const SEED_TEAM_NO_MEMBER_ID = "33333333-3333-3333-3333-333333333333";
+export const SEED_TEAM_HMC_ID = "66666666-6666-6666-6666-666666666666";
 export const SEED_MEETING_UPCOMING_ID = "44444444-4444-4444-4444-444444444444";
 export const SEED_MEETING_PAST_ID = "55555555-5555-5555-5555-555555555555";
 // Adam Smith (WA-09) — used in seed meetings. Must match SEED_REPRESENTATIVES.
 export const SEED_REP_WA_BIOGUIDE = "W000002";
 export const TEST_EMAIL = "playwright@example.com";
 export const TEST_PASSWORD = "Playwright1!";
+
+// Additional seed users for diverse memberships on Seattle team
+export const SEED_USER_2_ID = "bbbbbbbb-bbbb-cccc-dddd-eeeeeeeeeeee";
+export const SEED_USER_3_ID = "cccccccc-bbbb-cccc-dddd-eeeeeeeeeeee";
+export const SEED_USER_4_ID = "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee";
+export const SEED_USER_5_ID = "eeeeeeee-bbbb-cccc-dddd-eeeeeeeeeeee";
 
 export const SEED_PROFILE = {
   user_id: TEST_USER_ID,
@@ -18,6 +25,49 @@ export const SEED_PROFILE = {
   state: "WA",
   congressional_district: "9",
 };
+
+export const SEED_EXTRA_PROFILES = [
+  {
+    user_id: SEED_USER_2_ID,
+    org_id: "pihe",
+    email: "user2@example.com",
+    first_name: "Alex",
+    last_name: "Rivera",
+    pronouns: "he/him",
+    state: "WA",
+    congressional_district: "9",
+  },
+  {
+    user_id: SEED_USER_3_ID,
+    org_id: "pihe",
+    email: "user3@example.com",
+    first_name: "Jordan",
+    last_name: "Kim",
+    pronouns: "she/her",
+    state: "WA",
+    congressional_district: "9",
+  },
+  {
+    user_id: SEED_USER_4_ID,
+    org_id: "pihe",
+    email: "user4@example.com",
+    first_name: "Morgan",
+    last_name: "Chen",
+    pronouns: null,
+    state: "WA",
+    congressional_district: "9",
+  },
+  {
+    user_id: SEED_USER_5_ID,
+    org_id: "pihe",
+    email: "user5@example.com",
+    first_name: "Sam",
+    last_name: "Patel",
+    pronouns: "they/them",
+    state: "PA",
+    congressional_district: "5",
+  },
+];
 
 export const SEED_TEAMS = [
   {
@@ -40,15 +90,59 @@ export const SEED_TEAMS = [
     type: "university",
     description: null,
     founded_date: null,
+    congressional_districts: [],
+  },
+  {
+    id: SEED_TEAM_HMC_ID,
+    org_id: "pihe",
+    name: "Haverford/Bryn Mawr College",
+    slug: "haverford-bryn-mawr-college",
+    state: "PA",
+    type: "university",
+    description: null,
+    founded_date: null,
+    congressional_districts: ["4", "5"],
   },
 ];
 
 export const SEED_TEAM_MEMBERSHIPS = [
+  // Seattle High School — full leadership set + a general member
   {
     team_id: SEED_TEAM_ID,
     user_id: TEST_USER_ID,
     org_id: "pihe",
-    role: "team_lead",
+    role: "team_coordinator",
+  },
+  {
+    team_id: SEED_TEAM_ID,
+    user_id: SEED_USER_2_ID,
+    org_id: "pihe",
+    role: "advocacy_lead",
+  },
+  {
+    team_id: SEED_TEAM_ID,
+    user_id: SEED_USER_3_ID,
+    org_id: "pihe",
+    role: "community_building_lead",
+  },
+  {
+    team_id: SEED_TEAM_ID,
+    user_id: SEED_USER_4_ID,
+    org_id: "pihe",
+    role: "fundraising_lead",
+  },
+  {
+    team_id: SEED_TEAM_ID,
+    user_id: SEED_USER_5_ID,
+    org_id: "pihe",
+    role: "member",
+  },
+  // Haverford/Bryn Mawr College — basic coordinator seed
+  {
+    team_id: SEED_TEAM_HMC_ID,
+    user_id: TEST_USER_ID,
+    org_id: "pihe",
+    role: "team_coordinator",
   },
 ];
 

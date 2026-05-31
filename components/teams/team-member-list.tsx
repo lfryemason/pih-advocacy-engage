@@ -1,5 +1,6 @@
 "use client";
 
+import { Mail } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -8,25 +9,24 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { displayName, type MembershipWithProfile } from "@/lib/teams";
+import {
+  displayName,
+  LEAD_ROLES,
+  type MembershipWithProfile,
+} from "@/lib/teams";
 
 export type { MembershipWithProfile };
 
-const LEAD_ROLES = [
-  "coach",
-  "team_lead",
-  "fundraising_lead",
-  "advocacy_lead",
-] as const;
-
 export function TeamMemberList({
   memberships,
+  meetingCounts = {},
 }: {
   memberships: MembershipWithProfile[];
+  meetingCounts?: Record<string, number>;
 }) {
   const usersWithLeadRole = new Set(
     memberships
-      .filter((m) => LEAD_ROLES.includes(m.role as (typeof LEAD_ROLES)[number]))
+      .filter((m) => (LEAD_ROLES as readonly string[]).includes(m.role))
       .map((m) => m.user_id),
   );
 
@@ -36,38 +36,50 @@ export function TeamMemberList({
 
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-semibold uppercase">General Members</h2>
-      <div className="mt-2">
-        <Table>
-          <caption className="sr-only">General Members</caption>
-          <TableHeader>
+      <Table>
+        <caption className="sr-only">General Members</caption>
+        <TableHeader>
+          <TableRow>
+            <TableHead>General Members</TableHead>
+            <TableHead>Email</TableHead>
+            <TableHead>Meetings this year</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {generalMembers.length === 0 ? (
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Pronouns</TableHead>
-              <TableHead>Email</TableHead>
+              <TableCell colSpan={3} className="text-muted-foreground">
+                No general members.
+              </TableCell>
             </TableRow>
-          </TableHeader>
-          <TableBody>
-            {generalMembers.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="text-muted-foreground">
-                  No general members.
+          ) : (
+            generalMembers.map((m) => (
+              <TableRow key={`${m.user_id}-${m.role}`}>
+                <TableCell className="font-medium">
+                  {displayName(m.profiles)}
+                  {m.profiles?.pronouns && (
+                    <span className="ml-1 text-sm italic text-muted-foreground">
+                      {m.profiles.pronouns}
+                    </span>
+                  )}
                 </TableCell>
+                <TableCell>
+                  {m.profiles?.email && (
+                    <a
+                      href={`mailto:${m.profiles.email}`}
+                      className="flex items-center gap-1 text-sm hover:underline"
+                    >
+                      <Mail size={14} aria-hidden="true" />
+                      {m.profiles.email}
+                    </a>
+                  )}
+                </TableCell>
+                <TableCell>{meetingCounts[m.user_id] ?? 0}</TableCell>
               </TableRow>
-            ) : (
-              generalMembers.map((m) => (
-                <TableRow key={`${m.user_id}-${m.role}`}>
-                  <TableCell className="font-medium">
-                    {displayName(m.profiles)}
-                  </TableCell>
-                  <TableCell>{m.profiles?.pronouns ?? "—"}</TableCell>
-                  <TableCell>{m.profiles?.email ?? "—"}</TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+            ))
+          )}
+        </TableBody>
+      </Table>
     </div>
   );
 }

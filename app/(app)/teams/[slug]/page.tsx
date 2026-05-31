@@ -69,12 +69,32 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
     }),
   );
 
+  const userIds = memberships.map((m) => m.user_id);
+  const meetingCounts: Record<string, number> = {};
+
+  if (userIds.length > 0) {
+    const oneYearAgo = new Date();
+    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
+    const oneYearAgoStr = oneYearAgo.toISOString().slice(0, 10);
+
+    const { data: delegationRows } = await supabase
+      .from("meeting_delegation_members")
+      .select("user_id, meetings!inner(meeting_date)")
+      .in("user_id", userIds)
+      .gte("meetings.meeting_date", oneYearAgoStr);
+
+    for (const row of delegationRows ?? []) {
+      meetingCounts[row.user_id] = (meetingCounts[row.user_id] ?? 0) + 1;
+    }
+  }
+
   return (
     <TeamPageClient
       team={team}
       memberships={memberships}
       orgId={ORG_ID}
       currentUserId={authData.user?.id ?? null}
+      meetingCounts={meetingCounts}
     />
   );
 }
