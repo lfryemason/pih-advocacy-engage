@@ -76,15 +76,22 @@ async function RepresentativeContent({
     notFound();
   }
 
-  const [{ data: staffers, error: staffersError }, role] = await Promise.all([
-    supabase
-      .from("staffers")
-      .select()
-      .eq("representative_id", representative.id)
-      .eq("org_id", ORG_ID)
-      .order("last_name", { ascending: true }),
-    getCurrentRole(),
-  ]);
+  const [{ data: staffers, error: staffersError }, { data: orgInfo }, role] =
+    await Promise.all([
+      supabase
+        .from("staffers")
+        .select()
+        .eq("representative_id", representative.id)
+        .eq("org_id", ORG_ID)
+        .order("last_name", { ascending: true }),
+      supabase
+        .from("representative_org_info")
+        .select("links")
+        .eq("representative_id", representative.id)
+        .eq("org_id", ORG_ID)
+        .maybeSingle(),
+      getCurrentRole(),
+    ]);
 
   if (staffersError) {
     throw new Error(`Failed to load staffers: ${staffersError.message}`);
@@ -108,6 +115,9 @@ async function RepresentativeContent({
   const textClass = partyTextClass[representative.party] ?? "";
   const generalLinks = Array.isArray(representative.general_links)
     ? (representative.general_links as GeneralLink[])
+    : [];
+  const orgLinks = Array.isArray(orgInfo?.links)
+    ? (orgInfo.links as GeneralLink[])
     : [];
 
   return (
@@ -184,7 +194,9 @@ async function RepresentativeContent({
 
       <RepExternalResources
         representativeId={representative.id}
-        initialLinks={generalLinks}
+        orgId={ORG_ID}
+        generalLinks={generalLinks}
+        initialOrgLinks={orgLinks}
         canEdit={canEdit}
       />
     </>
