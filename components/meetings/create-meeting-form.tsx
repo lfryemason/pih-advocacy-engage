@@ -246,7 +246,7 @@ export function CreateMeetingForm({
         <div className="grid gap-2">
           <div className="flex items-baseline gap-0.5">
             <Label htmlFor="meeting-date">Date</Label>
-            <span className="text-destructive" aria-hidden="true">
+            <span className="leading-none text-destructive" aria-hidden="true">
               *
             </span>
           </div>
@@ -258,9 +258,9 @@ export function CreateMeetingForm({
           />
         </div>
         <div className="grid gap-2">
-          <div className="flex items-baseline gap-1">
+          <div className="flex items-baseline gap-0.5">
             <Label htmlFor="meeting-time">Time</Label>
-            <span className="text-xs italic leading-none text-muted-foreground">
+            <span className="min-w-0 truncate text-xs italic leading-none text-muted-foreground">
               {TZ_DISPLAY_NAME}
             </span>
           </div>
@@ -276,7 +276,7 @@ export function CreateMeetingForm({
         <div className="grid gap-2 sm:col-span-2">
           <div className="flex items-baseline gap-0.5">
             <Label htmlFor="meeting-representative">Member of Congress</Label>
-            <span className="text-destructive" aria-hidden="true">
+            <span className="leading-none text-destructive" aria-hidden="true">
               *
             </span>
           </div>

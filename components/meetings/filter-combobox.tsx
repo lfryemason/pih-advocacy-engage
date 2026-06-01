@@ -1,11 +1,18 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useDeferredValue,
+  useMemo,
+  memo,
+} from "react";
 import { ChevronsUpDown, Check } from "lucide-react";
 
 export type ComboboxOption = { id: string; label: string };
 
-function Option({
+const Option = memo(function Option({
   optionId,
   label,
   selected,
@@ -35,7 +42,7 @@ function Option({
       <span className={muted ? "text-muted-foreground" : ""}>{label}</span>
     </button>
   );
-}
+});
 
 export function FilterCombobox({
   id,
@@ -60,6 +67,7 @@ export function FilterCombobox({
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const deferredQuery = useDeferredValue(query);
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -97,26 +105,32 @@ export function FilterCombobox({
     setHighlightedIndex(-1);
   }
 
-  const matches = (label: string) =>
-    label.toLowerCase().includes(query.toLowerCase());
-
-  const ids = priorityIds ?? new Set<string>();
-  const priority = options.filter((o) => ids.has(o.id) && matches(o.label));
-  const rest = options.filter((o) => !ids.has(o.id) && matches(o.label));
-  const showClear = clearLabel != null && matches(clearLabel);
-  const clearOffset = showClear ? 1 : 0;
-
-  const visibleOptions: (ComboboxOption & { muted?: boolean })[] = [
-    ...(showClear ? [{ id: "", label: clearLabel!, muted: true }] : []),
-    ...priority,
-    ...rest,
-  ];
+  const { visibleOptions, priorityCount, showClear, clearOffset } =
+    useMemo(() => {
+      const q = deferredQuery.toLowerCase();
+      const matches = (label: string) => label.toLowerCase().includes(q);
+      const ids = priorityIds ?? new Set<string>();
+      const priority = options.filter((o) => ids.has(o.id) && matches(o.label));
+      const rest = options.filter((o) => !ids.has(o.id) && matches(o.label));
+      const hasClear = clearLabel != null && matches(clearLabel);
+      return {
+        visibleOptions: [
+          ...(hasClear ? [{ id: "", label: clearLabel!, muted: true }] : []),
+          ...priority,
+          ...rest,
+        ] as (ComboboxOption & { muted?: boolean })[],
+        priorityCount: priority.length,
+        showClear: hasClear,
+        clearOffset: hasClear ? 1 : 0,
+      };
+    }, [deferredQuery, options, priorityIds, clearLabel]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "ArrowDown") {
       e.preventDefault();
       if (!open) {
         setOpen(true);
+        setQuery(selected?.label ?? "");
         return;
       }
       setHighlightedIndex((i) => Math.min(i + 1, visibleOptions.length - 1));
@@ -191,41 +205,47 @@ export function FilterCombobox({
                   />
                 )}
 
-                {priority.length > 0 && (
+                {priorityCount > 0 && (
                   <>
                     <p className="px-3 py-1 text-xs font-medium text-muted-foreground">
                       {priorityGroupLabel ?? ""}
                     </p>
-                    {priority.map((o, i) => {
-                      const idx = clearOffset + i;
-                      return (
-                        <Option
-                          key={o.id}
-                          optionId={`${id}-option-${idx}`}
-                          label={o.label}
-                          selected={o.id === value}
-                          highlighted={highlightedIndex === idx}
-                          onClick={() => handleSelect(o.id)}
-                        />
-                      );
-                    })}
-                    {rest.length > 0 && <div className="my-1 border-t" />}
+                    {visibleOptions
+                      .slice(clearOffset, clearOffset + priorityCount)
+                      .map((o, i) => {
+                        const idx = clearOffset + i;
+                        return (
+                          <Option
+                            key={o.id}
+                            optionId={`${id}-option-${idx}`}
+                            label={o.label}
+                            selected={o.id === value}
+                            highlighted={highlightedIndex === idx}
+                            onClick={() => handleSelect(o.id)}
+                          />
+                        );
+                      })}
+                    {visibleOptions.length > clearOffset + priorityCount && (
+                      <div className="my-1 border-t" />
+                    )}
                   </>
                 )}
 
-                {rest.map((o, i) => {
-                  const idx = clearOffset + priority.length + i;
-                  return (
-                    <Option
-                      key={o.id}
-                      optionId={`${id}-option-${idx}`}
-                      label={o.label}
-                      selected={o.id === value}
-                      highlighted={highlightedIndex === idx}
-                      onClick={() => handleSelect(o.id)}
-                    />
-                  );
-                })}
+                {visibleOptions
+                  .slice(clearOffset + priorityCount)
+                  .map((o, i) => {
+                    const idx = clearOffset + priorityCount + i;
+                    return (
+                      <Option
+                        key={o.id}
+                        optionId={`${id}-option-${idx}`}
+                        label={o.label}
+                        selected={o.id === value}
+                        highlighted={highlightedIndex === idx}
+                        onClick={() => handleSelect(o.id)}
+                      />
+                    );
+                  })}
               </>
             )}
           </div>
