@@ -307,6 +307,7 @@ export async function updateMeeting(
     .update({
       meeting_date: values.meeting_date,
       meeting_time: values.meeting_time,
+      meeting_timezone: values.meeting_timezone,
       representative_id: values.representative_id,
       congressional_contact_id: values.congressional_contact_id,
       primary_team_id: values.primary_team_id,

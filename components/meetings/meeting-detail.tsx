@@ -169,12 +169,10 @@ export function MeetingDetail({
       champion_score: parsedScore,
     };
 
-    const filteredLinks = links.filter((l) => l.label.trim() || l.url.trim());
-
     setIsSaving(true);
     try {
       const supabase = createClient();
-      await updateMeeting(supabase, meeting.id, values, filteredLinks);
+      await updateMeeting(supabase, meeting.id, values, links);
       onSaved();
       onCollapse();
     } catch (err: unknown) {

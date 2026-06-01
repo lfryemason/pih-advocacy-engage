@@ -200,7 +200,7 @@ test.describe("edit meeting", () => {
     await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
   });
 
-  test("cancel collapses the row without saving", async ({ page }) => {
+  test("cancel collapses the row and discards changes", async ({ page }) => {
     await page.goto("/meetings");
 
     const expandBtn = page
@@ -208,12 +208,27 @@ test.describe("edit meeting", () => {
       .first();
     await expandBtn.click();
 
-    await page.getByRole("button", { name: "Cancel" }).click();
+    // Wait for the edit form to load, then mutate a field.
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+    const dateInput = page.getByLabel(/^Date$/).last();
+    const originalDate = await dateInput.inputValue();
+    await dateInput.fill("2055-01-01");
 
+    // Cancel — form should collapse and no save should occur.
+    await page.getByRole("button", { name: "Cancel" }).click();
     await expect(expandBtn).toHaveAttribute("aria-expanded", "false");
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).not.toBeVisible();
+
+    // Re-expand and confirm the original value is still there.
+    await expandBtn.click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+    await expect(page.getByLabel(/^Date$/).last()).toHaveValue(originalDate);
   });
 
   test("edit date to future moves meeting to Upcoming section", async ({

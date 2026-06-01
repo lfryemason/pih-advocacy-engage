@@ -55,7 +55,7 @@ exports[`MeetingDetail — loaded state > matches snapshot in loaded state 1`] =
             <span
               class="min-w-0 truncate text-xs italic leading-none text-muted-foreground"
             >
-              Pacific Daylight Time/GMT-7
+              Coordinated Universal Time/GMT+0
             </span>
           </div>
           <input

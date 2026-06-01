@@ -52,6 +52,7 @@ export function MeetingRow({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const colSpan = isPast ? 8 : 7;
+  const detailRowId = `meeting-detail-${meeting.id}`;
 
   return (
     <>
@@ -62,6 +63,7 @@ export function MeetingRow({
             size="icon"
             aria-label={`Expand meeting with ${meeting.representative_name}`}
             aria-expanded={isExpanded}
+            aria-controls={detailRowId}
             onClick={() => setIsExpanded((v) => !v)}
           >
             {isExpanded ? (
@@ -132,7 +134,7 @@ export function MeetingRow({
         )}
       </TableRow>
       {isExpanded && (
-        <TableRow>
+        <TableRow id={detailRowId}>
           <TableCell colSpan={colSpan} className="p-0">
             <MeetingDetail
               meeting={meeting}
