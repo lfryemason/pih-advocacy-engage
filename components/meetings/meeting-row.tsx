@@ -24,14 +24,19 @@ function formatTime(
   const hour12 = h % 12 || 12;
   const ampm = h < 12 ? "AM" : "PM";
   const minuteStr = m.toString().padStart(2, "0");
-  const refDate = new Date(`${meetingDate}T12:00:00Z`);
-  const tzAbbr =
-    new Intl.DateTimeFormat("en-US", {
-      timeZone: timezone,
-      timeZoneName: "short",
-    })
-      .formatToParts(refDate)
-      .find((p) => p.type === "timeZoneName")?.value ?? "";
+  let tzAbbr = "";
+  try {
+    const refDate = new Date(`${meetingDate}T12:00:00Z`);
+    tzAbbr =
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        timeZoneName: "short",
+      })
+        .formatToParts(refDate)
+        .find((p) => p.type === "timeZoneName")?.value ?? "";
+  } catch {
+    // Invalid IANA timezone string — omit abbreviation rather than crash the row.
+  }
   return tzAbbr
     ? `${hour12}:${minuteStr} ${ampm} ${tzAbbr}`
     : `${hour12}:${minuteStr} ${ampm}`;

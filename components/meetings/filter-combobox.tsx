@@ -109,6 +109,7 @@ export function FilterCombobox({
     (o) => !priorityIds.has(o.id) && matches(o.label),
   );
   const showClear = clearLabel != null && matches(clearLabel);
+  const clearOffset = showClear ? 1 : 0;
 
   // Flat ordered list matching render order — used for keyboard navigation
   const visibleOptions: (ComboboxOption & { muted?: boolean })[] = [
@@ -201,10 +202,8 @@ export function FilterCombobox({
                     <p className="px-3 py-1 text-xs font-medium text-muted-foreground">
                       {priorityGroupLabel}
                     </p>
-                    {priority.map((o) => {
-                      const idx = visibleOptions.findIndex(
-                        (v) => v.id === o.id,
-                      );
+                    {priority.map((o, i) => {
+                      const idx = clearOffset + i;
                       return (
                         <Option
                           key={o.id}
@@ -220,8 +219,8 @@ export function FilterCombobox({
                   </>
                 )}
 
-                {rest.map((o) => {
-                  const idx = visibleOptions.findIndex((v) => v.id === o.id);
+                {rest.map((o, i) => {
+                  const idx = clearOffset + priority.length + i;
                   return (
                     <Option
                       key={o.id}

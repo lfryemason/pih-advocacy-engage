@@ -97,11 +97,16 @@ test.describe("create meeting", () => {
     // Fill required fields
     await page.getByLabel("Date").fill("2099-12-25");
 
-    // Wait for representatives to load and select one
-    await page.waitForSelector(
-      'select[id="meeting-representative"] option:not([value=""])',
-    );
-    await page.selectOption("#meeting-representative", { index: 1 });
+    // Open the representative combobox and select the first option once loaded.
+    await page.locator("#meeting-representative").click();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .waitFor();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .click();
 
     // Submit
     await page.getByRole("button", { name: "Add meeting" }).click();
@@ -156,10 +161,15 @@ test.describe("create meeting", () => {
 
     await page.getByRole("button", { name: /Add Meeting/i }).click();
     await page.getByLabel("Date").fill("2099-11-01");
-    await page.waitForSelector(
-      'select[id="meeting-representative"] option:not([value=""])',
-    );
-    await page.selectOption("#meeting-representative", { index: 1 });
+    await page.locator("#meeting-representative").click();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .waitFor();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .click();
 
     await page.getByRole("button", { name: /Add link/i }).click();
     await page.getByLabel("Link 1 label").fill("Agenda");

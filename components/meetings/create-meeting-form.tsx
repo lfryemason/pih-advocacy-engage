@@ -1,24 +1,33 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Plus, Trash2, ChevronDownIcon } from "lucide-react";
-import { format } from "date-fns";
+import { useState, useEffect, useMemo } from "react";
+import { Plus, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { CreateMeetingValues, LinkFormEntry } from "@/lib/meetings/types";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Select } from "@/components/ui/select";
 import {
   FilterCombobox,
   ComboboxOption,
 } from "@/components/meetings/filter-combobox";
+
+// Computed once at module load — the browser timezone never changes mid-session.
+const MEETING_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
+const _tzDate = new Date();
+const _tzLong =
+  new Intl.DateTimeFormat("en-US", { timeZoneName: "long" })
+    .formatToParts(_tzDate)
+    .find((p) => p.type === "timeZoneName")?.value ?? "";
+const _tzOffset =
+  new Intl.DateTimeFormat("en-US", { timeZoneName: "shortOffset" })
+    .formatToParts(_tzDate)
+    .find((p) => p.type === "timeZoneName")?.value ?? "";
+const TZ_DISPLAY_NAME =
+  _tzLong && _tzOffset
+    ? `${_tzLong}/${_tzOffset}`
+    : _tzLong || _tzOffset || MEETING_TIMEZONE;
 
 type RepOption = {
   id: string;
@@ -56,25 +65,8 @@ export function CreateMeetingForm({
   onSubmit: SubmitFn;
   onCancel: () => void;
 }) {
-  const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("14:00");
-  const meetingTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const now = new Date();
-  const tzLong =
-    new Intl.DateTimeFormat("en-US", { timeZoneName: "long" })
-      .formatToParts(now)
-      .find((p) => p.type === "timeZoneName")?.value ?? "";
-  const tzOffset =
-    new Intl.DateTimeFormat("en-US", {
-      timeZoneName: "shortOffset",
-    })
-      .formatToParts(now)
-      .find((p) => p.type === "timeZoneName")?.value ?? "";
-  const tzDisplayName =
-    tzLong && tzOffset
-      ? `${tzLong}/${tzOffset}`
-      : tzLong || tzOffset || meetingTimezone;
   const [representativeId, setRepresentativeId] = useState("");
   const [congressionalContactId, setCongressionalContactId] = useState("");
   const [primaryTeamId, setPrimaryTeamId] = useState("");
@@ -158,16 +150,21 @@ export function CreateMeetingForm({
     };
   }, [representativeId]);
 
-  const myRepIds = new Set(
-    representatives
-      .filter((r) => {
-        if (!profileState || r.state !== profileState) return false;
-        if (r.district === null) return true;
-        if (!profileDistrict || profileDistrict === "at-large") return false;
-        const distNum = parseInt(profileDistrict, 10);
-        return !isNaN(distNum) && r.district === distNum;
-      })
-      .map((r) => r.id),
+  const myRepIds = useMemo(
+    () =>
+      new Set(
+        representatives
+          .filter((r) => {
+            if (!profileState || r.state !== profileState) return false;
+            if (r.district === null) return true;
+            if (!profileDistrict || profileDistrict === "at-large")
+              return false;
+            const distNum = parseInt(profileDistrict, 10);
+            return !isNaN(distNum) && r.district === distNum;
+          })
+          .map((r) => r.id),
+      ),
+    [representatives, profileState, profileDistrict],
   );
 
   function handleAddLink() {
@@ -207,9 +204,9 @@ export function CreateMeetingForm({
     }
 
     const values: CreateMeetingValues = {
-      meeting_date: format(meetingDate, "yyyy-MM-dd"),
+      meeting_date: meetingDate,
       meeting_time: meetingTime.trim() || null,
-      meeting_timezone: meetingTimezone,
+      meeting_timezone: MEETING_TIMEZONE,
       representative_id: representativeId,
       congressional_contact_id: congressionalContactId || null,
       primary_team_id: primaryTeamId || null,
@@ -231,15 +228,15 @@ export function CreateMeetingForm({
     }
   }
 
-  const repOptions: ComboboxOption[] = representatives.map((r) => ({
-    id: r.id,
-    label: repLabel(r),
-  }));
+  const repOptions = useMemo<ComboboxOption[]>(
+    () => representatives.map((r) => ({ id: r.id, label: repLabel(r) })),
+    [representatives],
+  );
 
-  const teamOptions: ComboboxOption[] = teams.map((t) => ({
-    id: t.id,
-    label: t.name,
-  }));
+  const teamOptions = useMemo<ComboboxOption[]>(
+    () => teams.map((t) => ({ id: t.id, label: t.name })),
+    [teams],
+  );
 
   const textareaClass =
     "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[72px] resize-none";
@@ -248,55 +245,29 @@ export function CreateMeetingForm({
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid gap-2">
-          <Label htmlFor="meeting-date">
-            Date{" "}
+          <div className="flex items-baseline gap-0.5">
+            <Label htmlFor="meeting-date">Date</Label>
             <span className="text-destructive" aria-hidden="true">
               *
             </span>
-          </Label>
-          <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                id="meeting-date"
-                type="button"
-                variant="outline"
-                className="w-full justify-between font-normal"
-              >
-                {meetingDate ? (
-                  format(meetingDate, "PPP")
-                ) : (
-                  <span className="text-muted-foreground">Select date</span>
-                )}
-                <ChevronDownIcon className="h-4 w-4 opacity-50" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent
-              className="w-auto overflow-hidden p-0"
-              align="start"
-            >
-              <Calendar
-                mode="single"
-                selected={meetingDate}
-                captionLayout="dropdown"
-                defaultMonth={meetingDate}
-                onSelect={(date) => {
-                  setMeetingDate(date);
-                  setDatePickerOpen(false);
-                }}
-              />
-            </PopoverContent>
-          </Popover>
+          </div>
+          <Input
+            id="meeting-date"
+            type="date"
+            value={meetingDate}
+            onChange={(e) => setMeetingDate(e.target.value)}
+          />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="meeting-time">
-            Time{" "}
+          <div className="flex items-baseline gap-0.5">
+            <Label htmlFor="meeting-time">Time</Label>
             <span className="text-destructive" aria-hidden="true">
               *
-            </span>{" "}
-            <span className="text-xs italic leading-none text-muted-foreground">
-              {tzDisplayName}
             </span>
-          </Label>
+            <span className="text-xs italic leading-none text-muted-foreground">
+              {TZ_DISPLAY_NAME}
+            </span>
+          </div>
           <Input
             id="meeting-time"
             type="time"
@@ -308,18 +279,17 @@ export function CreateMeetingForm({
         </div>
 
         <div className="grid gap-2 sm:col-span-2">
-          <Label htmlFor="meeting-representative">
-            Member of Congress{" "}
+          <div className="flex items-baseline gap-0.5">
+            <Label htmlFor="meeting-representative">Member of Congress</Label>
             <span className="text-destructive" aria-hidden="true">
               *
             </span>
-          </Label>
+          </div>
           <FilterCombobox
             id="meeting-representative"
             options={repOptions}
             priorityIds={myRepIds}
             priorityGroupLabel="My Representatives"
-            required
             value={representativeId}
             onChange={(id) => {
               setRepresentativeId(id);
@@ -329,15 +299,9 @@ export function CreateMeetingForm({
         </div>
 
         <div className="grid gap-2 sm:col-span-2">
-          <Label htmlFor="meeting-contact">
-            Congressional Contact{" "}
-            <span className="text-destructive" aria-hidden="true">
-              *
-            </span>
-          </Label>
+          <Label htmlFor="meeting-contact">Congressional Contact</Label>
           <Select
             id="meeting-contact"
-            required
             value={congressionalContactId}
             onChange={(e) => setCongressionalContactId(e.target.value)}
             disabled={!representativeId}

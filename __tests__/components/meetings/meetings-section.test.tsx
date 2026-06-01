@@ -125,7 +125,7 @@ describe("MeetingsSection", () => {
 
   it("displays time text in the time column when set", () => {
     const meetings = [
-      makeRow({ meeting_date: "2099-06-01", meeting_time: "2:00PM ET" }),
+      makeRow({ meeting_date: "2099-06-01", meeting_time: "14:00" }),
     ];
     render(
       <MeetingsSection
@@ -134,7 +134,7 @@ describe("MeetingsSection", () => {
         {...sectionProps(meetings)}
       />,
     );
-    expect(screen.getByText("2:00PM ET")).toBeInTheDocument();
+    expect(screen.getByText(/2:00 PM/)).toBeInTheDocument();
   });
 
   it("renders a Time column header", () => {

@@ -159,13 +159,16 @@ export async function fetchMeetings(
 export async function createMeeting(
   supabase: SupabaseBrowserClient,
   values: CreateMeetingValues,
-  links: LinkFormEntry[],
+  rawLinks: LinkFormEntry[],
   primaryTeamName: string | null = null,
 ): Promise<string> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
+
+  // Filter empty link entries at the API boundary so callers don't have to.
+  const links = rawLinks.filter((l) => l.label.trim() || l.url.trim());
 
   const { data, error } = await supabase
     .from("meetings")
@@ -199,7 +202,12 @@ export async function createMeeting(
       team_name_snapshot: primaryTeamName,
     });
 
-  if (delegationError) throw delegationError;
+  if (delegationError) {
+    // The meeting row was already committed; roll it back best-effort so we
+    // don't leave an orphan with no scheduling lead.
+    await supabase.from("meetings").delete().eq("id", data.id);
+    throw delegationError;
+  }
 
   return data.id;
 }

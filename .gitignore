@@ -54,3 +54,4 @@ node_modules/
 /specs/
 .claude/
 .specify/
+CLAUDE.md

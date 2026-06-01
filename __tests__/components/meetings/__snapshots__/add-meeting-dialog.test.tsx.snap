@@ -6,9 +6,11 @@ exports[`AddMeetingDialog — snapshot > renders the trigger button 1`] = `
     aria-controls="radix-_r_0_"
     aria-expanded="false"
     aria-haspopup="dialog"
-    class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary-light h-8 rounded-md px-3 text-xs"
+    class="inline-flex shrink-0 items-center justify-center text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/90 h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5"
+    data-size="sm"
     data-slot="dialog-trigger"
     data-state="closed"
+    data-variant="default"
     type="button"
   >
     <svg
@@ -47,12 +49,22 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
       <div
         class="grid gap-2"
       >
-        <label
-          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          for="meeting-date"
+        <div
+          class="flex items-baseline gap-0.5"
         >
-          Date
-        </label>
+          <label
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            for="meeting-date"
+          >
+            Date
+          </label>
+          <span
+            aria-hidden="true"
+            class="text-destructive"
+          >
+            *
+          </span>
+        </div>
         <input
           class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:cursor-default read-only:bg-muted read-only:caret-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring read-only:focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm"
           id="meeting-date"
@@ -63,15 +75,31 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
       <div
         class="grid gap-2"
       >
-        <label
-          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          for="meeting-time"
+        <div
+          class="flex items-baseline gap-0.5"
         >
-          Time
-        </label>
+          <label
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            for="meeting-time"
+          >
+            Time
+          </label>
+          <span
+            aria-hidden="true"
+            class="text-destructive"
+          >
+            *
+          </span>
+          <span
+            class="text-xs italic leading-none text-muted-foreground"
+          >
+            Pacific Daylight Time/GMT-7
+          </span>
+        </div>
         <input
-          class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:cursor-default read-only:bg-muted read-only:caret-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring read-only:focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm"
+          class="flex h-9 w-full rounded-md border border-input px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:cursor-default read-only:bg-muted read-only:caret-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring read-only:focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
           id="meeting-time"
+          required=""
           type="time"
           value="14:00"
         />
@@ -79,31 +107,41 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
       <div
         class="grid gap-2 sm:col-span-2"
       >
-        <label
-          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-          for="meeting-representative"
+        <div
+          class="flex items-baseline gap-0.5"
         >
-          Member of Congress
-        </label>
+          <label
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            for="meeting-representative"
+          >
+            Member of Congress
+          </label>
+          <span
+            aria-hidden="true"
+            class="text-destructive"
+          >
+            *
+          </span>
+        </div>
         <div
           class="relative"
         >
-          <button
-            aria-expanded="false"
-            aria-haspopup="listbox"
-            class="flex h-9 w-full cursor-default items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            id="meeting-representative"
-            role="combobox"
-            type="button"
+          <div
+            class="relative"
           >
-            <span
-              class="text-muted-foreground"
-            >
-              — Select a representative —
-            </span>
+            <input
+              aria-controls="meeting-representative-listbox"
+              aria-expanded="false"
+              aria-haspopup="listbox"
+              class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-8 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              id="meeting-representative"
+              role="combobox"
+              type="text"
+              value=""
+            />
             <svg
               aria-hidden="true"
-              class="lucide lucide-chevrons-up-down h-4 w-4 shrink-0 opacity-50"
+              class="lucide lucide-chevrons-up-down pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 shrink-0 -translate-y-1/2 opacity-50"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -121,7 +159,7 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
                 d="m7 9 5-5 5 5"
               />
             </svg>
-          </button>
+          </div>
         </div>
       </div>
       <div
@@ -178,22 +216,23 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
         <div
           class="relative"
         >
-          <button
-            aria-expanded="false"
-            aria-haspopup="listbox"
-            class="flex h-9 w-full cursor-default items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
-            id="meeting-team"
-            role="combobox"
-            type="button"
+          <div
+            class="relative"
           >
-            <span
-              class="text-muted-foreground"
-            >
-              — None —
-            </span>
+            <input
+              aria-controls="meeting-team-listbox"
+              aria-expanded="false"
+              aria-haspopup="listbox"
+              class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-8 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              id="meeting-team"
+              placeholder="— None —"
+              role="combobox"
+              type="text"
+              value=""
+            />
             <svg
               aria-hidden="true"
-              class="lucide lucide-chevrons-up-down h-4 w-4 shrink-0 opacity-50"
+              class="lucide lucide-chevrons-up-down pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 shrink-0 -translate-y-1/2 opacity-50"
               fill="none"
               height="24"
               stroke="currentColor"
@@ -211,7 +250,7 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
                 d="m7 9 5-5 5 5"
               />
             </svg>
-          </button>
+          </div>
         </div>
       </div>
       <div
@@ -226,7 +265,7 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
         <input
           class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:cursor-default read-only:bg-muted read-only:caret-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring read-only:focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm"
           id="meeting-location"
-          placeholder="e.g. Russell 123, or Virtual"
+          placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
           value=""
         />
       </div>
@@ -268,7 +307,10 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
           Links
         </span>
         <button
-          class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs"
+          class="inline-flex shrink-0 items-center justify-center text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 rounded-md px-3 has-[>svg]:px-2.5"
+          data-size="sm"
+          data-slot="button"
+          data-variant="outline"
           type="button"
         >
           <svg
@@ -299,13 +341,19 @@ exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
       class="flex gap-2"
     >
       <button
-        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary-light h-9 px-4 py-2"
+        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 bg-primary text-primary-foreground hover:bg-primary/90 h-9 px-4 py-2 has-[>svg]:px-3"
+        data-size="default"
+        data-slot="button"
+        data-variant="default"
         type="submit"
       >
         Add meeting
       </button>
       <button
-        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+        class="inline-flex shrink-0 items-center justify-center gap-2 rounded-md text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-9 px-4 py-2 has-[>svg]:px-3"
+        data-size="default"
+        data-slot="button"
+        data-variant="outline"
         type="button"
       >
         Cancel
