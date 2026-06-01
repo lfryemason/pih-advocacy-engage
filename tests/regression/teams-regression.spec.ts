@@ -14,6 +14,8 @@ async function setTheme(page: Page, theme: Theme) {
     document.documentElement.classList.add(t);
     document.documentElement.style.colorScheme = t;
   }, theme);
+  // Wait for CSS transitions and theme styles to be fully applied
+  await page.waitForTimeout(500);
 }
 
 for (const theme of themes) {
