@@ -13,7 +13,6 @@ import {
   ComboboxOption,
 } from "@/components/meetings/filter-combobox";
 
-// Computed once at module load — the browser timezone never changes mid-session.
 const MEETING_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const _tzDate = new Date();
 const _tzLong =

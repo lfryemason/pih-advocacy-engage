@@ -79,12 +79,10 @@ export function FilterCombobox({
     return () => document.removeEventListener("pointerdown", handlePointerDown);
   }, []);
 
-  // Reset highlight when visible options change
   useEffect(() => {
     setHighlightedIndex(-1);
   }, [query]);
 
-  // Scroll highlighted option into view
   useEffect(() => {
     if (highlightedIndex < 0 || !listboxRef.current) return;
     const items =
@@ -111,7 +109,6 @@ export function FilterCombobox({
   const showClear = clearLabel != null && matches(clearLabel);
   const clearOffset = showClear ? 1 : 0;
 
-  // Flat ordered list matching render order — used for keyboard navigation
   const visibleOptions: (ComboboxOption & { muted?: boolean })[] = [
     ...(showClear ? [{ id: "", label: clearLabel!, muted: true }] : []),
     ...priority,

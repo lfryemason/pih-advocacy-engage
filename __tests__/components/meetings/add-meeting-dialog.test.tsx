@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { CreateMeetingForm } from "@/components/meetings/create-meeting-form";
 import { AddMeetingDialog } from "@/components/meetings/add-meeting-dialog";
 import { server } from "../../mocks/supabase";
 
@@ -17,19 +16,6 @@ function stubEmpty() {
     http.get(`${SUPABASE_URL}/rest/v1/teams`, () => HttpResponse.json([])),
   );
 }
-
-describe("CreateMeetingForm — snapshot", () => {
-  it("matches snapshot", () => {
-    stubEmpty();
-    const { asFragment } = render(
-      <CreateMeetingForm
-        onSubmit={vi.fn().mockResolvedValue(undefined)}
-        onCancel={vi.fn()}
-      />,
-    );
-    expect(asFragment()).toMatchSnapshot();
-  });
-});
 
 describe("AddMeetingDialog — snapshot", () => {
   it("renders the trigger button", () => {

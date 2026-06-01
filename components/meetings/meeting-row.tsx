@@ -34,9 +34,7 @@ function formatTime(
       })
         .formatToParts(refDate)
         .find((p) => p.type === "timeZoneName")?.value ?? "";
-  } catch {
-    // Invalid IANA timezone string — omit abbreviation rather than crash the row.
-  }
+  } catch {}
   return tzAbbr
     ? `${hour12}:${minuteStr} ${ampm} ${tzAbbr}`
     : `${hour12}:${minuteStr} ${ampm}`;
