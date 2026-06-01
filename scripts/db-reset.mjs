@@ -25,7 +25,7 @@ try {
 
 const env = { ...process.env };
 for (const line of statusOutput.split("\n")) {
-  const match = line.match(/^(\w+)="(.+)"$/);
+  const match = line.match(/^(\w+)="(.*)"$/);
   if (match) env[match[1]] = match[2];
 }
 

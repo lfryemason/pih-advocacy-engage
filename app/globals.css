@@ -93,11 +93,11 @@
     --accent-foreground: 0 0% 98%;
     --accent-hover: 33 15% 30%;
     --accent-hover-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
+    --destructive: 0 84.2% 65%;
     --destructive-foreground: 0 0% 98%;
-    --destructive-dark: 0 70% 66%;
-    --destructive-light: 0 59.4% 38%;
-    --destructive-lighter: 0 55.5% 45%;
+    --destructive-dark: 0 84.2% 55%;
+    --destructive-light: 0 84.2% 74%;
+    --destructive-lighter: 0 84.2% 81%;
     --border: 0 0% 28%;
     --input: 0 0% 28%;
     --ring: 0 0% 83.1%;

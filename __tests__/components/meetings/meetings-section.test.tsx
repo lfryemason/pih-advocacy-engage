@@ -9,6 +9,7 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
     id: "id-1",
     meeting_date: "2099-06-01",
     meeting_time: null,
+    meeting_timezone: "America/New_York",
     representative_id: "rep-1",
     representative_bioguide_id: "R000001",
     representative_name: "Jane Rep",
@@ -124,7 +125,7 @@ describe("MeetingsSection", () => {
 
   it("displays time text in the time column when set", () => {
     const meetings = [
-      makeRow({ meeting_date: "2099-06-01", meeting_time: "2:00PM ET" }),
+      makeRow({ meeting_date: "2099-06-01", meeting_time: "14:00" }),
     ];
     render(
       <MeetingsSection
@@ -133,7 +134,7 @@ describe("MeetingsSection", () => {
         {...sectionProps(meetings)}
       />,
     );
-    expect(screen.getByText("2:00PM ET")).toBeInTheDocument();
+    expect(screen.getByText(/2:00 PM/)).toBeInTheDocument();
   });
 
   it("renders a Time column header", () => {
