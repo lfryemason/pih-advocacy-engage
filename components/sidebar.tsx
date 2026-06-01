@@ -41,8 +41,8 @@ function NavLink({
         "flex w-full items-center gap-3 border-b border-border py-3",
         isCollapsed ? "justify-center px-0" : "px-6",
         isActive
-          ? "bg-[#F4A42E] font-semibold underline hover:bg-[#F4A42E]"
-          : "hover:bg-[#F9D196]",
+          ? "bg-[#F4A42E] font-semibold text-black underline hover:bg-[#F4A42E]"
+          : "hover:bg-[#F9D196] dark:hover:bg-[#7A4F10]",
       )}
     >
       <Icon size={20} />
