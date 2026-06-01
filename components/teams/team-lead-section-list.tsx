@@ -35,7 +35,7 @@ export function TeamLeadSectionList({
     <div className="mt-8">
       <Table>
         <caption className="sr-only">Team Leadership</caption>
-        <TableHeader className="[&_th]:text-white [&_tr]:bg-teal-600 [&_tr]:hover:bg-teal-600">
+        <TableHeader className="[&_th]:text-white [&_tr]:bg-teal-700 [&_tr]:hover:bg-teal-700">
           <TableRow>
             <TableHead>Role</TableHead>
             <TableHead>Name</TableHead>
