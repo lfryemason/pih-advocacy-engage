@@ -51,6 +51,19 @@ export type MeetingDetail = MeetingRow & {
 
 // ─── Form input types ─────────────────────────────────────────────────────────
 
+export type MeetingFormValues = {
+  meeting_date: string;
+  meeting_time: string | null;
+  meeting_timezone: string;
+  representative_id: string;
+  congressional_contact_id: string | null;
+  primary_team_id: string | null;
+  notes: string | null;
+  location: string | null;
+  follow_up_date: string | null;
+  champion_score: number | null;
+};
+
 export type CreateMeetingValues = {
   meeting_date: string;
   meeting_time: string | null;

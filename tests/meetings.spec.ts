@@ -183,3 +183,99 @@ test.describe("create meeting", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("edit meeting", () => {
+  test("expand row shows pre-populated edit form", async ({ page }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await expect(expandBtn).toHaveAttribute("aria-expanded", "true");
+
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+  });
+
+  test("cancel collapses the row without saving", async ({ page }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    await expect(expandBtn).toHaveAttribute("aria-expanded", "false");
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+  });
+
+  test("edit date to future moves meeting to Upcoming section", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    // Expand a past meeting row
+    const pastSection = page.getByLabel("Past Meetings");
+    const pastExpandBtn = pastSection
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await pastExpandBtn.click();
+
+    // Wait for the form to load
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    // Change date to a future date
+    const dateInputs = page.getByLabel(/^Date$/);
+    await dateInputs.last().fill("2099-07-04");
+
+    // Save
+    await page.getByRole("button", { name: "Save changes" }).click();
+
+    // Wait for the panel to close and list to refresh
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+
+    // Meeting should now appear in Upcoming
+    await expect(
+      page.getByLabel("Upcoming Meetings").getByText("Jul 4, 2099"),
+    ).toBeVisible();
+  });
+
+  test("edit date to past moves meeting to Past section", async ({ page }) => {
+    await page.goto("/meetings");
+
+    // Expand an upcoming meeting row
+    const upcomingSection = page.getByLabel("Upcoming Meetings");
+    const upcomingExpandBtn = upcomingSection
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await upcomingExpandBtn.click();
+
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    const dateInputs = page.getByLabel(/^Date$/);
+    await dateInputs.last().fill("2020-01-15");
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+
+    await expect(
+      page.getByLabel("Past Meetings").getByText("Jan 15, 2020"),
+    ).toBeVisible();
+  });
+});

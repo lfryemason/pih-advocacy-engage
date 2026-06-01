@@ -8,10 +8,12 @@ import { Input } from "@/components/ui/input";
 
 export function EditMeetingLinks({
   onChange,
+  initialLinks = [],
 }: {
   onChange: (links: LinkFormEntry[]) => void;
+  initialLinks?: LinkFormEntry[];
 }) {
-  const [links, setLinks] = useState<LinkFormEntry[]>([]);
+  const [links, setLinks] = useState<LinkFormEntry[]>(initialLinks);
 
   function update(next: LinkFormEntry[]) {
     setLinks(next);
