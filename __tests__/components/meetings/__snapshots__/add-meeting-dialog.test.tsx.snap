@@ -1,0 +1,316 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`AddMeetingDialog — snapshot > renders the trigger button 1`] = `
+<DocumentFragment>
+  <button
+    aria-controls="radix-_r_0_"
+    aria-expanded="false"
+    aria-haspopup="dialog"
+    class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary-light h-8 rounded-md px-3 text-xs"
+    data-slot="dialog-trigger"
+    data-state="closed"
+    type="button"
+  >
+    <svg
+      aria-hidden="true"
+      class="lucide lucide-plus h-4 w-4"
+      fill="none"
+      height="24"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      viewBox="0 0 24 24"
+      width="24"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M5 12h14"
+      />
+      <path
+        d="M12 5v14"
+      />
+    </svg>
+    Add Meeting
+  </button>
+</DocumentFragment>
+`;
+
+exports[`CreateMeetingForm — snapshot > matches snapshot 1`] = `
+<DocumentFragment>
+  <form
+    class="flex flex-col gap-4"
+  >
+    <div
+      class="grid gap-4 sm:grid-cols-2"
+    >
+      <div
+        class="grid gap-2"
+      >
+        <label
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          for="meeting-date"
+        >
+          Date
+        </label>
+        <input
+          class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:cursor-default read-only:bg-muted read-only:caret-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring read-only:focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm"
+          id="meeting-date"
+          type="date"
+          value=""
+        />
+      </div>
+      <div
+        class="grid gap-2"
+      >
+        <label
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          for="meeting-time"
+        >
+          Time
+        </label>
+        <input
+          class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:cursor-default read-only:bg-muted read-only:caret-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring read-only:focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm"
+          id="meeting-time"
+          type="time"
+          value="14:00"
+        />
+      </div>
+      <div
+        class="grid gap-2 sm:col-span-2"
+      >
+        <label
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          for="meeting-representative"
+        >
+          Member of Congress
+        </label>
+        <div
+          class="relative"
+        >
+          <button
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            class="flex h-9 w-full cursor-default items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            id="meeting-representative"
+            role="combobox"
+            type="button"
+          >
+            <span
+              class="text-muted-foreground"
+            >
+              — Select a representative —
+            </span>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevrons-up-down h-4 w-4 shrink-0 opacity-50"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m7 15 5 5 5-5"
+              />
+              <path
+                d="m7 9 5-5 5 5"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div
+        class="grid gap-2 sm:col-span-2"
+      >
+        <label
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          for="meeting-contact"
+        >
+          Congressional Contact
+        </label>
+        <div
+          class="relative"
+        >
+          <select
+            class="flex h-9 w-full appearance-none rounded-md border border-input bg-transparent px-3 py-1 pr-8 text-base shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm"
+            disabled=""
+            id="meeting-contact"
+          >
+            <option
+              value=""
+            >
+              — Meeting with representative directly —
+            </option>
+          </select>
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-chevron-down pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="m6 9 6 6 6-6"
+            />
+          </svg>
+        </div>
+      </div>
+      <div
+        class="grid gap-2 sm:col-span-2"
+      >
+        <label
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          for="meeting-team"
+        >
+          Primary PIH Team
+        </label>
+        <div
+          class="relative"
+        >
+          <button
+            aria-expanded="false"
+            aria-haspopup="listbox"
+            class="flex h-9 w-full cursor-default items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+            id="meeting-team"
+            role="combobox"
+            type="button"
+          >
+            <span
+              class="text-muted-foreground"
+            >
+              — None —
+            </span>
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-chevrons-up-down h-4 w-4 shrink-0 opacity-50"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="m7 15 5 5 5-5"
+              />
+              <path
+                d="m7 9 5-5 5 5"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div
+        class="grid gap-2 sm:col-span-2"
+      >
+        <label
+          class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+          for="meeting-location"
+        >
+          Location
+        </label>
+        <input
+          class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground read-only:cursor-default read-only:bg-muted read-only:caret-transparent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring read-only:focus-visible:ring-0 disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm"
+          id="meeting-location"
+          placeholder="e.g. Russell 123, or Virtual"
+          value=""
+        />
+      </div>
+      <div
+        class="grid gap-2 sm:col-span-2"
+      >
+        <div
+          class="flex items-baseline justify-between"
+        >
+          <label
+            class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            for="meeting-notes"
+          >
+            Notes
+          </label>
+          <span
+            class="text-xs text-muted-foreground"
+          >
+            0/255
+          </span>
+        </div>
+        <textarea
+          aria-label="Notes"
+          class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[72px] resize-none"
+          id="meeting-notes"
+          rows="3"
+        />
+      </div>
+    </div>
+    <div
+      class="flex flex-col gap-2"
+    >
+      <div
+        class="flex items-center justify-between"
+      >
+        <span
+          class="text-sm font-medium"
+        >
+          Links
+        </span>
+        <button
+          class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-8 rounded-md px-3 text-xs"
+          type="button"
+        >
+          <svg
+            aria-hidden="true"
+            class="lucide lucide-plus h-4 w-4"
+            fill="none"
+            height="24"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            width="24"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M5 12h14"
+            />
+            <path
+              d="M12 5v14"
+            />
+          </svg>
+          Add link
+        </button>
+      </div>
+    </div>
+    <div
+      class="flex gap-2"
+    >
+      <button
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 bg-primary text-primary-foreground shadow hover:bg-primary-light h-9 px-4 py-2"
+        type="submit"
+      >
+        Add meeting
+      </button>
+      <button
+        class="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+        type="button"
+      >
+        Cancel
+      </button>
+    </div>
+  </form>
+</DocumentFragment>
+`;

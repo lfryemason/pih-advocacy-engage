@@ -50,7 +50,7 @@ export type MeetingDetail = MeetingRow & {
 
 // ─── Form input types ─────────────────────────────────────────────────────────
 
-export type MeetingFormValues = {
+export type CreateMeetingValues = {
   meeting_date: string;
   meeting_time: string | null;
   representative_id: string;
@@ -58,8 +58,6 @@ export type MeetingFormValues = {
   primary_team_id: string | null;
   notes: string | null;
   location: string | null;
-  follow_up_date: string | null;
-  champion_score: number | null;
 };
 
 export type LinkFormEntry = MeetingLink;
