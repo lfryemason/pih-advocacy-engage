@@ -14,6 +14,7 @@ type RawRow = {
   id: string;
   meeting_date: string;
   meeting_time: string | null;
+  meeting_timezone: string;
   representative_id: string;
   congressional_contact_id: string | null;
   primary_team_id: string | null;
@@ -45,6 +46,7 @@ function mapRow(row: RawRow): MeetingRow {
     id: row.id,
     meeting_date: row.meeting_date,
     meeting_time: row.meeting_time,
+    meeting_timezone: row.meeting_timezone,
     representative_id: row.representative_id,
     representative_bioguide_id: rep.bioguide_id,
     representative_name: rep.official_full_name ?? "",
@@ -72,6 +74,7 @@ const SELECT = `
   id,
   meeting_date,
   meeting_time,
+  meeting_timezone,
   representative_id,
   congressional_contact_id,
   primary_team_id,
@@ -170,6 +173,7 @@ export async function createMeeting(
       org_id: ORG_ID,
       meeting_date: values.meeting_date,
       meeting_time: values.meeting_time,
+      meeting_timezone: values.meeting_timezone,
       representative_id: values.representative_id,
       congressional_contact_id: values.congressional_contact_id,
       primary_team_id: values.primary_team_id,

@@ -59,6 +59,22 @@ export function CreateMeetingForm({
   const [meetingDate, setMeetingDate] = useState<Date | undefined>(undefined);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [meetingTime, setMeetingTime] = useState("14:00");
+  const meetingTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const now = new Date();
+  const tzLong =
+    new Intl.DateTimeFormat("en-US", { timeZoneName: "long" })
+      .formatToParts(now)
+      .find((p) => p.type === "timeZoneName")?.value ?? "";
+  const tzOffset =
+    new Intl.DateTimeFormat("en-US", {
+      timeZoneName: "shortOffset",
+    })
+      .formatToParts(now)
+      .find((p) => p.type === "timeZoneName")?.value ?? "";
+  const tzDisplayName =
+    tzLong && tzOffset
+      ? `${tzLong}/${tzOffset}`
+      : tzLong || tzOffset || meetingTimezone;
   const [representativeId, setRepresentativeId] = useState("");
   const [congressionalContactId, setCongressionalContactId] = useState("");
   const [primaryTeamId, setPrimaryTeamId] = useState("");
@@ -193,6 +209,7 @@ export function CreateMeetingForm({
     const values: CreateMeetingValues = {
       meeting_date: format(meetingDate, "yyyy-MM-dd"),
       meeting_time: meetingTime.trim() || null,
+      meeting_timezone: meetingTimezone,
       representative_id: representativeId,
       congressional_contact_id: congressionalContactId || null,
       primary_team_id: primaryTeamId || null,
@@ -275,6 +292,9 @@ export function CreateMeetingForm({
             Time{" "}
             <span className="text-destructive" aria-hidden="true">
               *
+            </span>{" "}
+            <span className="text-xs italic leading-none text-muted-foreground">
+              {tzDisplayName}
             </span>
           </Label>
           <Input
