@@ -6,7 +6,9 @@
     "start": "next start",
     "lint": "eslint .",
     "prepare": "husky",
-    "db:reset": "supabase db reset && eval $(npx supabase status -o env | sed 's/^export //' | grep '^[A-Z_]*=' | sed 's/^/export /') && npx tsx scripts/seed-representatives.ts"
+    "db:migrate": "supabase migration up --local",
+    "db:reset": "node scripts/db-reset.mjs",
+    "supabase:start": "node scripts/supabase-start.mjs"
   },
   "lint-staged": {
     "*.{ts,tsx,js,jsx,mjs,cjs}": [
