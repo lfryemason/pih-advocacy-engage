@@ -7,7 +7,8 @@ import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
-import { TYPE_LABELS, displayName } from "@/lib/teams";
+import { TYPE_LABELS } from "@/lib/teams";
+import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
 import {
   TeamMemberList,
   type MembershipWithProfile,
@@ -95,16 +96,11 @@ export function TeamPageClient({
               {coaches.length === 1 ? "Coach" : "Coaches"}:{" "}
               {coaches.map((c, i) => (
                 <span key={c.user_id}>
-                  {i > 0 && ", "}
-                  {displayName(c.profiles)}
-                  {c.profiles?.pronouns && (
-                    <span className="ml-1 text-sm italic text-muted-foreground">
-                      {c.profiles.pronouns}
-                    </span>
-                  )}
+                  {i > 0 && " & "}
+                  <NameWithPronouns profiles={c.profiles} />
                   {c.profiles?.email && (
                     <>
-                      {" "}
+                      {" • "}
                       <a
                         href={`mailto:${c.profiles.email}`}
                         className="inline-flex items-center gap-0.5 hover:underline"

@@ -9,14 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { displayName, type MembershipWithProfile } from "@/lib/teams";
-
-const LEADERSHIP_ROLES = [
-  { role: "team_coordinator", label: "Team Coordinator" },
-  { role: "advocacy_lead", label: "Advocacy Lead" },
-  { role: "community_building_lead", label: "Community Building Lead" },
-  { role: "fundraising_lead", label: "Fundraising Lead" },
-] as const;
+import { LEADERSHIP_ROLES, type MembershipWithProfile } from "@/lib/teams";
+import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
 
 export function TeamLeadSectionList({
   memberships,
@@ -33,8 +27,8 @@ export function TeamLeadSectionList({
 
   return (
     <div className="mt-8">
+      <h2 className="text-lg font-semibold">Team Leadership</h2>
       <Table>
-        <caption className="sr-only">Team Leadership</caption>
         <TableHeader className="[&_th]:text-white [&_tr]:bg-teal-700 [&_tr]:hover:bg-teal-700">
           <TableRow>
             <TableHead>Role</TableHead>
@@ -62,12 +56,7 @@ export function TeamLeadSectionList({
                   {i === 0 ? label : ""}
                 </TableCell>
                 <TableCell>
-                  {displayName(m.profiles)}
-                  {m.profiles?.pronouns && (
-                    <span className="ml-1 text-sm italic text-muted-foreground">
-                      {m.profiles.pronouns}
-                    </span>
-                  )}
+                  <NameWithPronouns profiles={m.profiles} />
                 </TableCell>
                 <TableCell>
                   {m.profiles?.email && (

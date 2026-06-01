@@ -21,6 +21,26 @@ export const LEAD_ROLES = [
   "coach",
 ] as const;
 
+export const LEADERSHIP_ROLES = (
+  [
+    "team_coordinator",
+    "advocacy_lead",
+    "community_building_lead",
+    "fundraising_lead",
+  ] as const
+).map((role) => ({ role, label: ROLE_LABELS[role] }));
+
+export const ROLE_OPTIONS = (
+  [
+    "member",
+    "team_coordinator",
+    "advocacy_lead",
+    "community_building_lead",
+    "fundraising_lead",
+    "coach",
+  ] as const
+).map((role) => ({ value: role, label: ROLE_LABELS[role] }));
+
 export type MembershipWithProfile = {
   role: string;
   user_id: string;
