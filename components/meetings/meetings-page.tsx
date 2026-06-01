@@ -7,7 +7,7 @@ import { fetchMeetings } from "@/lib/meetings/queries";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
 import { MeetingsSection } from "@/components/meetings/meetings-section";
 import { MeetingsFilters } from "@/components/meetings/meetings-filters";
-import { AddMeetingDialog } from "@/components/meetings/add-meeting-dialog";
+import { AddMeetingDialog } from "@/components/meetings/create/add-meeting-dialog";
 
 const PAGE_SIZE = 15;
 

@@ -1,17 +1,15 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
-import { Plus, Trash2 } from "lucide-react";
+import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { CreateMeetingValues, LinkFormEntry } from "@/lib/meetings/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import {
-  FilterCombobox,
-  ComboboxOption,
-} from "@/components/meetings/filter-combobox";
+import { RepresentativeCombobox } from "@/components/meetings/create/representative-combobox";
+import { TeamCombobox } from "@/components/meetings/create/team-combobox";
+import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
 
 const MEETING_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const _tzDate = new Date();
@@ -28,28 +26,11 @@ const TZ_DISPLAY_NAME =
     ? `${_tzLong}/${_tzOffset}`
     : _tzLong || _tzOffset || MEETING_TIMEZONE;
 
-type RepOption = {
-  id: string;
-  official_full_name: string | null;
-  state: string;
-  district: number | null;
-};
-
 type StafferOption = {
   id: string;
   first_name: string;
   last_name: string;
 };
-
-type TeamOption = {
-  id: string;
-  name: string;
-};
-
-function repLabel(r: RepOption): string {
-  const prefix = r.district == null ? "Sen. " : "Rep. ";
-  return `${prefix}${r.official_full_name ?? "Unknown"} (${r.state})`;
-}
 
 type SubmitFn = (
   values: CreateMeetingValues,
@@ -69,60 +50,14 @@ export function CreateMeetingForm({
   const [representativeId, setRepresentativeId] = useState("");
   const [congressionalContactId, setCongressionalContactId] = useState("");
   const [primaryTeamId, setPrimaryTeamId] = useState("");
+  const [primaryTeamName, setPrimaryTeamName] = useState<string | null>(null);
   const [location, setLocation] = useState("");
   const [notes, setNotes] = useState("");
   const [links, setLinks] = useState<LinkFormEntry[]>([]);
 
-  const [representatives, setRepresentatives] = useState<RepOption[]>([]);
   const [staffers, setStaffers] = useState<StafferOption[]>([]);
-  const [teams, setTeams] = useState<TeamOption[]>([]);
-  const [profileState, setProfileState] = useState<string | null>(null);
-  const [profileDistrict, setProfileDistrict] = useState<string | null>(null);
-  const [myTeamIds, setMyTeamIds] = useState<Set<string>>(new Set());
-
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    const supabase = createClient();
-
-    supabase
-      .from("representatives")
-      .select("id, official_full_name, state, district")
-      .eq("in_office", true)
-      .order("state")
-      .order("official_full_name")
-      .then(({ data }) => setRepresentatives(data ?? []));
-
-    supabase
-      .from("teams")
-      .select("id, name")
-      .order("name")
-      .then(({ data }) => setTeams(data ?? []));
-
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
-      Promise.all([
-        supabase
-          .from("profiles")
-          .select("state, congressional_district")
-          .eq("user_id", user.id)
-          .single(),
-        supabase
-          .from("team_memberships")
-          .select("team_id")
-          .eq("user_id", user.id),
-      ]).then(([{ data: profile }, { data: memberships }]) => {
-        if (profile?.state) {
-          setProfileState(profile.state);
-          setProfileDistrict(profile.congressional_district);
-        }
-        if (memberships) {
-          setMyTeamIds(new Set(memberships.map((m) => m.team_id)));
-        }
-      });
-    });
-  }, []);
 
   useEffect(() => {
     if (!representativeId) {
@@ -148,41 +83,6 @@ export function CreateMeetingForm({
       cancelled = true;
     };
   }, [representativeId]);
-
-  const myRepIds = useMemo(
-    () =>
-      new Set(
-        representatives
-          .filter((r) => {
-            if (!profileState || r.state !== profileState) return false;
-            if (r.district === null) return true;
-            if (!profileDistrict || profileDistrict === "at-large")
-              return false;
-            const distNum = parseInt(profileDistrict, 10);
-            return !isNaN(distNum) && r.district === distNum;
-          })
-          .map((r) => r.id),
-      ),
-    [representatives, profileState, profileDistrict],
-  );
-
-  function handleAddLink() {
-    setLinks((prev) => [...prev, { label: "", url: "" }]);
-  }
-
-  function handleRemoveLink(i: number) {
-    setLinks((prev) => prev.filter((_, idx) => idx !== i));
-  }
-
-  function handleLinkChange(
-    i: number,
-    field: keyof LinkFormEntry,
-    value: string,
-  ) {
-    setLinks((prev) =>
-      prev.map((l, idx) => (idx === i ? { ...l, [field]: value } : l)),
-    );
-  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -214,8 +114,6 @@ export function CreateMeetingForm({
     };
 
     const filteredLinks = links.filter((l) => l.label.trim() || l.url.trim());
-    const primaryTeamName =
-      teams.find((t) => t.id === primaryTeamId)?.name ?? null;
 
     setIsSaving(true);
     try {
@@ -226,16 +124,6 @@ export function CreateMeetingForm({
       setIsSaving(false);
     }
   }
-
-  const repOptions = useMemo<ComboboxOption[]>(
-    () => representatives.map((r) => ({ id: r.id, label: repLabel(r) })),
-    [representatives],
-  );
-
-  const teamOptions = useMemo<ComboboxOption[]>(
-    () => teams.map((t) => ({ id: t.id, label: t.name })),
-    [teams],
-  );
 
   const textareaClass =
     "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[72px] resize-none";
@@ -280,11 +168,8 @@ export function CreateMeetingForm({
               *
             </span>
           </div>
-          <FilterCombobox
+          <RepresentativeCombobox
             id="meeting-representative"
-            options={repOptions}
-            priorityIds={myRepIds}
-            priorityGroupLabel="My Representatives"
             value={representativeId}
             onChange={(id) => {
               setRepresentativeId(id);
@@ -312,15 +197,13 @@ export function CreateMeetingForm({
 
         <div className="grid gap-2 sm:col-span-2">
           <Label htmlFor="meeting-team">Primary PIH Team</Label>
-          <FilterCombobox
+          <TeamCombobox
             id="meeting-team"
-            options={teamOptions}
-            priorityIds={myTeamIds}
-            priorityGroupLabel="My Teams"
             value={primaryTeamId}
-            onChange={setPrimaryTeamId}
-            placeholder="— None —"
-            clearLabel="— None —"
+            onChange={(id, name) => {
+              setPrimaryTeamId(id);
+              setPrimaryTeamName(name);
+            }}
           />
         </div>
 
@@ -354,47 +237,7 @@ export function CreateMeetingForm({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between">
-          <span className="text-sm font-medium">Links</span>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAddLink}
-          >
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            Add link
-          </Button>
-        </div>
-        {links.map((link, i) => (
-          <div key={i} className="flex gap-2">
-            <Input
-              aria-label={`Link ${i + 1} label`}
-              value={link.label}
-              onChange={(e) => handleLinkChange(i, "label", e.target.value)}
-              placeholder="Label"
-              className="flex-1"
-            />
-            <Input
-              aria-label={`Link ${i + 1} URL`}
-              value={link.url}
-              onChange={(e) => handleLinkChange(i, "url", e.target.value)}
-              placeholder="https://…"
-              className="flex-1"
-            />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              aria-label={`Remove link ${i + 1}`}
-              onClick={() => handleRemoveLink(i)}
-            >
-              <Trash2 className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </div>
-        ))}
-      </div>
+      <EditMeetingLinks onChange={setLinks} />
 
       {error && (
         <p className="text-sm text-destructive" role="alert">

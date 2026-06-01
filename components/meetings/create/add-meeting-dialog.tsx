@@ -13,7 +13,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CreateMeetingForm } from "@/components/meetings/create-meeting-form";
+import { CreateMeetingForm } from "@/components/meetings/create/create-meeting-form";
 
 export function AddMeetingDialog({ onCreated }: { onCreated: () => void }) {
   const [open, setOpen] = useState(false);

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { AddMeetingDialog } from "@/components/meetings/add-meeting-dialog";
+import { AddMeetingDialog } from "@/components/meetings/create/add-meeting-dialog";
 import { server } from "../../mocks/supabase";
 
 const SUPABASE_URL = "http://localhost";

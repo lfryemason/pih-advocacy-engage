@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { CreateMeetingForm } from "@/components/meetings/create-meeting-form";
+import { CreateMeetingForm } from "@/components/meetings/create/create-meeting-form";
 import { CreateMeetingValues, LinkFormEntry } from "@/lib/meetings/types";
 import { server } from "../../mocks/supabase";
 
