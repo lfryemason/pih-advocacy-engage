@@ -258,11 +258,8 @@ export function CreateMeetingForm({
           />
         </div>
         <div className="grid gap-2">
-          <div className="flex items-baseline gap-0.5">
+          <div className="flex items-baseline gap-1">
             <Label htmlFor="meeting-time">Time</Label>
-            <span className="text-destructive" aria-hidden="true">
-              *
-            </span>
             <span className="text-xs italic leading-none text-muted-foreground">
               {TZ_DISPLAY_NAME}
             </span>
@@ -270,7 +267,6 @@ export function CreateMeetingForm({
           <Input
             id="meeting-time"
             type="time"
-            required
             value={meetingTime}
             onChange={(e) => setMeetingTime(e.target.value)}
             className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"

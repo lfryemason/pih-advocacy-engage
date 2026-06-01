@@ -50,8 +50,8 @@ export function FilterCombobox({
 }: {
   id: string;
   options: ComboboxOption[];
-  priorityIds: Set<string>;
-  priorityGroupLabel: string;
+  priorityIds?: Set<string>;
+  priorityGroupLabel?: string;
   value: string;
   onChange: (id: string) => void;
   placeholder?: string;
@@ -100,12 +100,9 @@ export function FilterCombobox({
   const matches = (label: string) =>
     label.toLowerCase().includes(query.toLowerCase());
 
-  const priority = options.filter(
-    (o) => priorityIds.has(o.id) && matches(o.label),
-  );
-  const rest = options.filter(
-    (o) => !priorityIds.has(o.id) && matches(o.label),
-  );
+  const ids = priorityIds ?? new Set<string>();
+  const priority = options.filter((o) => ids.has(o.id) && matches(o.label));
+  const rest = options.filter((o) => !ids.has(o.id) && matches(o.label));
   const showClear = clearLabel != null && matches(clearLabel);
   const clearOffset = showClear ? 1 : 0;
 
@@ -197,7 +194,7 @@ export function FilterCombobox({
                 {priority.length > 0 && (
                   <>
                     <p className="px-3 py-1 text-xs font-medium text-muted-foreground">
-                      {priorityGroupLabel}
+                      {priorityGroupLabel ?? ""}
                     </p>
                     {priority.map((o, i) => {
                       const idx = clearOffset + i;
