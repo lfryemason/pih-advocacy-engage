@@ -48,7 +48,7 @@ export const SEED_TEAM_MEMBERSHIPS = [
     team_id: SEED_TEAM_ID,
     user_id: TEST_USER_ID,
     org_id: "pihe",
-    role: "team_lead",
+    role: "team_coordinator",
   },
 ];
 
