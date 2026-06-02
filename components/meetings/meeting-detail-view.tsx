@@ -29,6 +29,9 @@ const MEMBER_ROLE_COLORS: Partial<Record<DelegationRole, string>> = {
   note_taker: "bg-amber-500 text-white",
 };
 
+const SECTION_LABEL_CLASSNAME =
+  "font-semibold uppercase tracking-wide text-muted-foreground";
+
 const MEMBER_ROLES: DelegationRole[] = [
   "attendee_talking",
   "attendee_listening",
@@ -124,25 +127,7 @@ export function MeetingDetailView({
   onEdit?: () => void;
 }) {
   return (
-    <div className="relative p-6">
-      {onEdit && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="icon"
-                className="absolute right-4 top-4 h-8 w-8"
-                onClick={onEdit}
-                aria-label="Edit meeting"
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Edit meeting</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-      )}
+    <div className="p-4">
       <div className="grid gap-6 @[600px]:grid-cols-2">
         <div className="flex flex-col gap-4">
           {(() => {
@@ -155,9 +140,7 @@ export function MeetingDetailView({
               <div className="flex gap-6">
                 {showChampion && (
                   <div>
-                    <p className="text-[0.8rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Champion Level
-                    </p>
+                    <p className={SECTION_LABEL_CLASSNAME}>Champion Level</p>
                     <p className="mt-1 text-sm">
                       {meeting.champion_score != null
                         ? `${meeting.champion_score} – ${CHAMPION_LABELS[meeting.champion_score] ?? "Unknown"}`
@@ -167,9 +150,7 @@ export function MeetingDetailView({
                 )}
                 {showFollowUp && (
                   <div>
-                    <p className="text-[0.8rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                      Follow-up
-                    </p>
+                    <p className={SECTION_LABEL_CLASSNAME}>Follow-up</p>
                     <p className="mt-1 text-sm">
                       {meeting.follow_up_date
                         ? new Date(
@@ -188,9 +169,7 @@ export function MeetingDetailView({
           })()}
           {meeting.notes && (
             <div>
-              <p className="text-[0.8rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                Notes
-              </p>
+              <p className={SECTION_LABEL_CLASSNAME}>Notes</p>
               <div className="mt-1 border-l-4 border-muted pl-3">
                 <p className="text-sm">{meeting.notes}</p>
               </div>
@@ -198,9 +177,7 @@ export function MeetingDetailView({
           )}
           {meeting.links.length > 0 && (
             <div>
-              <p className="text-[0.8rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                Links
-              </p>
+              <p className={SECTION_LABEL_CLASSNAME}>Links</p>
               <ul className="mt-1 flex flex-col gap-1">
                 {meeting.links.map((link) => (
                   <li key={`${link.label}::${link.url}`}>
@@ -226,16 +203,12 @@ export function MeetingDetailView({
         <div className="flex flex-col gap-4">
           {meeting.location && (
             <div>
-              <p className="text-[0.8rem] font-semibold uppercase tracking-wide text-muted-foreground">
-                Location
-              </p>
+              <p className={SECTION_LABEL_CLASSNAME}>Location</p>
               <p className="mt-1 text-sm">{meeting.location}</p>
             </div>
           )}
           <div>
-            <p className="text-[0.8rem] font-semibold uppercase tracking-wide text-muted-foreground">
-              Delegation
-            </p>
+            <p className={SECTION_LABEL_CLASSNAME}>Delegation</p>
             {meeting.delegation_members.length === 0 ? (
               <p className="mt-1 text-sm text-muted-foreground">None</p>
             ) : (
@@ -247,7 +220,7 @@ export function MeetingDetailView({
                     .filter((m) => m.role === role)
                     .map((m) => (
                       <div key={m.id} className="flex flex-col gap-0.5">
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-sm text-muted-foreground">
                           {ROLE_LABELS[m.role]}
                         </span>
                         <span className="flex items-center gap-2">
@@ -281,7 +254,7 @@ export function MeetingDetailView({
                   if (attendees.length === 0) return null;
                   return (
                     <div className="flex flex-col gap-1">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-sm text-muted-foreground">
                         Attendees
                       </span>
                       <div className="flex flex-wrap gap-1.5">
@@ -295,6 +268,14 @@ export function MeetingDetailView({
               </div>
             )}
           </div>
+          {onEdit && (
+            <div className="mt-auto pt-2">
+              <Button variant="outline" onClick={onEdit}>
+                <Pencil className="h-3.5 w-3.5" />
+                Edit Meeting
+              </Button>
+            </div>
+          )}
         </div>
       </div>
     </div>
