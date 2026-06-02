@@ -50,5 +50,5 @@ export function MeetingDetail({ meeting }: { meeting: MeetingRow }) {
     );
   if (!detail) return null;
 
-  return <MeetingDetailView meeting={detail} />;
+  return <MeetingDetailView meeting={detail} onEdit={() => {}} />;
 }
