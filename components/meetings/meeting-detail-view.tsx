@@ -248,9 +248,13 @@ export function MeetingDetailView({
                     )),
                 )}
                 {(() => {
-                  const attendees = meeting.delegation_members.filter((m) =>
-                    MEMBER_ROLES.includes(m.role),
-                  );
+                  const attendees = meeting.delegation_members
+                    .filter((m) => MEMBER_ROLES.includes(m.role))
+                    .sort(
+                      (a, b) =>
+                        MEMBER_ROLES.indexOf(a.role) -
+                        MEMBER_ROLES.indexOf(b.role),
+                    );
                   if (attendees.length === 0) return null;
                   return (
                     <div className="flex flex-col gap-1">

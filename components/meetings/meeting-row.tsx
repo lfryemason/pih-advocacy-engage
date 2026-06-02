@@ -37,7 +37,7 @@ export function MeetingRow({
   return (
     <>
       <TableRow
-        className={`cursor-pointer hover:bg-accent${isExpanded ? "bg-accent" : ""}`}
+        className={`cursor-pointer hover:bg-accent ${isExpanded ? "bg-accent" : ""}`}
         onClick={toggle}
       >
         <TableCell>

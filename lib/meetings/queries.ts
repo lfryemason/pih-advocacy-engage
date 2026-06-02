@@ -222,7 +222,7 @@ type RawDetailDelegationMember = {
   profiles: {
     first_name: string | null;
     last_name: string | null;
-    email: string;
+    email: string | null;
   } | null;
 };
 
