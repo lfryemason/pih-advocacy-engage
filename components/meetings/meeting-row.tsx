@@ -15,6 +15,31 @@ function formatDate(isoDate: string): string {
   });
 }
 
+function formatTime(
+  meetingDate: string,
+  time: string,
+  timezone: string,
+): string {
+  const [h, m] = time.split(":").map(Number);
+  const hour12 = h % 12 || 12;
+  const ampm = h < 12 ? "AM" : "PM";
+  const minuteStr = m.toString().padStart(2, "0");
+  let tzAbbr = "";
+  try {
+    const refDate = new Date(`${meetingDate}T12:00:00Z`);
+    tzAbbr =
+      new Intl.DateTimeFormat("en-US", {
+        timeZone: timezone,
+        timeZoneName: "short",
+      })
+        .formatToParts(refDate)
+        .find((p) => p.type === "timeZoneName")?.value ?? "";
+  } catch {}
+  return tzAbbr
+    ? `${hour12}:${minuteStr} ${ampm} ${tzAbbr}`
+    : `${hour12}:${minuteStr} ${ampm}`;
+}
+
 export function MeetingRow({
   meeting,
   isPast = false,
@@ -42,7 +67,15 @@ export function MeetingRow({
         </Button>
       </TableCell>
       <TableCell>{formatDate(meeting.meeting_date)}</TableCell>
-      <TableCell>{meeting.meeting_time ?? "—"}</TableCell>
+      <TableCell>
+        {meeting.meeting_time
+          ? formatTime(
+              meeting.meeting_date,
+              meeting.meeting_time,
+              meeting.meeting_timezone,
+            )
+          : "—"}
+      </TableCell>
       <TableCell className="max-w-0">
         <div className="truncate">
           <Link
