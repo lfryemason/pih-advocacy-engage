@@ -137,7 +137,7 @@ exports[`MeetingDetailView — snapshots > matches snapshot with all fields set 
               >
                 <span
                   aria-hidden="true"
-                  class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold"
+                  class="flex shrink-0 items-center justify-center rounded-full text-xs font-semibold h-7 w-7 bg-muted text-foreground"
                 >
                   AS
                 </span>
@@ -171,7 +171,7 @@ exports[`MeetingDetailView — snapshots > matches snapshot with all fields set 
               >
                 <span
                   aria-hidden="true"
-                  class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold"
+                  class="flex shrink-0 items-center justify-center rounded-full text-xs font-semibold h-7 w-7 bg-muted text-foreground"
                 >
                   BJ
                 </span>

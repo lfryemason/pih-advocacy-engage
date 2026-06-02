@@ -1,3 +1,22 @@
+export function formatDate(isoDate: string): string {
+  return new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+export function initials(name: string): string {
+  return name
+    .split(" ")
+    .map((p) => p[0] ?? "")
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+export const LINK_CN = "text-primary-dark underline-offset-4 hover:underline";
+
 export function formatTime(
   meetingDate: string,
   time: string | null,

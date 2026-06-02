@@ -120,6 +120,11 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
           </svg>
         </td>
       </tr>
+      <tr
+        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted hidden"
+        data-slot="table-row"
+        id="meeting-detail-id-1"
+      />
     </tbody>
   </table>
 </DocumentFragment>
@@ -218,6 +223,11 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
           data-slot="table-cell"
         />
       </tr>
+      <tr
+        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted hidden"
+        data-slot="table-row"
+        id="meeting-detail-id-1"
+      />
     </tbody>
   </table>
 </DocumentFragment>
@@ -317,6 +327,11 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without is
           Alice Lead
         </td>
       </tr>
+      <tr
+        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted hidden"
+        data-slot="table-row"
+        id="meeting-detail-id-1"
+      />
     </tbody>
   </table>
 </DocumentFragment>
@@ -511,6 +526,11 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
               —
             </td>
           </tr>
+          <tr
+            class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted hidden"
+            data-slot="table-row"
+            id="meeting-detail-id-1"
+          />
         </tbody>
       </table>
     </div>

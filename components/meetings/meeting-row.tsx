@@ -6,16 +6,8 @@ import { ChevronDown, ChevronRight, CircleCheckBig } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
-import { formatTime } from "@/lib/meetings/format";
+import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
-
-function formatDate(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
 
 export function MeetingRow({
   meeting,
@@ -25,14 +17,10 @@ export function MeetingRow({
   isPast?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [hasExpanded, setHasExpanded] = useState(false);
   const colSpan = isPast ? 8 : 7;
   const detailRowId = `meeting-detail-${meeting.id}`;
 
-  const toggle = () => {
-    setHasExpanded(true);
-    setIsExpanded((v) => !v);
-  };
+  const toggle = () => setIsExpanded((v) => !v);
 
   return (
     <>
@@ -73,7 +61,7 @@ export function MeetingRow({
           <div className="truncate">
             <Link
               href={`/representatives/${meeting.representative_bioguide_id}`}
-              className="text-primary-dark underline-offset-4 hover:underline"
+              className={LINK_CN}
               onClick={(e) => e.stopPropagation()}
             >
               {meeting.representative_district === null ? "Sen. " : "Rep. "}
@@ -98,7 +86,7 @@ export function MeetingRow({
           {meeting.primary_team_slug ? (
             <Link
               href={`/teams/${meeting.primary_team_slug}`}
-              className="block truncate text-primary-dark underline-offset-4 hover:underline"
+              className={`block truncate ${LINK_CN}`}
               onClick={(e) => e.stopPropagation()}
             >
               {meeting.primary_team_name}
@@ -122,17 +110,16 @@ export function MeetingRow({
           </TableCell>
         )}
       </TableRow>
-      {hasExpanded && (
-        <TableRow
-          id={detailRowId}
-          className="hover:bg-background"
-          hidden={!isExpanded}
-        >
+      <TableRow
+        id={detailRowId}
+        className={isExpanded ? "hover:bg-background" : "hidden"}
+      >
+        {isExpanded && (
           <TableCell colSpan={colSpan} className="whitespace-normal p-0">
             <MeetingDetail meeting={meeting} />
           </TableCell>
-        </TableRow>
-      )}
+        )}
+      </TableRow>
     </>
   );
 }

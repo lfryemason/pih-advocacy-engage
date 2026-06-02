@@ -1,6 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  type ComponentPropsWithoutRef,
+} from "react";
+import { cn } from "@/lib/utils";
 import { ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +20,12 @@ import type {
   DelegationMember,
   DelegationRole,
 } from "@/lib/meetings/types";
-import { formatTime } from "@/lib/meetings/format";
+import {
+  formatDate,
+  formatTime,
+  initials,
+  LINK_CN,
+} from "@/lib/meetings/format";
 
 const ROLE_LABELS: Record<DelegationRole, string> = {
   scheduling_lead: "Scheduling Lead",
@@ -72,13 +83,16 @@ function MemberAvatar({ member }: { member: DelegationMember }) {
           <button
             ref={buttonRef}
             type="button"
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold ${colorClass}`}
+            className="shrink-0 rounded-full"
             onMouseEnter={() => setHovered(true)}
             onMouseLeave={() => setHovered(false)}
             onClick={() => setClicked((v) => !v)}
             aria-label={`${member.display_name} — ${ROLE_LABELS[member.role]}`}
           >
-            {initials(member.display_name)}
+            <MemberInitialsCircle
+              name={member.display_name}
+              colorClass={colorClass}
+            />
           </button>
         </TooltipTrigger>
         <TooltipContent
@@ -111,13 +125,28 @@ const CHAMPION_LABELS: Record<number, string> = {
   5: "Champion",
 };
 
-function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((p) => p[0] ?? "")
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+function MemberInitialsCircle({
+  name,
+  colorClass = "bg-muted text-foreground",
+  size = "md",
+  ...props
+}: ComponentPropsWithoutRef<"span"> & {
+  name: string;
+  colorClass?: string;
+  size?: "sm" | "md";
+}) {
+  return (
+    <span
+      className={cn(
+        "flex shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+        size === "sm" ? "h-7 w-7" : "h-8 w-8",
+        colorClass,
+      )}
+      {...props}
+    >
+      {initials(name)}
+    </span>
+  );
 }
 
 export function MeetingDetailView({
@@ -154,13 +183,7 @@ export function MeetingDetailView({
                     <p className={SECTION_LABEL_CLASSNAME}>Follow-up</p>
                     <p className="mt-1 text-sm">
                       {meeting.follow_up_date
-                        ? new Date(
-                            meeting.follow_up_date + "T00:00:00",
-                          ).toLocaleDateString("en-US", {
-                            month: "short",
-                            day: "numeric",
-                            year: "numeric",
-                          })
+                        ? formatDate(meeting.follow_up_date)
                         : "—"}
                     </p>
                   </div>
@@ -186,7 +209,10 @@ export function MeetingDetailView({
                       href={link.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 text-sm text-primary-dark underline-offset-4 hover:underline"
+                      className={cn(
+                        "inline-flex items-center gap-1 text-sm",
+                        LINK_CN,
+                      )}
                     >
                       <ExternalLink
                         aria-hidden="true"
@@ -237,12 +263,11 @@ export function MeetingDetailView({
                           {ROLE_LABELS[m.role]}
                         </span>
                         <span className="flex items-center gap-2">
-                          <span
+                          <MemberInitialsCircle
+                            name={m.display_name}
+                            size="sm"
                             aria-hidden="true"
-                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold"
-                          >
-                            {initials(m.display_name)}
-                          </span>
+                          />
                           <span className="min-w-0 flex-1">
                             <span className="text-sm font-medium">
                               {m.display_name}
