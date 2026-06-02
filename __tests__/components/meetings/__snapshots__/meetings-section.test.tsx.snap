@@ -5,7 +5,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
   <table>
     <tbody>
       <tr
-        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+        class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer has-aria-expanded:bg-accent hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -102,6 +102,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
             class="lucide lucide-circle-check-big m-auto h-4 w-4 text-green-600"
             fill="none"
             height="24"
+            role="img"
             stroke="currentColor"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -129,7 +130,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
   <table>
     <tbody>
       <tr
-        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+        class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer has-aria-expanded:bg-accent hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -227,7 +228,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without is
   <table>
     <tbody>
       <tr
-        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+        class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer has-aria-expanded:bg-accent hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -426,7 +427,7 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
           data-slot="table-body"
         >
           <tr
-            class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+            class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer has-aria-expanded:bg-accent hover:bg-accent"
             data-slot="table-row"
           >
             <td

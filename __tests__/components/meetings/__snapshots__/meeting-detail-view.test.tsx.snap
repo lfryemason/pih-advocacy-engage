@@ -3,10 +3,10 @@
 exports[`MeetingDetailView — snapshots > matches snapshot with all fields set 1`] = `
 <DocumentFragment>
   <div
-    class="border-t p-6"
+    class="border-t p-6 @container"
   >
     <div
-      class="grid gap-6 sm:grid-cols-2"
+      class="grid gap-6 @[600px]:grid-cols-2"
     >
       <div
         class="flex flex-col gap-4"
@@ -219,10 +219,10 @@ exports[`MeetingDetailView — snapshots > matches snapshot with all fields set 
 exports[`MeetingDetailView — snapshots > matches snapshot with minimal fields (no optional data) 1`] = `
 <DocumentFragment>
   <div
-    class="border-t p-6"
+    class="border-t p-6 @container"
   >
     <div
-      class="grid gap-6 sm:grid-cols-2"
+      class="grid gap-6 @[600px]:grid-cols-2"
     >
       <div
         class="flex flex-col gap-4"

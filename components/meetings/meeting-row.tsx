@@ -6,6 +6,7 @@ import { ChevronDown, ChevronRight, CircleCheckBig } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
+import { formatTime } from "@/lib/meetings/format";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
 
 function formatDate(isoDate: string): string {
@@ -16,31 +17,6 @@ function formatDate(isoDate: string): string {
   });
 }
 
-function formatTime(
-  meetingDate: string,
-  time: string,
-  timezone: string,
-): string {
-  const [h, m] = time.split(":").map(Number);
-  const hour12 = h % 12 || 12;
-  const ampm = h < 12 ? "AM" : "PM";
-  const minuteStr = m.toString().padStart(2, "0");
-  let tzAbbr = "";
-  try {
-    const refDate = new Date(`${meetingDate}T12:00:00Z`);
-    tzAbbr =
-      new Intl.DateTimeFormat("en-US", {
-        timeZone: timezone,
-        timeZoneName: "short",
-      })
-        .formatToParts(refDate)
-        .find((p) => p.type === "timeZoneName")?.value ?? "";
-  } catch {}
-  return tzAbbr
-    ? `${hour12}:${minuteStr} ${ampm} ${tzAbbr}`
-    : `${hour12}:${minuteStr} ${ampm}`;
-}
-
 export function MeetingRow({
   meeting,
   isPast = false,
@@ -49,14 +25,20 @@ export function MeetingRow({
   isPast?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [hasExpanded, setHasExpanded] = useState(false);
   const colSpan = isPast ? 8 : 7;
   const detailRowId = `meeting-detail-${meeting.id}`;
+
+  const toggle = () => {
+    setHasExpanded(true);
+    setIsExpanded((v) => !v);
+  };
 
   return (
     <>
       <TableRow
-        className={`cursor-pointer ${isExpanded ? "bg-accent hover:bg-accent" : "hover:bg-accent"}`}
-        onClick={() => setIsExpanded((v) => !v)}
+        className={`has-aria-expanded:bg-accent cursor-pointer hover:bg-accent${isExpanded ? "bg-accent" : ""}`}
+        onClick={toggle}
       >
         <TableCell>
           <Button
@@ -65,6 +47,10 @@ export function MeetingRow({
             aria-label={`Expand meeting with ${meeting.representative_name}`}
             aria-expanded={isExpanded}
             aria-controls={detailRowId}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggle();
+            }}
           >
             {isExpanded ? (
               <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
@@ -128,6 +114,7 @@ export function MeetingRow({
           <TableCell className="text-center">
             {meeting.follow_up_date ? (
               <CircleCheckBig
+                role="img"
                 aria-label="Follow-up sent"
                 className="m-auto h-4 w-4 text-green-600"
               />
@@ -135,9 +122,13 @@ export function MeetingRow({
           </TableCell>
         )}
       </TableRow>
-      {isExpanded && (
-        <TableRow id={detailRowId} className="hover:bg-background">
-          <TableCell colSpan={colSpan} className="p-0">
+      {hasExpanded && (
+        <TableRow
+          id={detailRowId}
+          className="hover:bg-background"
+          hidden={!isExpanded}
+        >
+          <TableCell colSpan={colSpan} className="whitespace-normal p-0">
             <MeetingDetail meeting={meeting} />
           </TableCell>
         </TableRow>
