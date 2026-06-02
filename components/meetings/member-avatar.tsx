@@ -50,7 +50,8 @@ export function MemberAvatar({ member }: { member: DelegationMember }) {
             aria-label={`${member.display_name} — ${ROLE_LABELS[member.role]}`}
           >
             <AvatarInitialsCircle
-              name={member.display_name}
+              firstName={member.first_name}
+              lastName={member.last_name}
               colorClass={colorClass}
             />
           </button>

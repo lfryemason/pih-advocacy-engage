@@ -6,13 +6,8 @@ export function formatDate(isoDate: string): string {
   });
 }
 
-export function initials(name: string): string {
-  return name
-    .split(" ")
-    .map((p) => p[0] ?? "")
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+export function initials(firstName: string, lastName: string): string {
+  return ((firstName[0] ?? "") + (lastName[0] ?? "")).toUpperCase();
 }
 
 export const LINK_CN = "text-primary-dark underline-offset-4 hover:underline";

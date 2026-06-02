@@ -3,11 +3,13 @@ import { cn } from "@/lib/utils";
 import { initials } from "@/lib/meetings/format";
 
 export function AvatarInitialsCircle({
-  name,
+  firstName,
+  lastName,
   colorClass = "bg-muted text-foreground",
   ...props
 }: ComponentPropsWithoutRef<"span"> & {
-  name: string;
+  firstName: string;
+  lastName: string;
   colorClass?: string;
   size?: "sm" | "md";
 }) {
@@ -20,7 +22,7 @@ export function AvatarInitialsCircle({
       )}
       {...props}
     >
-      {initials(name)}
+      {initials(firstName, lastName)}
     </span>
   );
 }

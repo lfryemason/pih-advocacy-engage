@@ -32,7 +32,11 @@ function DelegationMemberRow({ member }: { member: DelegationMember }) {
         {ROLE_LABELS[member.role]}
       </span>
       <span className="flex items-center gap-2">
-        <AvatarInitialsCircle name={member.display_name} aria-hidden="true" />
+        <AvatarInitialsCircle
+          firstName={member.first_name}
+          lastName={member.last_name}
+          aria-hidden="true"
+        />
         <span className="min-w-0 flex-1">
           <span className="text-sm font-medium">{member.display_name}</span>
           {member.email && (

@@ -269,6 +269,8 @@ export async function fetchMeetingDetail(
     row.meeting_delegation_members.map((m) => ({
       id: m.id,
       user_id: m.user_id,
+      first_name: m.profiles?.first_name ?? "",
+      last_name: m.profiles?.last_name ?? "",
       display_name: m.profiles
         ? [m.profiles.first_name, m.profiles.last_name]
             .filter(Boolean)
