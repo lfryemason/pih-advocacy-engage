@@ -178,6 +178,7 @@ describe("MeetingDetailView — delegation", () => {
               id: "dm-1",
               user_id: "u-1",
               display_name: "Alice Smith",
+              email: "alice@example.com",
               role: "scheduling_lead",
               team_id: null,
               team_name_snapshot: null,
@@ -186,6 +187,7 @@ describe("MeetingDetailView — delegation", () => {
               id: "dm-2",
               user_id: "u-2",
               display_name: "Bob Jones",
+              email: null,
               role: "attendee_talking",
               team_id: null,
               team_name_snapshot: null,
@@ -197,8 +199,76 @@ describe("MeetingDetailView — delegation", () => {
     );
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
     expect(screen.getByText(/Scheduling Lead/i)).toBeInTheDocument();
-    expect(screen.getByText("Bob Jones")).toBeInTheDocument();
-    expect(screen.getByText(/Attendee \(Talking\)/i)).toBeInTheDocument();
+    // attendee_talking renders as a labeled avatar button, not visible text
+    expect(
+      screen.getByRole("button", { name: /Bob Jones.*Attendee \(Talking\)/i }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows email for scheduling_lead when present", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              display_name: "Alice Smith",
+              email: "alice@example.com",
+              role: "scheduling_lead",
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/alice@example\.com/)).toBeInTheDocument();
+  });
+
+  it("shows email for pih_team_member when present", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              display_name: "Carol Pih",
+              email: "carol@example.com",
+              role: "pih_team_member",
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/carol@example\.com/)).toBeInTheDocument();
+  });
+
+  it("does not show email for attendee roles", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              display_name: "Bob Jones",
+              email: "bob@example.com",
+              role: "attendee_talking",
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.queryByText(/bob@example\.com/)).not.toBeInTheDocument();
   });
 
   it("shows None when delegation is empty", () => {
@@ -209,66 +279,6 @@ describe("MeetingDetailView — delegation", () => {
       />,
     );
     expect(screen.getByText("None")).toBeInTheDocument();
-  });
-});
-
-describe("MeetingDetailView — PIH Team Member sub-section", () => {
-  it("shows PIH Team Member section only for pih_team_member role", () => {
-    render(
-      <MeetingDetailView
-        meeting={makeMeeting({
-          delegation_members: [
-            {
-              id: "dm-1",
-              user_id: "u-1",
-              display_name: "Carol Pih",
-              role: "pih_team_member",
-              team_id: null,
-              team_name_snapshot: null,
-            },
-            {
-              id: "dm-2",
-              user_id: "u-2",
-              display_name: "Dave Note",
-              role: "note_taker",
-              team_id: null,
-              team_name_snapshot: null,
-            },
-          ],
-        })}
-        onEdit={vi.fn()}
-      />,
-    );
-    const headings = screen.getAllByText(/PIH Team Member/i);
-    expect(headings.length).toBeGreaterThanOrEqual(1);
-    // Carol appears in both Delegation list and PIH Team Member sub-section
-    expect(screen.getAllByText("Carol Pih")).toHaveLength(2);
-    // Dave only appears in Delegation
-    expect(screen.getAllByText("Dave Note")).toHaveLength(1);
-  });
-
-  it("omits PIH Team Member sub-section when no pih_team_member role", () => {
-    render(
-      <MeetingDetailView
-        meeting={makeMeeting({
-          delegation_members: [
-            {
-              id: "dm-1",
-              user_id: "u-1",
-              display_name: "Eve Attendee",
-              role: "attendee_listening",
-              team_id: null,
-              team_name_snapshot: null,
-            },
-          ],
-        })}
-        onEdit={vi.fn()}
-      />,
-    );
-    // Only one "PIH Team Member" label: in the full delegation list role column
-    expect(
-      screen.queryByText(/PIH Team Member/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
   });
 });
 
@@ -332,6 +342,7 @@ describe("MeetingDetailView — snapshots", () => {
               id: "dm-1",
               user_id: "u-1",
               display_name: "Alice Smith",
+              email: "alice@example.com",
               role: "scheduling_lead",
               team_id: null,
               team_name_snapshot: "Team A",
@@ -340,6 +351,7 @@ describe("MeetingDetailView — snapshots", () => {
               id: "dm-2",
               user_id: "u-2",
               display_name: "Bob Jones",
+              email: "bob@example.com",
               role: "pih_team_member",
               team_id: null,
               team_name_snapshot: "Team B",

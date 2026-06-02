@@ -36,6 +36,7 @@ export type DelegationMember = {
   id: string;
   user_id: string;
   display_name: string;
+  email: string | null;
   role: DelegationRole;
   team_id: string | null;
   team_name_snapshot: string | null;

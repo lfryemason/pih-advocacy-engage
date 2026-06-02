@@ -354,7 +354,7 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
       Upcoming Meetings
     </h2>
     <div
-      class="relative w-full overflow-x-auto rounded-md border"
+      class="relative w-full overflow-x-auto rounded-md border @container"
       data-slot="table-container"
     >
       <table
