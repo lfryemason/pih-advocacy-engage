@@ -11,11 +11,12 @@ import {
   PanelLeftOpen,
   Landmark,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import logo from "@/app/assets/engage-logo.png";
 import React from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
 
 function NavLink({
   href,
@@ -28,11 +29,21 @@ function NavLink({
   icon: React.ComponentType<{ size: number }>;
   isCollapsed: boolean;
 }) {
+  const pathname = usePathname();
+  const isActive = pathname === href || pathname.startsWith(href + "/");
+
   return (
     <Link
       href={href}
       aria-label={label}
-      className={`flex w-full items-center gap-3 border-b border-border py-3 hover:bg-accent ${isCollapsed ? "justify-center px-0" : "px-6"}`}
+      aria-current={isActive ? "page" : undefined}
+      className={cn(
+        "flex w-full items-center gap-3 border-b border-border py-3",
+        isCollapsed ? "justify-center px-0" : "px-6",
+        isActive
+          ? "bg-primary font-semibold text-primary-foreground underline hover:bg-primary"
+          : "hover:bg-accent hover:text-accent-foreground",
+      )}
     >
       <Icon size={20} />
       {!isCollapsed && <span className="text-sm">{label}</span>}
