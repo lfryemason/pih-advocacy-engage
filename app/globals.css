@@ -112,3 +112,38 @@
     @apply bg-background text-foreground;
   }
 }
+
+/*
+ * High-contrast theme: decorative accents (table headers, party/type badges,
+ * status icons) use fixed Tailwind palette colors that ignore the semantic
+ * theme tokens, so they stay colorful in high-contrast mode. Force them to
+ * pure black/white so the theme is fully monochrome.
+ *
+ * NOTE: this is a targeted override of the specific accent colors in use. The
+ * cleaner long-term fix is to route these accents through semantic theme
+ * tokens; until then, new colored chrome must be added here.
+ */
+
+/* Colored table headers paint the <tr> via `[&_tr]:bg-*`, so target that row
+   directly (covers teal/pink/orange overrides and the default bg-primary). */
+.high-contrast thead tr {
+  background-color: hsl(0 0% 0%) !important;
+  color: hsl(0 0% 100%) !important;
+}
+
+/* Filled accent badges/backgrounds applied directly to an element. The
+   substring match also catches the `hover:` variants of the same colors. */
+.high-contrast :is(
+  [class*="bg-blue-100"],
+  [class*="bg-green-100"],
+  [class*="bg-red-100"],
+  [class*="bg-purple-100"]
+) {
+  background-color: hsl(0 0% 0%) !important;
+  color: hsl(0 0% 100%) !important;
+}
+
+/* Standalone accent icons/text (e.g. follow-up check). */
+.high-contrast [class*="text-green-600"] {
+  color: hsl(0 0% 0%) !important;
+}

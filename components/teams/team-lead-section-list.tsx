@@ -34,7 +34,7 @@ export function TeamLeadSectionList({
             <TableHead>Role</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
-            <TableHead>Meetings this year</TableHead>
+            <TableHead>Meetings in Last Year</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

@@ -5,9 +5,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
-import { TYPE_LABELS } from "@/lib/teams";
+import { TYPE_BADGE_CLASS, TYPE_LABELS } from "@/lib/teams";
 import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
 import {
   TeamMemberList,
@@ -15,6 +17,7 @@ import {
 } from "@/components/teams/team-member-list";
 import { TeamLeadSectionList } from "@/components/teams/team-lead-section-list";
 import { TeamRepList } from "@/components/teams/team-rep-list";
+import { TeamMeetingsSection } from "@/components/teams/team-meetings-section";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
 type Team = Tables<"teams">;
@@ -68,13 +71,22 @@ export function TeamPageClient({
           <Link href="/teams">← Teams</Link>
         </Button>
       </div>
-      <div className="mt-4 flex items-start justify-between">
+      <Card className="mt-4 flex items-start justify-between p-6">
         <div>
-          <h1 className="text-2xl font-bold">{team.name}</h1>
-          <p className="mt-1 text-muted-foreground">
-            {TYPE_LABELS[team.type as keyof typeof TYPE_LABELS] ?? team.type}
-            {team.founded_date && ` — Founded ${team.founded_date}`}
-          </p>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">{team.name}</h1>
+            <Badge
+              variant="outline"
+              className={TYPE_BADGE_CLASS[team.type] ?? ""}
+            >
+              {TYPE_LABELS[team.type as keyof typeof TYPE_LABELS] ?? team.type}
+            </Badge>
+          </div>
+          {team.founded_date && (
+            <p className="mt-1 text-muted-foreground">
+              Founded {team.founded_date}
+            </p>
+          )}
           <p className="mt-1 text-muted-foreground">
             {US_STATES.find((s) => s.code === team.state)?.name ?? team.state}
             {team.congressional_districts.length > 0 && (
@@ -137,7 +149,7 @@ export function TeamPageClient({
             </p>
           )}
         </div>
-      </div>
+      </Card>
       <TeamLeadSectionList
         memberships={memberships}
         meetingCounts={meetingCounts}
@@ -146,6 +158,7 @@ export function TeamPageClient({
         state={team.state}
         congressionalDistricts={team.congressional_districts}
       />
+      <TeamMeetingsSection teamId={team.id} />
       <TeamMemberList memberships={memberships} meetingCounts={meetingCounts} />
     </>
   );
