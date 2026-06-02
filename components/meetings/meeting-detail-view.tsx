@@ -1,120 +1,16 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useRef,
-  type ComponentPropsWithoutRef,
-} from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import type {
-  MeetingDetail,
-  DelegationMember,
-  DelegationRole,
-} from "@/lib/meetings/types";
-import {
-  formatDate,
-  formatTime,
-  initials,
-  LINK_CN,
-} from "@/lib/meetings/format";
-
-const ROLE_LABELS: Record<DelegationRole, string> = {
-  scheduling_lead: "Scheduling Lead",
-  attendee_talking: "Attendee (Talking)",
-  attendee_listening: "Attendee (Listening)",
-  pih_team_member: "PIH Team Member",
-  note_taker: "Note Taker",
-};
-
-const MEMBER_ROLE_COLORS: Partial<Record<DelegationRole, string>> = {
-  attendee_talking: "bg-blue-500 text-white",
-  attendee_listening: "bg-violet-500 text-white",
-  note_taker: "bg-amber-500 text-white",
-};
+import type { MeetingDetail, DelegationRole } from "@/lib/meetings/types";
+import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
+import { MEMBER_ROLES, ROLE_LABELS } from "@/lib/meetings/meeting-roles";
+import { MemberAvatar } from "@/components/meetings/member-avatar";
+import { AvatarInitialsCircle } from "@/components/ui/avatar-initials-circle";
 
 const SECTION_LABEL_CLASSNAME =
   "font-semibold uppercase tracking-wide text-muted-foreground";
-
-const MEMBER_ROLES: DelegationRole[] = [
-  "attendee_talking",
-  "attendee_listening",
-  "note_taker",
-];
-
-function MemberAvatar({ member }: { member: DelegationMember }) {
-  const [clicked, setClicked] = useState(false);
-  const [hovered, setHovered] = useState(false);
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const colorClass =
-    MEMBER_ROLE_COLORS[member.role] ?? "bg-muted text-foreground";
-
-  useEffect(() => {
-    if (!clicked) return;
-    function handleClose(e: MouseEvent | KeyboardEvent) {
-      if (e instanceof KeyboardEvent) {
-        if (e.key === "Escape") setClicked(false);
-        return;
-      }
-      if (buttonRef.current && !buttonRef.current.contains(e.target as Node)) {
-        setClicked(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClose);
-    document.addEventListener("keydown", handleClose);
-    return () => {
-      document.removeEventListener("mousedown", handleClose);
-      document.removeEventListener("keydown", handleClose);
-    };
-  }, [clicked]);
-
-  return (
-    <TooltipProvider>
-      <Tooltip open={hovered || clicked}>
-        <TooltipTrigger asChild>
-          <button
-            ref={buttonRef}
-            type="button"
-            className="shrink-0 rounded-full"
-            onMouseEnter={() => setHovered(true)}
-            onMouseLeave={() => setHovered(false)}
-            onClick={() => setClicked((v) => !v)}
-            aria-label={`${member.display_name} — ${ROLE_LABELS[member.role]}`}
-          >
-            <MemberInitialsCircle
-              name={member.display_name}
-              colorClass={colorClass}
-            />
-          </button>
-        </TooltipTrigger>
-        <TooltipContent
-          side="top"
-          className="max-w-48 bg-accent text-accent-foreground"
-          arrowClassName="bg-accent fill-accent"
-        >
-          <p className="text-sm font-bold">{ROLE_LABELS[member.role]}</p>
-          <p className="text-sm font-medium">{member.display_name}</p>
-          {member.email && (
-            <a
-              href={`mailto:${member.email}`}
-              className="text-sm italic underline-offset-4 hover:underline"
-            >
-              {member.email}
-            </a>
-          )}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-}
 
 const CHAMPION_LABELS: Record<number, string> = {
   0: "Opposed",
@@ -124,30 +20,6 @@ const CHAMPION_LABELS: Record<number, string> = {
   4: "Advocate",
   5: "Champion",
 };
-
-function MemberInitialsCircle({
-  name,
-  colorClass = "bg-muted text-foreground",
-  size = "md",
-  ...props
-}: ComponentPropsWithoutRef<"span"> & {
-  name: string;
-  colorClass?: string;
-  size?: "sm" | "md";
-}) {
-  return (
-    <span
-      className={cn(
-        "flex shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-        size === "sm" ? "h-7 w-7" : "h-8 w-8",
-        colorClass,
-      )}
-      {...props}
-    >
-      {initials(name)}
-    </span>
-  );
-}
 
 export function MeetingDetailView({
   meeting,
@@ -263,9 +135,8 @@ export function MeetingDetailView({
                           {ROLE_LABELS[m.role]}
                         </span>
                         <span className="flex items-center gap-2">
-                          <MemberInitialsCircle
+                          <AvatarInitialsCircle
                             name={m.display_name}
-                            size="sm"
                             aria-hidden="true"
                           />
                           <span className="min-w-0 flex-1">
