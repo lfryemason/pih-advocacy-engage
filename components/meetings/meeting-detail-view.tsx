@@ -14,6 +14,7 @@ import type {
   DelegationMember,
   DelegationRole,
 } from "@/lib/meetings/types";
+import { formatTime } from "@/lib/meetings/format";
 
 const ROLE_LABELS: Record<DelegationRole, string> = {
   scheduling_lead: "Scheduling Lead",
@@ -201,6 +202,18 @@ export function MeetingDetailView({
         </div>
 
         <div className="flex flex-col gap-4">
+          {meeting.meeting_time && (
+            <div>
+              <p className={SECTION_LABEL_CLASSNAME}>Time</p>
+              <p className="mt-1 text-sm">
+                {formatTime(
+                  meeting.meeting_date,
+                  meeting.meeting_time,
+                  meeting.meeting_timezone,
+                )}
+              </p>
+            </div>
+          )}
           {meeting.location && (
             <div>
               <p className={SECTION_LABEL_CLASSNAME}>Location</p>
