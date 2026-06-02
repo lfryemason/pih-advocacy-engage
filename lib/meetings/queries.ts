@@ -1,6 +1,12 @@
 import { createClient } from "@/lib/supabase/client";
-import { MeetingFilters, MeetingRow } from "@/lib/meetings/types";
+import {
+  MeetingFilters,
+  CreateMeetingValues,
+  LinkFormEntry,
+  MeetingRow,
+} from "@/lib/meetings/types";
 import { localDateString } from "@/lib/utils";
+import { ORG_ID } from "@/lib/org";
 
 type SupabaseBrowserClient = ReturnType<typeof createClient>;
 
@@ -8,6 +14,7 @@ type RawRow = {
   id: string;
   meeting_date: string;
   meeting_time: string | null;
+  meeting_timezone: string;
   representative_id: string;
   congressional_contact_id: string | null;
   primary_team_id: string | null;
@@ -39,6 +46,7 @@ function mapRow(row: RawRow): MeetingRow {
     id: row.id,
     meeting_date: row.meeting_date,
     meeting_time: row.meeting_time,
+    meeting_timezone: row.meeting_timezone,
     representative_id: row.representative_id,
     representative_bioguide_id: rep.bioguide_id,
     representative_name: rep.official_full_name ?? "",
@@ -66,6 +74,7 @@ const SELECT = `
   id,
   meeting_date,
   meeting_time,
+  meeting_timezone,
   representative_id,
   congressional_contact_id,
   primary_team_id,
@@ -145,4 +154,57 @@ export async function fetchMeetings(
     meetings: (data as unknown as RawRow[]).map(mapRow),
     count: count ?? 0,
   };
+}
+
+export async function createMeeting(
+  supabase: SupabaseBrowserClient,
+  values: CreateMeetingValues,
+  rawLinks: LinkFormEntry[],
+  primaryTeamName: string | null = null,
+): Promise<string> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const links = rawLinks.filter((l) => l.label.trim() || l.url.trim());
+
+  const { data, error } = await supabase
+    .from("meetings")
+    .insert({
+      org_id: ORG_ID,
+      meeting_date: values.meeting_date,
+      meeting_time: values.meeting_time,
+      meeting_timezone: values.meeting_timezone,
+      representative_id: values.representative_id,
+      congressional_contact_id: values.congressional_contact_id,
+      primary_team_id: values.primary_team_id,
+      notes: values.notes,
+      location: values.location,
+      links,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  if (!data) throw new Error("Meeting created but ID could not be retrieved");
+
+  const { error: delegationError } = await supabase
+    .from("meeting_delegation_members")
+    .insert({
+      org_id: ORG_ID,
+      meeting_id: data.id,
+      user_id: user.id,
+      role: "scheduling_lead",
+      team_id: values.primary_team_id,
+      team_name_snapshot: primaryTeamName,
+    });
+
+  if (delegationError) {
+    await supabase.from("meetings").delete().eq("id", data.id);
+    throw delegationError;
+  }
+
+  return data.id;
 }

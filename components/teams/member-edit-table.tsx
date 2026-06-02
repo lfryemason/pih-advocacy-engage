@@ -23,7 +23,7 @@ import { Info, X } from "lucide-react";
 
 const ROLE_OPTIONS = [
   { value: "member", label: "Member" },
-  { value: "team_lead", label: "Team Lead" },
+  { value: "team_coordinator", label: "Team Coordinator" },
   { value: "fundraising_lead", label: "Fundraising Lead" },
   { value: "advocacy_lead", label: "Advocacy Lead" },
   { value: "coach", label: "Coach" },
