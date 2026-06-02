@@ -3,7 +3,11 @@
 import { cn } from "@/lib/utils";
 import { ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { MeetingDetail, DelegationRole } from "@/lib/meetings/types";
+import type {
+  MeetingDetail,
+  DelegationMember,
+  DelegationRole,
+} from "@/lib/meetings/types";
 import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
 import { MEMBER_ROLES, ROLE_LABELS } from "@/lib/meetings/meeting-roles";
 import { MemberAvatar } from "@/components/meetings/member-avatar";
@@ -21,6 +25,30 @@ const CHAMPION_LABELS: Record<number, string> = {
   5: "Champion",
 };
 
+function DelegationMemberRow({ member }: { member: DelegationMember }) {
+  return (
+    <div className="flex flex-col gap-0.5">
+      <span className="text-sm text-muted-foreground">
+        {ROLE_LABELS[member.role]}
+      </span>
+      <span className="flex items-center gap-2">
+        <AvatarInitialsCircle name={member.display_name} aria-hidden="true" />
+        <span className="min-w-0 flex-1">
+          <span className="text-sm font-medium">{member.display_name}</span>
+          {member.email && (
+            <a
+              href={`mailto:${member.email}`}
+              className="ml-1.5 text-xs text-muted-foreground underline-offset-4 hover:underline"
+            >
+              {member.email}
+            </a>
+          )}
+        </span>
+      </span>
+    </div>
+  );
+}
+
 export function MeetingDetailView({
   meeting,
   onEdit,
@@ -28,41 +56,38 @@ export function MeetingDetailView({
   meeting: MeetingDetail;
   onEdit?: () => void;
 }) {
+  const isPast = meeting.meeting_date < new Date().toISOString().slice(0, 10);
+  const showChampion = isPast || meeting.champion_score != null;
+  const showFollowUp = isPast || meeting.follow_up_date != null;
+
   return (
     <div className="p-4">
       <div className="grid gap-6 @[600px]:grid-cols-2">
         <div className="flex flex-col gap-4">
-          {(() => {
-            const isPast =
-              meeting.meeting_date < new Date().toISOString().slice(0, 10);
-            const showChampion = isPast || meeting.champion_score != null;
-            const showFollowUp = isPast || meeting.follow_up_date != null;
-            if (!showChampion && !showFollowUp) return null;
-            return (
-              <div className="flex gap-6">
-                {showChampion && (
-                  <div>
-                    <p className={SECTION_LABEL_CLASSNAME}>Champion Level</p>
-                    <p className="mt-1 text-sm">
-                      {meeting.champion_score != null
-                        ? `${meeting.champion_score} – ${CHAMPION_LABELS[meeting.champion_score] ?? "Unknown"}`
-                        : "—"}
-                    </p>
-                  </div>
-                )}
-                {showFollowUp && (
-                  <div>
-                    <p className={SECTION_LABEL_CLASSNAME}>Follow-up</p>
-                    <p className="mt-1 text-sm">
-                      {meeting.follow_up_date
-                        ? formatDate(meeting.follow_up_date)
-                        : "—"}
-                    </p>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+          {(showChampion || showFollowUp) && (
+            <div className="flex gap-6">
+              {showChampion && (
+                <div>
+                  <p className={SECTION_LABEL_CLASSNAME}>Champion Level</p>
+                  <p className="mt-1 text-sm">
+                    {meeting.champion_score != null
+                      ? `${meeting.champion_score} – ${CHAMPION_LABELS[meeting.champion_score] ?? "Unknown"}`
+                      : "—"}
+                  </p>
+                </div>
+              )}
+              {showFollowUp && (
+                <div>
+                  <p className={SECTION_LABEL_CLASSNAME}>Follow-up</p>
+                  <p className="mt-1 text-sm">
+                    {meeting.follow_up_date
+                      ? formatDate(meeting.follow_up_date)
+                      : "—"}
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
           {meeting.notes && (
             <div>
               <p className={SECTION_LABEL_CLASSNAME}>Notes</p>
@@ -129,32 +154,7 @@ export function MeetingDetailView({
                 ).flatMap((role) =>
                   meeting.delegation_members
                     .filter((m) => m.role === role)
-                    .map((m) => (
-                      <div key={m.id} className="flex flex-col gap-0.5">
-                        <span className="text-sm text-muted-foreground">
-                          {ROLE_LABELS[m.role]}
-                        </span>
-                        <span className="flex items-center gap-2">
-                          <AvatarInitialsCircle
-                            name={m.display_name}
-                            aria-hidden="true"
-                          />
-                          <span className="min-w-0 flex-1">
-                            <span className="text-sm font-medium">
-                              {m.display_name}
-                            </span>
-                            {m.email && (
-                              <a
-                                href={`mailto:${m.email}`}
-                                className="ml-1.5 text-xs text-muted-foreground underline-offset-4 hover:underline"
-                              >
-                                {m.email}
-                              </a>
-                            )}
-                          </span>
-                        </span>
-                      </div>
-                    )),
+                    .map((m) => <DelegationMemberRow key={m.id} member={m} />),
                 )}
                 {(() => {
                   const attendees = meeting.delegation_members
