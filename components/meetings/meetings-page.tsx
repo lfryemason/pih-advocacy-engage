@@ -7,6 +7,7 @@ import { fetchMeetings } from "@/lib/meetings/queries";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
 import { MeetingsSection } from "@/components/meetings/meetings-section";
 import { MeetingsFilters } from "@/components/meetings/meetings-filters";
+import { AddMeetingDialog } from "@/components/meetings/create/add-meeting-dialog";
 
 const PAGE_SIZE = 15;
 
@@ -143,7 +144,10 @@ export function MeetingsPage() {
 
   return (
     <div className="flex flex-col p-8">
-      <h1 className="mb-6 text-3xl font-bold">Meetings</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">Meetings</h1>
+        <AddMeetingDialog onCreated={() => loadInitial(filtersRef.current)} />
+      </div>
       <MeetingsFilters
         filters={filters}
         onChange={handleFiltersChange}
