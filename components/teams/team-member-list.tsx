@@ -14,7 +14,7 @@ export type { MembershipWithProfile };
 
 const LEAD_ROLES = [
   "coach",
-  "team_lead",
+  "team_coordinator",
   "fundraising_lead",
   "advocacy_lead",
 ] as const;

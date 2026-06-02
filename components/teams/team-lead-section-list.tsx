@@ -20,7 +20,10 @@ export function TeamLeadSectionList({
         <LeadSection title="Coach" members={byRole["coach"] ?? []} />
       </div>
       <div className="mt-6 flex justify-center">
-        <LeadSection title="Team Lead" members={byRole["team_lead"] ?? []} />
+        <LeadSection
+          title="Team Coordinator"
+          members={byRole["team_coordinator"] ?? []}
+        />
       </div>
       <div className="mt-6 flex justify-center gap-16">
         <LeadSection
