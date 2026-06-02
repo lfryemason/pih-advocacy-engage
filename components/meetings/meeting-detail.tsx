@@ -135,8 +135,9 @@ export function MeetingDetail({
       .select("id, first_name, last_name")
       .eq("representative_id", representativeId)
       .order("last_name")
-      .then(({ data }) => {
+      .then(({ data, error }) => {
         if (cancelled) return;
+        if (error) return;
         const rows = data ?? [];
         setStaffers(rows);
         setCongressionalContactId((prev) =>
@@ -187,13 +188,12 @@ export function MeetingDetail({
       setSaveError("Notes must be 255 characters or fewer.");
       return;
     }
-    const parsedScore =
-      championScore !== "" ? parseInt(championScore, 10) : null;
+    const parsedScore = championScore !== "" ? Number(championScore) : null;
     if (
       parsedScore !== null &&
-      (isNaN(parsedScore) || parsedScore < 0 || parsedScore > 5)
+      (!Number.isInteger(parsedScore) || parsedScore < 0 || parsedScore > 5)
     ) {
-      setSaveError("Champion score must be between 0 and 5.");
+      setSaveError("Champion score must be a whole number between 0 and 5.");
       return;
     }
 
@@ -216,20 +216,16 @@ export function MeetingDetail({
       await updateMeeting(supabase, meeting.id, values, links);
       onSaved();
 
-      let cancelled = false;
+      const savedLinks = links.filter((l) => l.label.trim() || l.url.trim());
+      setInitialLinks(savedLinks);
       fetchMeetingDetail(supabase, meeting.id)
         .then((d) => {
-          if (cancelled) return;
           setDetail(d);
           setInitialLinks(d.links);
         })
         .catch(() => {});
 
       setMode("view");
-
-      return () => {
-        cancelled = true;
-      };
     } catch (err: unknown) {
       setSaveError(
         err instanceof Error ? err.message : "Failed to save meeting",

@@ -66,7 +66,7 @@ export function MeetingRow({
             size="icon"
             aria-label={`Expand meeting with ${meeting.representative_name}`}
             aria-expanded={isExpanded}
-            aria-controls={detailRowId}
+            aria-controls={isExpanded ? detailRowId : undefined}
           >
             {isExpanded ? (
               <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
