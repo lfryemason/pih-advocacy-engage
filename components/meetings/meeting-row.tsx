@@ -56,7 +56,10 @@ export function MeetingRow({
 
   return (
     <>
-      <TableRow>
+      <TableRow
+        className={`cursor-pointer ${isExpanded ? "bg-accent hover:bg-accent" : "hover:bg-accent"}`}
+        onClick={() => setIsExpanded((v) => !v)}
+      >
         <TableCell>
           <Button
             variant="ghost"
@@ -64,7 +67,6 @@ export function MeetingRow({
             aria-label={`Expand meeting with ${meeting.representative_name}`}
             aria-expanded={isExpanded}
             aria-controls={detailRowId}
-            onClick={() => setIsExpanded((v) => !v)}
           >
             {isExpanded ? (
               <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
@@ -88,6 +90,7 @@ export function MeetingRow({
             <Link
               href={`/representatives/${meeting.representative_bioguide_id}`}
               className="text-primary-dark underline-offset-4 hover:underline"
+              onClick={(e) => e.stopPropagation()}
             >
               {meeting.representative_district === null ? "Sen. " : "Rep. "}
               {meeting.representative_name}
@@ -112,6 +115,7 @@ export function MeetingRow({
             <Link
               href={`/teams/${meeting.primary_team_slug}`}
               className="block truncate text-primary-dark underline-offset-4 hover:underline"
+              onClick={(e) => e.stopPropagation()}
             >
               {meeting.primary_team_name}
             </Link>
@@ -134,16 +138,9 @@ export function MeetingRow({
         )}
       </TableRow>
       {isExpanded && (
-        <TableRow id={detailRowId}>
+        <TableRow id={detailRowId} className="hover:bg-background">
           <TableCell colSpan={colSpan} className="p-0">
-            <MeetingDetail
-              meeting={meeting}
-              onSaved={() => {
-                onRefresh();
-                setIsExpanded(false);
-              }}
-              onCollapse={() => setIsExpanded(false)}
-            />
+            <MeetingDetail meeting={meeting} onSaved={onRefresh} />
           </TableCell>
         </TableRow>
       )}

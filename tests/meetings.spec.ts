@@ -185,7 +185,9 @@ test.describe("create meeting", () => {
 });
 
 test.describe("edit meeting", () => {
-  test("expand row shows pre-populated edit form", async ({ page }) => {
+  test("expand row shows read-only detail panel (not edit form)", async ({
+    page,
+  }) => {
     await page.goto("/meetings");
 
     const expandBtn = page
@@ -195,40 +197,58 @@ test.describe("edit meeting", () => {
     await expect(expandBtn).toHaveAttribute("aria-expanded", "true");
 
     await expect(
-      page.getByRole("button", { name: "Save changes" }),
+      page.getByRole("button", { name: /Edit Meeting/i }),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
   });
 
-  test("cancel collapses the row and discards changes", async ({ page }) => {
+  test("clicking Edit Meeting shows the edit form", async ({ page }) => {
     await page.goto("/meetings");
 
     const expandBtn = page
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await expandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
 
-    // Wait for the edit form to load, then mutate a field.
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).toBeVisible();
-    const dateInput = page.getByLabel(/^Date$/).last();
-    const originalDate = await dateInput.inputValue();
-    await dateInput.fill("2055-01-01");
+    await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+  });
 
-    // Cancel — form should collapse and no save should occur.
+  test("cancel from edit returns to read-only panel (row stays expanded)", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+
+    // Wait for edit form to load, mutate a field.
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+    await page
+      .getByLabel(/^Date$/)
+      .last()
+      .fill("2055-01-01");
+
+    // Cancel — should return to read-only panel, row stays expanded.
     await page.getByRole("button", { name: "Cancel" }).click();
-    await expect(expandBtn).toHaveAttribute("aria-expanded", "false");
+
+    await expect(expandBtn).toHaveAttribute("aria-expanded", "true");
+    await expect(
+      page.getByRole("button", { name: /Edit Meeting/i }),
+    ).toBeVisible();
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).not.toBeVisible();
-
-    // Re-expand and confirm the original value is still there.
-    await expandBtn.click();
-    await expect(
-      page.getByRole("button", { name: "Save changes" }),
-    ).toBeVisible();
-    await expect(page.getByLabel(/^Date$/).last()).toHaveValue(originalDate);
   });
 
   test("edit date to future moves meeting to Upcoming section", async ({
@@ -236,29 +256,35 @@ test.describe("edit meeting", () => {
   }) => {
     await page.goto("/meetings");
 
-    // Expand a past meeting row
+    // Expand a past meeting row and enter edit mode
     const pastSection = page.getByLabel("Past Meetings");
     const pastExpandBtn = pastSection
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await pastExpandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
 
-    // Wait for the form to load
+    // Wait for edit form to load
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).toBeVisible();
 
     // Change date to a future date
-    const dateInputs = page.getByLabel(/^Date$/);
-    await dateInputs.last().fill("2099-07-04");
+    await page
+      .getByLabel(/^Date$/)
+      .last()
+      .fill("2099-07-04");
 
     // Save
     await page.getByRole("button", { name: "Save changes" }).click();
 
-    // Wait for the panel to close and list to refresh
+    // Panel returns to read-only and list refreshes
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Edit Meeting/i }),
+    ).toBeVisible();
 
     // Meeting should now appear in Upcoming
     await expect(
@@ -269,19 +295,22 @@ test.describe("edit meeting", () => {
   test("edit date to past moves meeting to Past section", async ({ page }) => {
     await page.goto("/meetings");
 
-    // Expand an upcoming meeting row
+    // Expand an upcoming meeting row and enter edit mode
     const upcomingSection = page.getByLabel("Upcoming Meetings");
     const upcomingExpandBtn = upcomingSection
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await upcomingExpandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
 
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).toBeVisible();
 
-    const dateInputs = page.getByLabel(/^Date$/);
-    await dateInputs.last().fill("2020-01-15");
+    await page
+      .getByLabel(/^Date$/)
+      .last()
+      .fill("2020-01-15");
 
     await page.getByRole("button", { name: "Save changes" }).click();
 

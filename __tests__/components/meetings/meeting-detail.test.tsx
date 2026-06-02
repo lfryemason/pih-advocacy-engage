@@ -73,13 +73,7 @@ describe("MeetingDetail — loading state", () => {
   });
 
   it("shows loading indicator while fetching", () => {
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
-    );
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
     expect(screen.getByRole("status")).toHaveTextContent(
       "Loading meeting details",
     );
@@ -87,11 +81,7 @@ describe("MeetingDetail — loading state", () => {
 
   it("matches snapshot in loading state", () => {
     const { asFragment } = render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
+      <MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />,
     );
     expect(asFragment()).toMatchSnapshot();
   });
@@ -104,90 +94,105 @@ describe("MeetingDetail — error state", () => {
     mockUpdateMeeting.mockResolvedValue(undefined);
   });
 
-  it("shows error message and close button on fetch failure", async () => {
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
-    );
+  it("shows error message on fetch failure", async () => {
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
     await expect(screen.findByRole("alert")).resolves.toHaveTextContent(
       "Network error",
     );
-    expect(screen.getByRole("button", { name: "Close" })).toBeInTheDocument();
   });
 });
 
-describe("MeetingDetail — loaded state", () => {
+describe("MeetingDetail — view mode (default)", () => {
   beforeEach(() => {
     stubEmpty();
     mockFetchMeetingDetail.mockResolvedValue(mockDetail);
     mockUpdateMeeting.mockResolvedValue(undefined);
   });
 
-  it("pre-populates form fields from fetched detail", async () => {
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
-    );
-    expect(await screen.findByDisplayValue("Test notes")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("DC")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("2099-06-01")).toBeInTheDocument();
+  it("shows read-only panel with Edit Meeting button by default", async () => {
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+    expect(
+      await screen.findByRole("button", { name: /Edit Meeting/i }),
+    ).toBeInTheDocument();
   });
 
-  it("pre-populates existing links", async () => {
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
-    );
-    await screen.findByDisplayValue("Test notes");
-    expect(screen.getByLabelText("Link 1 label")).toHaveValue("Agenda");
-    expect(screen.getByLabelText("Link 1 URL")).toHaveValue(
-      "https://example.com",
-    );
+  it("does not show the edit form by default", async () => {
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+    await screen.findByRole("button", { name: /Edit Meeting/i });
+    expect(
+      screen.queryByRole("button", { name: "Save changes" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("cancel calls onCollapse without calling updateMeeting", async () => {
-    const onCollapse = vi.fn();
-    const onSaved = vi.fn();
+  it("shows notes and location from fetched detail", async () => {
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+    await screen.findByRole("button", { name: /Edit Meeting/i });
+    expect(screen.getByText("Test notes")).toBeInTheDocument();
+    expect(screen.getByText("DC")).toBeInTheDocument();
+  });
+
+  it("matches snapshot in view mode", async () => {
+    const { asFragment } = render(
+      <MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />,
+    );
+    await screen.findByRole("button", { name: /Edit Meeting/i });
+    expect(asFragment()).toMatchSnapshot();
+  });
+});
+
+describe("MeetingDetail — mode toggle", () => {
+  beforeEach(() => {
+    stubEmpty();
+    mockFetchMeetingDetail.mockResolvedValue(mockDetail);
+    mockUpdateMeeting.mockResolvedValue(undefined);
+  });
+
+  it("clicking Edit Meeting switches to edit form", async () => {
     const user = userEvent.setup();
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+    const editBtn = await screen.findByRole("button", {
+      name: /Edit Meeting/i,
+    });
+    await user.click(editBtn);
+    expect(
+      await screen.findByRole("button", { name: "Save changes" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Edit Meeting/i }),
+    ).not.toBeInTheDocument();
+  });
 
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={onSaved}
-        onCollapse={onCollapse}
-      />,
-    );
-    await screen.findByDisplayValue("Test notes");
+  it("Cancel from edit returns to read-only panel without calling onSaved", async () => {
+    const user = userEvent.setup();
+    const onSaved = vi.fn();
+    render(<MeetingDetail meeting={makeRow()} onSaved={onSaved} />);
+    const editBtn = await screen.findByRole("button", {
+      name: /Edit Meeting/i,
+    });
+    await user.click(editBtn);
+    await screen.findByRole("button", { name: "Save changes" });
 
     await user.click(screen.getByRole("button", { name: "Cancel" }));
 
-    expect(onCollapse).toHaveBeenCalledOnce();
-    expect(mockUpdateMeeting).not.toHaveBeenCalled();
+    expect(
+      await screen.findByRole("button", { name: /Edit Meeting/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Save changes" }),
+    ).not.toBeInTheDocument();
     expect(onSaved).not.toHaveBeenCalled();
+    expect(mockUpdateMeeting).not.toHaveBeenCalled();
   });
 
-  it("save calls updateMeeting then onSaved and onCollapse", async () => {
-    const onCollapse = vi.fn();
-    const onSaved = vi.fn();
+  it("Save from edit calls updateMeeting and onSaved then returns to read-only", async () => {
     const user = userEvent.setup();
-
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={onSaved}
-        onCollapse={onCollapse}
-      />,
-    );
-    await screen.findByDisplayValue("Test notes");
+    const onSaved = vi.fn();
+    render(<MeetingDetail meeting={makeRow()} onSaved={onSaved} />);
+    const editBtn = await screen.findByRole("button", {
+      name: /Edit Meeting/i,
+    });
+    await user.click(editBtn);
+    await screen.findByRole("button", { name: "Save changes" });
 
     await user.click(screen.getByRole("button", { name: "Save changes" }));
 
@@ -195,19 +200,40 @@ describe("MeetingDetail — loaded state", () => {
       expect(mockUpdateMeeting).toHaveBeenCalledOnce();
     });
     expect(onSaved).toHaveBeenCalledOnce();
-    expect(onCollapse).toHaveBeenCalledOnce();
+    expect(
+      await screen.findByRole("button", { name: /Edit Meeting/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Save changes" }),
+    ).not.toBeInTheDocument();
   });
 
-  it("matches snapshot in loaded state", async () => {
-    const { asFragment } = render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
-    );
+  it("pre-populates form fields from fetched detail after entering edit mode", async () => {
+    const user = userEvent.setup();
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+    const editBtn = await screen.findByRole("button", {
+      name: /Edit Meeting/i,
+    });
+    await user.click(editBtn);
+
+    expect(await screen.findByDisplayValue("Test notes")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("DC")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("2099-06-01")).toBeInTheDocument();
+  });
+
+  it("pre-populates existing links after entering edit mode", async () => {
+    const user = userEvent.setup();
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+    const editBtn = await screen.findByRole("button", {
+      name: /Edit Meeting/i,
+    });
+    await user.click(editBtn);
+
     await screen.findByDisplayValue("Test notes");
-    expect(asFragment()).toMatchSnapshot();
+    expect(screen.getByLabelText("Link 1 label")).toHaveValue("Agenda");
+    expect(screen.getByLabelText("Link 1 URL")).toHaveValue(
+      "https://example.com",
+    );
   });
 });
 
@@ -224,13 +250,12 @@ describe("MeetingDetail — validation: empty date", () => {
 
   it("shows error when date is empty and save is attempted", async () => {
     const user = userEvent.setup();
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
-    );
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+
+    const editBtn = await screen.findByRole("button", {
+      name: /Edit Meeting/i,
+    });
+    await user.click(editBtn);
     await screen.findByRole("button", { name: "Save changes" });
 
     await user.click(screen.getByRole("button", { name: "Save changes" }));
@@ -254,13 +279,12 @@ describe("MeetingDetail — validation: notes too long", () => {
 
   it("shows error when notes exceed 255 characters", async () => {
     const user = userEvent.setup();
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
-    );
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+
+    const editBtn = await screen.findByRole("button", {
+      name: /Edit Meeting/i,
+    });
+    await user.click(editBtn);
     await screen.findByRole("button", { name: "Save changes" });
 
     await user.click(screen.getByRole("button", { name: "Save changes" }));
@@ -284,13 +308,12 @@ describe("MeetingDetail — validation: champion score out of range", () => {
 
   it("shows error when champion score is out of range", async () => {
     const user = userEvent.setup();
-    render(
-      <MeetingDetail
-        meeting={makeRow()}
-        onSaved={vi.fn()}
-        onCollapse={vi.fn()}
-      />,
-    );
+    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
+
+    const editBtn = await screen.findByRole("button", {
+      name: /Edit Meeting/i,
+    });
+    await user.click(editBtn);
     await screen.findByRole("button", { name: "Save changes" });
 
     await user.click(screen.getByRole("button", { name: "Save changes" }));

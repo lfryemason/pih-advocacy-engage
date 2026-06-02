@@ -5,9 +5,11 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchMeetingDetail, updateMeeting } from "@/lib/meetings/queries";
 import {
   MeetingRow,
+  MeetingDetail as MeetingDetailType,
   MeetingFormValues,
   LinkFormEntry,
 } from "@/lib/meetings/types";
+import { MeetingDetailView } from "@/components/meetings/meeting-detail-view";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,15 +42,30 @@ type StafferOption = {
 const textareaClass =
   "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[72px] resize-none";
 
+function formStateFromDetail(d: MeetingDetailType) {
+  return {
+    meetingDate: d.meeting_date,
+    meetingTime: d.meeting_time ?? "",
+    representativeId: d.representative_id,
+    congressionalContactId: d.congressional_contact_id ?? "",
+    primaryTeamId: d.primary_team_id ?? "",
+    location: d.location ?? "",
+    notes: d.notes ?? "",
+    followUpDate: d.follow_up_date ?? "",
+    championScore: d.champion_score != null ? String(d.champion_score) : "",
+    links: d.links,
+  };
+}
+
 export function MeetingDetail({
   meeting,
   onSaved,
-  onCollapse,
 }: {
   meeting: MeetingRow;
   onSaved: () => void;
-  onCollapse: () => void;
 }) {
+  const [mode, setMode] = useState<"view" | "edit">("view");
+  const [detail, setDetail] = useState<MeetingDetailType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
@@ -71,23 +88,25 @@ export function MeetingDetail({
   useEffect(() => {
     let cancelled = false;
     const supabase = createClient();
+    setIsLoading(true);
+    setLoadError(null);
 
     fetchMeetingDetail(supabase, meeting.id)
       .then((d) => {
         if (cancelled) return;
-        setMeetingDate(d.meeting_date);
-        setMeetingTime(d.meeting_time ?? "");
-        setRepresentativeId(d.representative_id);
-        setCongressionalContactId(d.congressional_contact_id ?? "");
-        setPrimaryTeamId(d.primary_team_id ?? "");
-        setLocation(d.location ?? "");
-        setNotes(d.notes ?? "");
-        setFollowUpDate(d.follow_up_date ?? "");
-        setChampionScore(
-          d.champion_score != null ? String(d.champion_score) : "",
-        );
-        setLinks(d.links);
-        setInitialLinks(d.links);
+        setDetail(d);
+        const form = formStateFromDetail(d);
+        setMeetingDate(form.meetingDate);
+        setMeetingTime(form.meetingTime);
+        setRepresentativeId(form.representativeId);
+        setCongressionalContactId(form.congressionalContactId);
+        setPrimaryTeamId(form.primaryTeamId);
+        setLocation(form.location);
+        setNotes(form.notes);
+        setFollowUpDate(form.followUpDate);
+        setChampionScore(form.championScore);
+        setLinks(form.links);
+        setInitialLinks(form.links);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -128,6 +147,28 @@ export function MeetingDetail({
       cancelled = true;
     };
   }, [representativeId]);
+
+  function handleEnterEdit() {
+    setSaveError(null);
+    setMode("edit");
+  }
+
+  function handleCancel() {
+    if (!detail) return;
+    const form = formStateFromDetail(detail);
+    setMeetingDate(form.meetingDate);
+    setMeetingTime(form.meetingTime);
+    setRepresentativeId(form.representativeId);
+    setCongressionalContactId(form.congressionalContactId);
+    setPrimaryTeamId(form.primaryTeamId);
+    setLocation(form.location);
+    setNotes(form.notes);
+    setFollowUpDate(form.followUpDate);
+    setChampionScore(form.championScore);
+    setLinks(form.links);
+    setSaveError(null);
+    setMode("view");
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -174,7 +215,21 @@ export function MeetingDetail({
       const supabase = createClient();
       await updateMeeting(supabase, meeting.id, values, links);
       onSaved();
-      onCollapse();
+
+      let cancelled = false;
+      fetchMeetingDetail(supabase, meeting.id)
+        .then((d) => {
+          if (cancelled) return;
+          setDetail(d);
+          setInitialLinks(d.links);
+        })
+        .catch(() => {});
+
+      setMode("view");
+
+      return () => {
+        cancelled = true;
+      };
     } catch (err: unknown) {
       setSaveError(
         err instanceof Error ? err.message : "Failed to save meeting",
@@ -200,16 +255,12 @@ export function MeetingDetail({
         <p role="alert" className="text-destructive">
           {loadError}
         </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onCollapse}
-          className="mt-2"
-        >
-          Close
-        </Button>
       </div>
     );
+  }
+
+  if (mode === "view" && detail) {
+    return <MeetingDetailView meeting={detail} onEdit={handleEnterEdit} />;
   }
 
   return (
@@ -374,7 +425,7 @@ export function MeetingDetail({
           <Button
             type="button"
             variant="outline"
-            onClick={onCollapse}
+            onClick={handleCancel}
             disabled={isSaving}
           >
             Cancel
