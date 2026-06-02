@@ -5,7 +5,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
   <table>
     <tbody>
       <tr
-        class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer has-aria-expanded:bg-accent hover:bg-accent"
+        class="border-b transition-colors data-[state=selected]:bg-muted has-aria-expanded:bg-accent cursor-pointer hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -130,7 +130,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
   <table>
     <tbody>
       <tr
-        class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer has-aria-expanded:bg-accent hover:bg-accent"
+        class="border-b transition-colors data-[state=selected]:bg-muted has-aria-expanded:bg-accent cursor-pointer hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -228,7 +228,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without is
   <table>
     <tbody>
       <tr
-        class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer has-aria-expanded:bg-accent hover:bg-accent"
+        class="border-b transition-colors data-[state=selected]:bg-muted has-aria-expanded:bg-accent cursor-pointer hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -427,7 +427,7 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
           data-slot="table-body"
         >
           <tr
-            class="border-b transition-colors data-[state=selected]:bg-muted cursor-pointer has-aria-expanded:bg-accent hover:bg-accent"
+            class="border-b transition-colors data-[state=selected]:bg-muted has-aria-expanded:bg-accent cursor-pointer hover:bg-accent"
             data-slot="table-row"
           >
             <td
