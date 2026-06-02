@@ -62,6 +62,11 @@ export type CreateMeetingValues = {
   location: string | null;
 };
 
+export type MeetingFormValues = CreateMeetingValues & {
+  follow_up_date: string | null;
+  champion_score: number | null;
+};
+
 export type LinkFormEntry = MeetingLink;
 
 export type DelegationFormEntry = {

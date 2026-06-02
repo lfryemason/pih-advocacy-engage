@@ -17,6 +17,7 @@ export function MeetingsSection({
   totalCount,
   onShowMore,
   disableLoadMore,
+  onRefresh = () => {},
   isPast = false,
 }: {
   title: string;
@@ -24,6 +25,7 @@ export function MeetingsSection({
   totalCount: number;
   onShowMore: () => void;
   disableLoadMore: boolean;
+  onRefresh?: () => void;
   isPast?: boolean;
 }) {
   const headingId = title.toLowerCase().replace(/\s+/g, "-");
@@ -64,6 +66,7 @@ export function MeetingsSection({
                   key={meeting.id}
                   meeting={meeting}
                   isPast={isPast}
+                  onRefresh={onRefresh}
                 />
               ))}
             </TableBody>
