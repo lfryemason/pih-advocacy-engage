@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -20,12 +22,22 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [pronouns, setPronouns] = useState("");
+  const [state, setState] = useState("");
+  const [district, setDistrict] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setState(e.target.value);
+    setDistrict("");
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,6 +57,13 @@ export function SignUpForm({
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/protected`,
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+            pronouns,
+            state,
+            congressional_district: district || null,
+          },
         },
       });
       if (error) throw error;
@@ -55,6 +74,8 @@ export function SignUpForm({
       setIsLoading(false);
     }
   };
+
+  const districtOptions = getDistrictOptions(state);
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -67,11 +88,41 @@ export function SignUpForm({
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
+                <Label htmlFor="first-name">First Name</Label>
+                <Input
+                  id="first-name"
+                  type="text"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="last-name">Last Name</Label>
+                <Input
+                  id="last-name"
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="pronouns">Pronouns</Label>
+                <Input
+                  id="pronouns"
+                  type="text"
+                  placeholder="e.g. they/them"
+                  value={pronouns}
+                  onChange={(e) => setPronouns(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="m@example.com"
+                  placeholder="email@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -100,6 +151,37 @@ export function SignUpForm({
                   value={repeatPassword}
                   onChange={(e) => setRepeatPassword(e.target.value)}
                 />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="state">State (optional)</Label>
+                <Select id="state" value={state} onChange={handleStateChange}>
+                  <option value="">Select a state</option>
+                  {US_STATES.map((s) => (
+                    <option key={s.code} value={s.code}>
+                      {s.name}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="district">
+                  Congressional District (optional)
+                </Label>
+                <Select
+                  id="district"
+                  value={district}
+                  onChange={(e) => setDistrict(e.target.value)}
+                  disabled={!state}
+                >
+                  <option value="">
+                    {state ? "Select a district" : "Select a state first"}
+                  </option>
+                  {districtOptions.map((d) => (
+                    <option key={d.value} value={d.value}>
+                      {d.label}
+                    </option>
+                  ))}
+                </Select>
               </div>
               {error && <p className="text-sm text-red-500">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>

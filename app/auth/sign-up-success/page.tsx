@@ -1,8 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -27,6 +30,11 @@ export default function Page() {
                 confirm your account before signing in.
               </p>
             </CardContent>
+            <CardFooter>
+              <Button asChild className="w-full">
+                <Link href="/auth/login">Back to login</Link>
+              </Button>
+            </CardFooter>
           </Card>
         </div>
       </div>
