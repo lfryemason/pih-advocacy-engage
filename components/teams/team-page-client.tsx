@@ -6,7 +6,14 @@ import Link from "next/link";
 import { Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
 import { TYPE_BADGE_CLASS, TYPE_LABELS } from "@/lib/teams";
@@ -66,12 +73,20 @@ export function TeamPageClient({
 
   return (
     <>
-      <div>
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/teams">← Teams</Link>
-        </Button>
-      </div>
-      <Card className="mt-4 flex items-start justify-between p-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/teams">Teams</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{team.name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+      <div className="mt-4 flex items-start justify-between">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-2xl font-bold">{team.name}</h1>
@@ -149,7 +164,7 @@ export function TeamPageClient({
             </p>
           )}
         </div>
-      </Card>
+      </div>
       <TeamLeadSectionList
         memberships={memberships}
         meetingCounts={meetingCounts}

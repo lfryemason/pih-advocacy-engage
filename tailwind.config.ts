@@ -1,6 +1,7 @@
 import type { Config } from "tailwindcss";
 import typography from "@tailwindcss/typography";
 import tailwindcssAnimate from "tailwindcss-animate";
+import containerQueries from "@tailwindcss/container-queries";
 
 export default {
   darkMode: ["class"],
@@ -30,6 +31,10 @@ export default {
           dark: "hsl(var(--primary-dark))",
           light: "hsl(var(--primary-light))",
           lighter: "hsl(var(--primary-lighter))",
+        },
+        "nav-active": {
+          DEFAULT: "hsl(var(--nav-active))",
+          foreground: "hsl(var(--nav-active-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -89,5 +94,5 @@ export default {
       },
     },
   },
-  plugins: [tailwindcssAnimate, typography],
+  plugins: [tailwindcssAnimate, typography, containerQueries],
 } satisfies Config;

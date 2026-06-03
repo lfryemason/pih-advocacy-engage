@@ -35,7 +35,10 @@ export type MeetingLink = {
 export type DelegationMember = {
   id: string;
   user_id: string;
+  first_name: string;
+  last_name: string;
   display_name: string;
+  email: string | null;
   role: DelegationRole;
   team_id: string | null;
   team_name_snapshot: string | null;

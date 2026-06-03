@@ -183,3 +183,24 @@ test.describe("create meeting", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("expand meeting", () => {
+  test("expand row shows read-only detail panel (not edit form)", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await expect(expandBtn).toHaveAttribute("aria-expanded", "true");
+
+    await expect(
+      page.getByRole("button", { name: /Edit Meeting/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+  });
+});
