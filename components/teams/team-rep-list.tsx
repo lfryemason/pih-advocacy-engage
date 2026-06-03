@@ -154,7 +154,7 @@ export function TeamRepList({
             prefix="Rep."
             stateLabel="State / District"
             renderLocation={(rep) =>
-              `${rep.state}: ${rep.district === null ? "At-Large" : rep.district}`
+              `${rep.state}/${rep.district === null ? "At-Large" : rep.district}`
             }
           />
           <RepTable
