@@ -52,12 +52,13 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
 
   if (!team) redirect("/teams");
 
-  const { data: rawMemberships } = await supabase
+  const { data: rawMemberships, error: membershipsError } = await supabase
     .from("team_memberships")
     .select(
       "role, user_id, profiles(user_id, first_name, last_name, pronouns, email)",
     )
     .eq("team_id", team.id);
+  if (membershipsError) console.error(membershipsError);
 
   const memberships: MembershipWithProfile[] = (rawMemberships ?? []).map(
     (m) => ({
@@ -77,11 +78,12 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
     const oneYearAgoStr = oneYearAgo.toISOString().slice(0, 10);
 
-    const { data: delegationRows } = await supabase
+    const { data: delegationRows, error: delegationError } = await supabase
       .from("meeting_delegation_members")
       .select("user_id, meetings!inner(meeting_date)")
       .in("user_id", userIds)
       .gte("meetings.meeting_date", oneYearAgoStr);
+    if (delegationError) console.error(delegationError);
 
     for (const row of delegationRows ?? []) {
       meetingCounts[row.user_id] = (meetingCounts[row.user_id] ?? 0) + 1;

@@ -11,41 +11,26 @@ export const TYPE_BADGE_CLASS: Record<string, string> = {
 };
 
 export const ROLE_LABELS: Record<string, string> = {
+  member: "Member",
   team_coordinator: "Team Coordinator",
   advocacy_lead: "Advocacy Lead",
   community_building_lead: "Community Building Lead",
   fundraising_lead: "Fundraising Lead",
   coach: "Coach",
-  member: "Member",
 };
 
-export const LEAD_ROLES = [
-  "team_coordinator",
-  "advocacy_lead",
-  "community_building_lead",
-  "fundraising_lead",
-  "coach",
-] as const;
+const ALL_ROLE_KEYS = Object.keys(ROLE_LABELS);
 
-export const LEADERSHIP_ROLES = (
-  [
-    "team_coordinator",
-    "advocacy_lead",
-    "community_building_lead",
-    "fundraising_lead",
-  ] as const
+export const LEAD_ROLES = ALL_ROLE_KEYS.filter((r) => r !== "member");
+
+export const LEADERSHIP_ROLES = ALL_ROLE_KEYS.filter(
+  (r) => r !== "member" && r !== "coach",
 ).map((role) => ({ role, label: ROLE_LABELS[role] }));
 
-export const ROLE_OPTIONS = (
-  [
-    "member",
-    "team_coordinator",
-    "advocacy_lead",
-    "community_building_lead",
-    "fundraising_lead",
-    "coach",
-  ] as const
-).map((role) => ({ value: role, label: ROLE_LABELS[role] }));
+export const ROLE_OPTIONS = ALL_ROLE_KEYS.map((role) => ({
+  value: role,
+  label: ROLE_LABELS[role],
+}));
 
 export type MembershipWithProfile = {
   role: string;

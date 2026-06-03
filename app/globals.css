@@ -39,6 +39,21 @@
     --ring: 0 0% 3.9%;
     --radius: 0.5rem;
     --bg-muted: 0 0% 100%;
+    --secondary-teal: 182 51% 32%;
+    --secondary-teal-foreground: 0 0% 100%;
+    --secondary-teal-accent: 182 51% 42%;
+    --secondary-magenta: 341 57% 58%;
+    --secondary-magenta-foreground: 0 0% 100%;
+    --secondary-magenta-accent: 341 57% 68%;
+    --secondary-purple: 239 39% 32%;
+    --secondary-purple-foreground: 0 0% 100%;
+    --secondary-purple-accent: 239 39% 42%;
+    --secondary-green: 173 69% 19%;
+    --secondary-green-foreground: 0 0% 100%;
+    --secondary-green-accent: 173 69% 29%;
+    --secondary-yellow: 46 100% 48%;
+    --secondary-yellow-foreground: 0 0% 10%;
+    --secondary-yellow-accent: 46 100% 38%;
   }
   .high-contrast {
     --background: 0 0% 100%;
@@ -70,6 +85,21 @@
     --border: 0 0% 0%;
     --input: 0 0% 0%;
     --ring: 36 100% 40%;
+    --secondary-teal: 0 0% 0%;
+    --secondary-teal-foreground: 0 0% 100%;
+    --secondary-teal-accent: 0 0% 10%;
+    --secondary-magenta: 0 0% 0%;
+    --secondary-magenta-foreground: 0 0% 100%;
+    --secondary-magenta-accent: 0 0% 10%;
+    --secondary-purple: 0 0% 0%;
+    --secondary-purple-foreground: 0 0% 100%;
+    --secondary-purple-accent: 0 0% 10%;
+    --secondary-green: 0 0% 0%;
+    --secondary-green-foreground: 0 0% 100%;
+    --secondary-green-accent: 0 0% 10%;
+    --secondary-yellow: 0 0% 0%;
+    --secondary-yellow-foreground: 0 0% 100%;
+    --secondary-yellow-accent: 0 0% 10%;
   }
   .dark {
     --background: 0 0% 16%;
@@ -101,6 +131,21 @@
     --border: 0 0% 28%;
     --input: 0 0% 28%;
     --ring: 0 0% 83.1%;
+    --secondary-teal: 182 51% 32%;
+    --secondary-teal-foreground: 0 0% 100%;
+    --secondary-teal-accent: 182 51% 42%;
+    --secondary-magenta: 341 57% 50%;
+    --secondary-magenta-foreground: 0 0% 100%;
+    --secondary-magenta-accent: 341 57% 60%;
+    --secondary-purple: 239 39% 40%;
+    --secondary-purple-foreground: 0 0% 100%;
+    --secondary-purple-accent: 239 39% 50%;
+    --secondary-green: 173 69% 25%;
+    --secondary-green-foreground: 0 0% 100%;
+    --secondary-green-accent: 173 69% 35%;
+    --secondary-yellow: 46 100% 45%;
+    --secondary-yellow-foreground: 0 0% 10%;
+    --secondary-yellow-accent: 46 100% 35%;
   }
 }
 
