@@ -177,6 +177,8 @@ describe("MeetingDetailView — delegation", () => {
             {
               id: "dm-1",
               user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
               display_name: "Alice Smith",
               email: "alice@example.com",
               role: "scheduling_lead",
@@ -186,6 +188,8 @@ describe("MeetingDetailView — delegation", () => {
             {
               id: "dm-2",
               user_id: "u-2",
+              first_name: "Bob",
+              last_name: "Jones",
               display_name: "Bob Jones",
               email: null,
               role: "attendee_talking",
@@ -213,6 +217,8 @@ describe("MeetingDetailView — delegation", () => {
             {
               id: "dm-1",
               user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
               display_name: "Alice Smith",
               email: "alice@example.com",
               role: "scheduling_lead",
@@ -235,6 +241,8 @@ describe("MeetingDetailView — delegation", () => {
             {
               id: "dm-1",
               user_id: "u-1",
+              first_name: "Carol",
+              last_name: "Pih",
               display_name: "Carol Pih",
               email: "carol@example.com",
               role: "pih_team_member",
@@ -257,6 +265,8 @@ describe("MeetingDetailView — delegation", () => {
             {
               id: "dm-1",
               user_id: "u-1",
+              first_name: "Bob",
+              last_name: "Jones",
               display_name: "Bob Jones",
               email: "bob@example.com",
               role: "attendee_talking",
@@ -341,6 +351,8 @@ describe("MeetingDetailView — snapshots", () => {
             {
               id: "dm-1",
               user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
               display_name: "Alice Smith",
               email: "alice@example.com",
               role: "scheduling_lead",
@@ -350,6 +362,8 @@ describe("MeetingDetailView — snapshots", () => {
             {
               id: "dm-2",
               user_id: "u-2",
+              first_name: "Bob",
+              last_name: "Jones",
               display_name: "Bob Jones",
               email: "bob@example.com",
               role: "pih_team_member",
