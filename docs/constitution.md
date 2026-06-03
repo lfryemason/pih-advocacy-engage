@@ -18,10 +18,16 @@ primary happy path. Failing E2E tests block merge to main.
 **IV. Accessibility Tests** — Every major feature MUST have axe-core a11y tests (via Playwright)
 asserting zero critical/serious WCAG 2.1 AA violations. Failing a11y tests block merge to main.
 
+**V. Visual Regression Tests** — Every major feature and page MUST have at least one Playwright
+screenshot snapshot test (`expect(page).toHaveScreenshot()`) covering the primary happy path.
+Snapshots are committed to the repository and reviewed as part of the PR diff. Diffs require
+explicit reviewer sign-off before merge. Snapshots are updated intentionally with
+`--update-snapshots`; auto-accepting diffs without inspection is prohibited.
+
 ## CI Gates (all PRs)
 
 - Vitest unit tests pass, ≥80% coverage on new code
-- Playwright E2E + a11y tests pass (major features)
+- Playwright E2E + a11y + visual regression tests pass (major features)
 - TypeScript: zero errors
 - Linter: no new suppressions without justification
 
@@ -31,6 +37,6 @@ No gate may be bypassed, including for hotfixes.
 
 Amendments require a written rationale, team approval, and a semver bump (MAJOR: principle
 removal/redefinition; MINOR: new principle; PATCH: clarification). All PRs verify compliance
-with Principles I–IV.
+with Principles I–V.
 
-**Version**: 2.0.0 | **Ratified**: 2026-05-15 | **Last Amended**: 2026-06-02
+**Version**: 2.1.0 | **Ratified**: 2026-05-15 | **Last Amended**: 2026-06-02
