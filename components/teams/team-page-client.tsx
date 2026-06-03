@@ -4,6 +4,14 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
 import { TYPE_LABELS } from "@/lib/teams";
@@ -57,15 +65,19 @@ export function TeamPageClient({
 
   return (
     <>
-      <div>
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/teams">
-            ← <span className="text-muted-foreground">Teams</span>
-            <span className="mx-1.5 text-muted-foreground">/</span>
-            {team.name}
-          </Link>
-        </Button>
-      </div>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/teams">Teams</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{team.name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <div className="mt-4 flex items-start justify-between">
         <div>
           <h1 className="text-2xl font-bold">{team.name}</h1>

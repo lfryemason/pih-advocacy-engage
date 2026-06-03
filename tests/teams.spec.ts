@@ -112,7 +112,10 @@ test.describe("team detail page", () => {
 
   test("back link returns to teams list", async ({ page }) => {
     await page.goto("/teams/seattle-high-school");
-    await page.getByRole("link", { name: /← Teams/ }).click();
+    await page
+      .getByRole("navigation", { name: "breadcrumb" })
+      .getByRole("link", { name: "Teams" })
+      .click();
     await expect(page).toHaveURL(/\/teams$/);
   });
 
@@ -177,7 +180,10 @@ test.describe("edit team page", () => {
 
   test("back link returns to team detail page", async ({ page }) => {
     await page.goto("/teams/seattle-high-school/edit");
-    await page.getByRole("link", { name: /← Seattle High School/ }).click();
+    await page
+      .getByRole("navigation", { name: "breadcrumb" })
+      .getByRole("link", { name: "Seattle High School" })
+      .click();
     await expect(page).toHaveURL(/\/teams\/seattle-high-school$/);
   });
 

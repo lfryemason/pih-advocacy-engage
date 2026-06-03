@@ -3,7 +3,14 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ORG_ID } from "@/lib/org";
-import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { TeamForm } from "@/components/teams/team-form";
 import { MemberEditTable } from "@/components/teams/member-edit-table";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
@@ -75,15 +82,19 @@ async function EditTeamContent({
 
   return (
     <>
-      <div>
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href={`/teams/${slug}`}>
-            ← <span className="text-muted-foreground">{team.name}</span>
-            <span className="mx-1.5 text-muted-foreground">/</span>
-            Edit
-          </Link>
-        </Button>
-      </div>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href={`/teams/${slug}`}>{team.name}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Edit</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <h1 className="mt-4 text-2xl font-bold">{team.name}</h1>
       <div className="mt-6 grid grid-cols-1 items-start gap-x-8 gap-y-8 lg:grid-cols-[3fr_5fr]">
         <TeamForm orgId={ORG_ID} team={team} />
