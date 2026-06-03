@@ -300,7 +300,7 @@ describe("MeetingDetailView — champion level", () => {
         onEdit={vi.fn()}
       />,
     );
-    expect(screen.getByText(/3 – Supporter/)).toBeInTheDocument();
+    expect(screen.getByText(/3 – Advocate/)).toBeInTheDocument();
   });
 
   it("renders score 0 correctly", () => {
