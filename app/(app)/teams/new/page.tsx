@@ -12,7 +12,10 @@ export default function NewTeamPage() {
       <div>
         <Button asChild variant="ghost" size="sm" className="-ml-3">
           <Link href="/teams" aria-label="Back to Teams">
-            <span aria-hidden="true">← </span>Teams
+            <span aria-hidden="true">← </span>
+            <span className="text-muted-foreground">Teams</span>
+            <span className="mx-1.5 text-muted-foreground">/</span>
+            Create a new team
           </Link>
         </Button>
       </div>

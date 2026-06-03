@@ -59,7 +59,11 @@ export function TeamPageClient({
     <>
       <div>
         <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/teams">← Teams</Link>
+          <Link href="/teams">
+            ← <span className="text-muted-foreground">Teams</span>
+            <span className="mx-1.5 text-muted-foreground">/</span>
+            {team.name}
+          </Link>
         </Button>
       </div>
       <div className="mt-4 flex items-start justify-between">

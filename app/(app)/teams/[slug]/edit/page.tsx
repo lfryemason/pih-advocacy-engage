@@ -77,7 +77,11 @@ async function EditTeamContent({
     <>
       <div>
         <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href={`/teams/${slug}`}>← {team.name}</Link>
+          <Link href={`/teams/${slug}`}>
+            ← <span className="text-muted-foreground">{team.name}</span>
+            <span className="mx-1.5 text-muted-foreground">/</span>
+            Edit
+          </Link>
         </Button>
       </div>
       <h1 className="mt-4 text-2xl font-bold">{team.name}</h1>

@@ -82,7 +82,10 @@ async function RepresentativeContent({
         <Button asChild variant="ghost" size="sm" className="-ml-3">
           <Link href="/representatives" aria-label="Representatives">
             <span aria-hidden="true">← </span>
-            Representatives
+            <span className="text-muted-foreground">Representatives</span>
+            <span className="mx-1.5 text-muted-foreground">/</span>
+            {representative.official_full_name ??
+              `${representative.first_name} ${representative.last_name}`}
           </Link>
         </Button>
       </div>
