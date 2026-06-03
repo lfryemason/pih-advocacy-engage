@@ -11,6 +11,7 @@ import {
 import { createClient } from "@/lib/supabase/client";
 import { fetchMeetings } from "@/lib/meetings/queries";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -25,7 +26,7 @@ const EMPTY_FILTERS: MeetingFilters = {
   districts: [],
   parties: [],
 };
-const LIMIT = 50;
+const PAGE_SIZE = 10;
 
 function formatDate(isoDate: string): string {
   return new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
@@ -37,15 +38,67 @@ function formatDate(isoDate: string): string {
 
 function MeetingsTable({
   title,
-  meetings,
+  teamId,
+  section,
   isPast = false,
 }: {
   title: string;
-  meetings: MeetingRow[];
+  teamId: string;
+  section: "upcoming" | "past";
   isPast?: boolean;
 }) {
   const headingId = title.toLowerCase().replace(/\s+/g, "-");
   const [open, setOpen] = useState(true);
+  const [meetings, setMeetings] = useState<MeetingRow[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const supabase = createClient();
+    setLoading(true);
+    fetchMeetings(supabase, {
+      filters: EMPTY_FILTERS,
+      section,
+      offset: 0,
+      limit: PAGE_SIZE,
+      teamId,
+    })
+      .then((result) => {
+        if (!active) return;
+        setMeetings(result.meetings);
+        setTotal(result.count);
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [teamId, section]);
+
+  const loadMore = async () => {
+    setLoading(true);
+    const supabase = createClient();
+    try {
+      const result = await fetchMeetings(supabase, {
+        filters: EMPTY_FILTERS,
+        section,
+        offset: meetings.length,
+        limit: PAGE_SIZE,
+        teamId,
+      });
+      setMeetings((prev) => [...prev, ...result.meetings]);
+      setTotal(result.count);
+    } catch {
+      // ignore; keep the meetings already loaded
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const hasMore = meetings.length < total;
 
   return (
     <section aria-labelledby={headingId} className="mt-8">
@@ -140,6 +193,18 @@ function MeetingsTable({
                 ))}
               </TableBody>
             </Table>
+            {hasMore && (
+              <div className="mt-3 flex justify-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadMore}
+                  disabled={loading}
+                >
+                  {loading ? "Loading…" : "Show more"}
+                </Button>
+              </div>
+            )}
           </div>
         ))}
     </section>
@@ -147,43 +212,19 @@ function MeetingsTable({
 }
 
 export function TeamMeetingsSection({ teamId }: { teamId: string }) {
-  const [upcoming, setUpcoming] = useState<MeetingRow[]>([]);
-  const [past, setPast] = useState<MeetingRow[]>([]);
-
-  useEffect(() => {
-    let active = true;
-    const supabase = createClient();
-    Promise.all([
-      fetchMeetings(supabase, {
-        filters: EMPTY_FILTERS,
-        section: "upcoming",
-        offset: 0,
-        limit: LIMIT,
-        teamId,
-      }),
-      fetchMeetings(supabase, {
-        filters: EMPTY_FILTERS,
-        section: "past",
-        offset: 0,
-        limit: LIMIT,
-        teamId,
-      }),
-    ])
-      .then(([upcomingResult, pastResult]) => {
-        if (!active) return;
-        setUpcoming(upcomingResult.meetings);
-        setPast(pastResult.meetings);
-      })
-      .catch(() => {});
-    return () => {
-      active = false;
-    };
-  }, [teamId]);
-
   return (
     <>
-      <MeetingsTable title="Future Meetings" meetings={upcoming} />
-      <MeetingsTable title="Past Meetings" meetings={past} isPast />
+      <MeetingsTable
+        title="Future Meetings"
+        teamId={teamId}
+        section="upcoming"
+      />
+      <MeetingsTable
+        title="Past Meetings"
+        teamId={teamId}
+        section="past"
+        isPast
+      />
     </>
   );
 }

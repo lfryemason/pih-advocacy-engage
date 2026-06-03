@@ -27,7 +27,7 @@ export function TeamMemberList({
 }) {
   const usersWithLeadRole = new Set(
     memberships
-      .filter((m) => (LEAD_ROLES as readonly string[]).includes(m.role))
+      .filter((m) => LEAD_ROLES.includes(m.role as (typeof LEAD_ROLES)[number]))
       .map((m) => m.user_id),
   );
 

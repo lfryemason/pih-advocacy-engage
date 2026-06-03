@@ -70,11 +70,20 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
     }),
   );
 
-  const userIds = memberships.map((m) => m.user_id);
+  // Coaches are excluded from meeting counts, consistent with how they are
+  // excluded from membership counts elsewhere.
+  const coachUserIds = new Set(
+    memberships.filter((m) => m.role === "coach").map((m) => m.user_id),
+  );
+  const userIds = memberships
+    .map((m) => m.user_id)
+    .filter((id) => !coachUserIds.has(id));
   const meetingCounts: Record<string, number> = {};
 
   if (userIds.length > 0) {
-    const oneYearAgo = new Date();
+    const today = new Date();
+    const todayStr = today.toISOString().slice(0, 10);
+    const oneYearAgo = new Date(today);
     oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
     const oneYearAgoStr = oneYearAgo.toISOString().slice(0, 10);
 
@@ -82,7 +91,8 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
       .from("meeting_delegation_members")
       .select("user_id, meetings!inner(meeting_date)")
       .in("user_id", userIds)
-      .gte("meetings.meeting_date", oneYearAgoStr);
+      .gte("meetings.meeting_date", oneYearAgoStr)
+      .lte("meetings.meeting_date", todayStr);
     if (delegationError) console.error(delegationError);
 
     for (const row of delegationRows ?? []) {

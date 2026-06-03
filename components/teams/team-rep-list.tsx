@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, MapPin } from "lucide-react";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
 import { PartyBadge } from "@/components/representatives/party-badge";
@@ -41,10 +41,10 @@ function RepTable({
       <h3 className="text-base font-medium">{title}</h3>
       <div className="mt-2">
         <Table aria-label={title}>
-          <TableHeader className="[&_th]:text-white [&_tr]:bg-pink-600 [&_tr]:hover:bg-pink-600">
+          <TableHeader className="[&_th]:text-secondary-magenta-foreground [&_tr]:bg-secondary-magenta [&_tr]:hover:bg-secondary-magenta">
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>{stateLabel}</TableHead>
+              <TableHead className="pr-4">{stateLabel}</TableHead>
               <TableHead>Party</TableHead>
             </TableRow>
           </TableHeader>
@@ -59,15 +59,8 @@ function RepTable({
                     {repName(rep, prefix)}
                   </Link>
                 </TableCell>
-                <TableCell className="whitespace-nowrap">
-                  <span className="flex items-center gap-1">
-                    <MapPin
-                      size={14}
-                      aria-hidden="true"
-                      className="text-muted-foreground"
-                    />
-                    {renderLocation(rep)}
-                  </span>
+                <TableCell className="whitespace-nowrap pr-4">
+                  {renderLocation(rep)}
                 </TableCell>
                 <TableCell>
                   <PartyBadge party={rep.party} />
