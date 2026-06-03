@@ -18,10 +18,10 @@ const SECTION_LABEL_CLASSNAME =
 
 const CHAMPION_LABELS: Record<number, string> = {
   0: "Opposed",
-  1: "Skeptic",
-  2: "Neutral",
-  3: "Supporter",
-  4: "Advocate",
+  1: "Neutral/Uninformed",
+  2: "Supporter",
+  3: "Advocate",
+  4: "Leader",
   5: "Champion",
 };
 
