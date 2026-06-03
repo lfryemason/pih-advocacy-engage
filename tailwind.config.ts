@@ -31,6 +31,10 @@ export default {
           light: "hsl(var(--primary-light))",
           lighter: "hsl(var(--primary-lighter))",
         },
+        "nav-active": {
+          DEFAULT: "hsl(var(--nav-active))",
+          foreground: "hsl(var(--nav-active-foreground))",
+        },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
           foreground: "hsl(var(--secondary-foreground))",

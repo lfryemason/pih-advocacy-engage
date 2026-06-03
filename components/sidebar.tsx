@@ -41,7 +41,7 @@ function NavLink({
         "flex w-full items-center gap-3 border-b border-border py-3",
         isCollapsed ? "justify-center px-0" : "px-6",
         isActive
-          ? "bg-primary font-semibold text-primary-foreground underline hover:bg-primary"
+          ? "bg-nav-active font-semibold text-nav-active-foreground underline hover:bg-nav-active"
           : "hover:bg-accent hover:text-accent-foreground",
       )}
     >
