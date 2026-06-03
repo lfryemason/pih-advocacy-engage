@@ -44,15 +44,15 @@ describe("SignUpForm", () => {
     render(<SignUpForm />);
     expect(screen.getByLabelText("First Name")).toBeInTheDocument();
     expect(screen.getByLabelText("Last Name")).toBeInTheDocument();
-    expect(screen.getByLabelText("Pronouns (optional)")).toBeInTheDocument();
+    expect(screen.getByLabelText("Pronouns")).toBeInTheDocument();
     expect(screen.getByLabelText("Email")).toBeInTheDocument();
     expect(
       screen.getByLabelText("Password", { exact: true }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText("Repeat Password")).toBeInTheDocument();
-    expect(screen.getByLabelText("State (optional)")).toBeInTheDocument();
+    expect(screen.getByLabelText("State")).toBeInTheDocument();
     expect(
-      screen.getByLabelText("Congressional District (optional)"),
+      screen.getByLabelText("Congressional District"),
     ).toBeInTheDocument();
   });
 
@@ -60,42 +60,42 @@ describe("SignUpForm", () => {
     render(<SignUpForm />);
     expect(screen.getByLabelText("First Name")).toBeRequired();
     expect(screen.getByLabelText("Last Name")).toBeRequired();
-    expect(screen.getByLabelText("Pronouns (optional)")).not.toBeRequired();
+    expect(screen.getByLabelText("Pronouns")).not.toBeRequired();
   });
 
   it("district dropdown is disabled until a state is selected", async () => {
     render(<SignUpForm />);
     expect(
-      screen.getByLabelText("Congressional District (optional)"),
+      screen.getByLabelText("Congressional District"),
     ).toBeDisabled();
     await userEvent.selectOptions(
-      screen.getByLabelText("State (optional)"),
+      screen.getByLabelText("State"),
       "PA",
     );
     expect(
-      screen.getByLabelText("Congressional District (optional)"),
+      screen.getByLabelText("Congressional District"),
     ).toBeEnabled();
   });
 
   it("district resets when the state changes", async () => {
     render(<SignUpForm />);
     await userEvent.selectOptions(
-      screen.getByLabelText("State (optional)"),
+      screen.getByLabelText("State"),
       "PA",
     );
     await userEvent.selectOptions(
-      screen.getByLabelText("Congressional District (optional)"),
+      screen.getByLabelText("Congressional District"),
       "5",
     );
     expect(
-      screen.getByLabelText("Congressional District (optional)"),
+      screen.getByLabelText("Congressional District"),
     ).toHaveValue("5");
     await userEvent.selectOptions(
-      screen.getByLabelText("State (optional)"),
+      screen.getByLabelText("State"),
       "MA",
     );
     expect(
-      screen.getByLabelText("Congressional District (optional)"),
+      screen.getByLabelText("Congressional District"),
     ).toHaveValue("");
   });
 
@@ -121,15 +121,15 @@ describe("SignUpForm", () => {
     render(<SignUpForm />);
     await fillRequiredFields();
     await userEvent.type(
-      screen.getByLabelText("Pronouns (optional)"),
+      screen.getByLabelText("Pronouns"),
       "she/her",
     );
     await userEvent.selectOptions(
-      screen.getByLabelText("State (optional)"),
+      screen.getByLabelText("State"),
       "PA",
     );
     await userEvent.selectOptions(
-      screen.getByLabelText("Congressional District (optional)"),
+      screen.getByLabelText("Congressional District"),
       "5",
     );
     await userEvent.click(screen.getByRole("button", { name: "Sign up" }));
