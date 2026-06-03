@@ -6,6 +6,7 @@ import { getCurrentRole } from "@/lib/auth/role";
 import { ORG_ID } from "@/lib/org";
 import { Button } from "@/components/ui/button";
 import { StafferList } from "@/components/staffers/staffer-list";
+import { RepMeetings } from "@/components/meetings/rep-meetings";
 import { RepTeamsSection } from "@/components/representatives/rep-teams-section";
 import {
   RepExternalResources,
@@ -178,6 +179,8 @@ async function RepresentativeContent({
           </div>
         </div>
       </div>
+
+      <RepMeetings representativeId={representative.id} />
 
       <StafferList
         representativeId={representative.id}

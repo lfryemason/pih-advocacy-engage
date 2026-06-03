@@ -18,9 +18,11 @@ function formatDate(isoDate: string): string {
 export function MeetingRow({
   meeting,
   isPast = false,
+  showRepColumn = true,
 }: {
   meeting: MeetingRowType;
   isPast?: boolean;
+  showRepColumn?: boolean;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -43,19 +45,21 @@ export function MeetingRow({
       </TableCell>
       <TableCell>{formatDate(meeting.meeting_date)}</TableCell>
       <TableCell>{meeting.meeting_time ?? "—"}</TableCell>
-      <TableCell className="max-w-0">
-        <div className="truncate">
-          <Link
-            href={`/representatives/${meeting.representative_bioguide_id}`}
-            className="text-primary-dark underline-offset-4 hover:underline"
-          >
-            {meeting.representative_district === null ? "Sen. " : "Rep. "}
-            {meeting.representative_name}
-          </Link>{" "}
-          — {meeting.representative_state} (
-          {meeting.representative_party[0] ?? "?"})
-        </div>
-      </TableCell>
+      {showRepColumn && (
+        <TableCell className="max-w-0">
+          <div className="truncate">
+            <Link
+              href={`/representatives/${meeting.representative_bioguide_id}`}
+              className="text-primary-dark underline-offset-4 hover:underline"
+            >
+              {meeting.representative_district === null ? "Sen. " : "Rep. "}
+              {meeting.representative_name}
+            </Link>{" "}
+            — {meeting.representative_state} (
+            {meeting.representative_party[0] ?? "?"})
+          </div>
+        </TableCell>
+      )}
       <TableCell className="max-w-0 truncate">
         {meeting.congressional_contact_id === null ? (
           <em>
