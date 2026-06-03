@@ -73,4 +73,134 @@ test.describe("meetings list page", () => {
     await expandBtn.click();
     await expect(expandBtn).toHaveAttribute("aria-expanded", "true");
   });
+
+  test("Add Meeting button is visible", async ({ page }) => {
+    await page.goto("/meetings");
+    await expect(
+      page.getByRole("button", { name: /Add Meeting/i }),
+    ).toBeVisible();
+  });
+});
+
+test.describe("create meeting", () => {
+  test("creates a new meeting and shows it in the Upcoming section", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    // Open dialog
+    await page.getByRole("button", { name: /Add Meeting/i }).click();
+    await expect(
+      page.getByRole("dialog", { name: "Add Meeting" }),
+    ).toBeVisible();
+
+    // Fill required fields
+    await page.getByLabel("Date").fill("2099-12-25");
+
+    // Open the representative combobox and select the first option once loaded.
+    await page.locator("#meeting-representative").click();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .waitFor();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .click();
+
+    // Submit
+    await page.getByRole("button", { name: "Add meeting" }).click();
+
+    // Dialog should close and list should refresh
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await expect(
+      page.getByLabel("Upcoming Meetings").getByText("Dec 25, 2099"),
+    ).toBeVisible();
+  });
+
+  test("shows validation error when date is missing", async ({ page }) => {
+    await page.goto("/meetings");
+
+    await page.getByRole("button", { name: /Add Meeting/i }).click();
+    await page.getByRole("button", { name: "Add meeting" }).click();
+
+    await expect(page.getByRole("alert")).toContainText(
+      "Meeting date is required",
+    );
+  });
+
+  test("shows validation error when representative is missing", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    await page.getByRole("button", { name: /Add Meeting/i }).click();
+    await page.getByLabel("Date").fill("2099-12-25");
+    await page.getByRole("button", { name: "Add meeting" }).click();
+
+    await expect(page.getByRole("alert")).toContainText(
+      "Member of Congress is required",
+    );
+  });
+
+  test("cancel closes the dialog without creating a meeting", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    await page.getByRole("button", { name: /Add Meeting/i }).click();
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+  });
+
+  test("creates a meeting with a link visible after creation", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    await page.getByRole("button", { name: /Add Meeting/i }).click();
+    await page.getByLabel("Date").fill("2099-11-01");
+    await page.locator("#meeting-representative").click();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .waitFor();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .click();
+
+    await page.getByRole("button", { name: /Add link/i }).click();
+    await page.getByLabel("Link 1 label").fill("Agenda");
+    await page.getByLabel("Link 1 URL").fill("https://example.com/agenda");
+
+    await page.getByRole("button", { name: "Add meeting" }).click();
+
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+    await expect(
+      page.getByLabel("Upcoming Meetings").getByText("Nov 1, 2099"),
+    ).toBeVisible();
+  });
+});
+
+test.describe("expand meeting", () => {
+  test("expand row shows read-only detail panel (not edit form)", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await expect(expandBtn).toHaveAttribute("aria-expanded", "true");
+
+    await expect(
+      page.getByRole("button", { name: /Edit Meeting/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+  });
 });

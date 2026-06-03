@@ -1,6 +1,12 @@
 import "@testing-library/jest-dom/vitest";
 import { cleanup } from "@testing-library/react";
 import { beforeAll, afterEach, afterAll } from "vitest";
+
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
 import { server } from "./__tests__/mocks/supabase";
 
 // Point the Supabase client at localhost so MSW can intercept

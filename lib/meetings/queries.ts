@@ -1,6 +1,16 @@
 import { createClient } from "@/lib/supabase/client";
-import { MeetingFilters, MeetingRow } from "@/lib/meetings/types";
+import {
+  MeetingFilters,
+  CreateMeetingValues,
+  LinkFormEntry,
+  MeetingRow,
+  MeetingDetail,
+  MeetingLink,
+  DelegationMember,
+  DelegationRole,
+} from "@/lib/meetings/types";
 import { localDateString } from "@/lib/utils";
+import { ORG_ID } from "@/lib/org";
 
 type SupabaseBrowserClient = ReturnType<typeof createClient>;
 
@@ -8,6 +18,7 @@ type RawRow = {
   id: string;
   meeting_date: string;
   meeting_time: string | null;
+  meeting_timezone: string;
   representative_id: string;
   congressional_contact_id: string | null;
   primary_team_id: string | null;
@@ -39,6 +50,7 @@ function mapRow(row: RawRow): MeetingRow {
     id: row.id,
     meeting_date: row.meeting_date,
     meeting_time: row.meeting_time,
+    meeting_timezone: row.meeting_timezone,
     representative_id: row.representative_id,
     representative_bioguide_id: rep.bioguide_id,
     representative_name: rep.official_full_name ?? "",
@@ -66,6 +78,7 @@ const SELECT = `
   id,
   meeting_date,
   meeting_time,
+  meeting_timezone,
   representative_id,
   congressional_contact_id,
   primary_team_id,
@@ -150,5 +163,145 @@ export async function fetchMeetings(
   return {
     meetings: (data as unknown as RawRow[]).map(mapRow),
     count: count ?? 0,
+  };
+}
+
+export async function createMeeting(
+  supabase: SupabaseBrowserClient,
+  values: CreateMeetingValues,
+  rawLinks: LinkFormEntry[],
+  primaryTeamName: string | null = null,
+): Promise<string> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const links = rawLinks.filter((l) => l.label.trim() || l.url.trim());
+
+  const { data, error } = await supabase
+    .from("meetings")
+    .insert({
+      org_id: ORG_ID,
+      meeting_date: values.meeting_date,
+      meeting_time: values.meeting_time,
+      meeting_timezone: values.meeting_timezone,
+      representative_id: values.representative_id,
+      congressional_contact_id: values.congressional_contact_id,
+      primary_team_id: values.primary_team_id,
+      notes: values.notes,
+      location: values.location,
+      links,
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (error) throw error;
+  if (!data) throw new Error("Meeting created but ID could not be retrieved");
+
+  const { error: delegationError } = await supabase
+    .from("meeting_delegation_members")
+    .insert({
+      org_id: ORG_ID,
+      meeting_id: data.id,
+      user_id: user.id,
+      role: "scheduling_lead",
+      team_id: values.primary_team_id,
+      team_name_snapshot: primaryTeamName,
+    });
+
+  if (delegationError) {
+    await supabase.from("meetings").delete().eq("id", data.id);
+    throw delegationError;
+  }
+
+  return data.id;
+}
+
+type RawDetailDelegationMember = {
+  id: string;
+  user_id: string;
+  role: string;
+  team_id: string | null;
+  team_name_snapshot: string | null;
+  profiles: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  } | null;
+};
+
+type RawDetailRow = Omit<RawRow, "meeting_delegation_members"> & {
+  notes: string | null;
+  location: string | null;
+  links: MeetingLink[] | null;
+  meeting_delegation_members: RawDetailDelegationMember[];
+};
+
+const SELECT_DETAIL = `
+  id,
+  meeting_date,
+  meeting_time,
+  meeting_timezone,
+  representative_id,
+  congressional_contact_id,
+  primary_team_id,
+  follow_up_date,
+  champion_score,
+  notes,
+  location,
+  links,
+  representatives!inner ( bioguide_id, official_full_name, state, district, party ),
+  staffers ( first_name, last_name ),
+  teams ( name, slug ),
+  meeting_delegation_members ( id, user_id, role, team_id, team_name_snapshot, profiles ( first_name, last_name, email ) )
+`;
+
+export async function fetchMeetingDetail(
+  supabase: SupabaseBrowserClient,
+  id: string,
+): Promise<MeetingDetail> {
+  const { data, error } = await supabase
+    .from("meetings")
+    .select(SELECT_DETAIL)
+    .eq("id", id)
+    .single();
+
+  if (error) throw error;
+  const row = data as unknown as RawDetailRow;
+
+  const delegation_members: DelegationMember[] =
+    row.meeting_delegation_members.map((m) => ({
+      id: m.id,
+      user_id: m.user_id,
+      first_name: m.profiles?.first_name ?? "",
+      last_name: m.profiles?.last_name ?? "",
+      display_name: m.profiles
+        ? [m.profiles.first_name, m.profiles.last_name]
+            .filter(Boolean)
+            .join(" ") || "Anonymous"
+        : "Anonymous",
+      email: m.profiles?.email ?? null,
+      role: m.role as DelegationRole,
+      team_id: m.team_id,
+      team_name_snapshot: m.team_name_snapshot,
+    }));
+
+  const represented_teams = [
+    ...new Set(
+      delegation_members
+        .map((m) => m.team_name_snapshot)
+        .filter((t): t is string => !!t && t.trim() !== ""),
+    ),
+  ];
+
+  return {
+    ...mapRow(row),
+    notes: row.notes,
+    location: row.location,
+    links: row.links ?? [],
+    delegation_members,
+    represented_teams,
   };
 }

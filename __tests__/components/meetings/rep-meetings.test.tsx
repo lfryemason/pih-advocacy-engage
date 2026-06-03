@@ -20,6 +20,7 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
     id: "id-1",
     meeting_date: "2099-06-01",
     meeting_time: null,
+    meeting_timezone: "America/New_York",
     representative_id: "rep-123",
     representative_bioguide_id: "R000001",
     representative_name: "Jane Rep",

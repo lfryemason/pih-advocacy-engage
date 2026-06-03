@@ -77,8 +77,8 @@ export function Sidebar() {
       data-breakpoint="md"
       style={{
         width: isCollapsed ? "50px" : "275px",
-        backgroundColor: "var(--background)",
-        color: "var(--foreground)",
+        backgroundColor: "hsl(var(--background))",
+        color: "hsl(var(--foreground))",
       }}
     >
       <nav aria-label="Main navigation">
