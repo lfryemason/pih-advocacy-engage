@@ -58,22 +58,16 @@ test.describe("sign up page", () => {
     await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
     await expect(page.getByLabel("Repeat Password")).toBeVisible();
     await expect(page.getByLabel("State")).toBeVisible();
-    await expect(
-      page.getByLabel("Congressional District"),
-    ).toBeVisible();
+    await expect(page.getByLabel("Congressional District")).toBeVisible();
     await expect(page.getByRole("button", { name: "Sign up" })).toBeVisible();
   });
 
   test("congressional district is disabled until a state is chosen", async ({
     page,
   }) => {
-    await expect(
-      page.getByLabel("Congressional District"),
-    ).toBeDisabled();
+    await expect(page.getByLabel("Congressional District")).toBeDisabled();
     await page.getByLabel("State").selectOption("PA");
-    await expect(
-      page.getByLabel("Congressional District"),
-    ).toBeEnabled();
+    await expect(page.getByLabel("Congressional District")).toBeEnabled();
   });
 
   test("links back to login", async ({ page }) => {
@@ -84,6 +78,8 @@ test.describe("sign up page", () => {
   });
 
   test("shows error when passwords do not match", async ({ page }) => {
+    await page.getByLabel("First Name").fill("Test");
+    await page.getByLabel("Last Name").fill("User");
     await page.getByLabel("Email").fill("test@example.com");
     await page.getByLabel("Password", { exact: true }).fill("password123");
     await page.getByLabel("Repeat Password").fill("different123");
