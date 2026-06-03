@@ -92,6 +92,28 @@ describe("MeetingsSection", () => {
     ).toBeInTheDocument();
   });
 
+  it("hides the Member of Congress column when showRepColumn is false", () => {
+    const meetings = [makeRow()];
+    render(
+      <MeetingsSection
+        title="Future Meetings"
+        meetings={meetings}
+        {...sectionProps(meetings)}
+        showRepColumn={false}
+      />,
+    );
+    expect(
+      screen.queryByRole("columnheader", { name: "Member of Congress" }),
+    ).not.toBeInTheDocument();
+    // Other columns remain
+    expect(
+      screen.getByRole("columnheader", { name: "Date" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: "Staff Contact" }),
+    ).toBeInTheDocument();
+  });
+
   it("renders a row for each meeting", () => {
     const meetings = [
       makeRow({ id: "m1", representative_name: "Alice" }),
@@ -287,6 +309,35 @@ describe("MeetingsSection", () => {
       />,
     );
     expect(asFragment()).toMatchSnapshot();
+  });
+});
+
+describe("MeetingRow showRepColumn", () => {
+  it("omits the representative cell when showRepColumn is false", () => {
+    render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            showRepColumn={false}
+            meeting={makeRow({ representative_name: "Jane Rep" })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(screen.queryByText(/Jane Rep/)).not.toBeInTheDocument();
+  });
+
+  it("includes the representative cell by default", () => {
+    render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            meeting={makeRow({ representative_name: "Jane Rep" })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(screen.getByText(/Jane Rep/)).toBeInTheDocument();
   });
 });
 

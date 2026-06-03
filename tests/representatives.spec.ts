@@ -29,3 +29,15 @@ test.describe("My Members of Congress section", () => {
     await expect(page.getByText(/Set your state and district/)).toBeVisible();
   });
 });
+
+test.describe("rep profile meetings sections", () => {
+  test("shows Future Meetings and Past Meetings sections", async ({ page }) => {
+    await page.goto("/representatives/S000001");
+    await expect(
+      page.getByRole("heading", { name: "Future Meetings" }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("heading", { name: "Past Meetings" }),
+    ).toBeVisible();
+  });
+});
