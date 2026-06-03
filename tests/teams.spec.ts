@@ -105,7 +105,7 @@ test.describe("team detail page", () => {
   }) => {
     await page.goto("/teams/seattle-high-school");
     await expect(
-      page.getByRole("button", { name: /Representatives/ }),
+      page.getByRole("button", { name: /Members of Congress/ }),
     ).toBeVisible();
     await expect(page.getByText("Susan Collins")).toBeVisible();
     await expect(page.getByText("Adam Smith")).toBeVisible();
@@ -115,7 +115,7 @@ test.describe("team detail page", () => {
     page,
   }) => {
     await page.goto("/teams/seattle-high-school");
-    await page.getByRole("button", { name: /Representatives/ }).click();
+    await page.getByRole("button", { name: /Members of Congress/ }).click();
     await expect(page.getByText("Susan Collins")).toHaveCount(0);
   });
 
@@ -124,7 +124,7 @@ test.describe("team detail page", () => {
   }) => {
     await page.goto("/teams/portland-university");
     await expect(
-      page.getByRole("button", { name: /Representatives/ }),
+      page.getByRole("button", { name: /Members of Congress/ }),
     ).toHaveCount(0);
   });
 
