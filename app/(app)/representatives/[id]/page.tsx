@@ -4,7 +4,14 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentRole } from "@/lib/auth/role";
 import { ORG_ID } from "@/lib/org";
-import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { StafferList } from "@/components/staffers/staffer-list";
 import { RepMeetings } from "@/components/meetings/rep-meetings";
 import { RepTeamsSection } from "@/components/representatives/rep-teams-section";
@@ -123,14 +130,19 @@ async function RepresentativeContent({
 
   return (
     <>
-      <div>
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/representatives" aria-label="Members of Congress">
-            <span aria-hidden="true">← </span>
-            Members of Congress
-          </Link>
-        </Button>
-      </div>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/representatives">Members of Congress</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{name}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       {/* Header */}
       <div className="mt-4 flex items-center gap-4 rounded-lg border p-4">
