@@ -124,9 +124,9 @@ async function RepresentativeContent({
     <>
       <div>
         <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/representatives" aria-label="Representatives">
+          <Link href="/representatives" aria-label="Members of Congress">
             <span aria-hidden="true">← </span>
-            Representatives
+            Members of Congress
           </Link>
         </Button>
       </div>

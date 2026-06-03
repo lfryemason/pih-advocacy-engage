@@ -120,7 +120,7 @@ export function Sidebar() {
         />
         <NavLink
           href="/representatives"
-          label="Representatives"
+          label="Members of Congress"
           icon={Landmark}
           isCollapsed={isCollapsed}
         />
