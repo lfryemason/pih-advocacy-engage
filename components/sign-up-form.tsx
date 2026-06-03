@@ -122,7 +122,7 @@ export function SignUpForm({
                 <Input
                   id="email"
                   type="email"
-                  placeholder="email@example.com"
+                  placeholder="m@example.com"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -153,7 +153,7 @@ export function SignUpForm({
                 />
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="state">State (optional)</Label>
+                <Label htmlFor="state">State</Label>
                 <Select id="state" value={state} onChange={handleStateChange}>
                   <option value="">Select a state</option>
                   {US_STATES.map((s) => (
@@ -165,7 +165,7 @@ export function SignUpForm({
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="district">
-                  Congressional District (optional)
+                  Congressional District
                 </Label>
                 <Select
                   id="district"

@@ -53,13 +53,13 @@ test.describe("sign up page", () => {
     ).toBeVisible();
     await expect(page.getByLabel("First Name")).toBeVisible();
     await expect(page.getByLabel("Last Name")).toBeVisible();
-    await expect(page.getByLabel("Pronouns (optional)")).toBeVisible();
+    await expect(page.getByLabel("Pronouns")).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
     await expect(page.getByLabel("Repeat Password")).toBeVisible();
-    await expect(page.getByLabel("State (optional)")).toBeVisible();
+    await expect(page.getByLabel("State")).toBeVisible();
     await expect(
-      page.getByLabel("Congressional District (optional)"),
+      page.getByLabel("Congressional District"),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Sign up" })).toBeVisible();
   });
@@ -68,11 +68,11 @@ test.describe("sign up page", () => {
     page,
   }) => {
     await expect(
-      page.getByLabel("Congressional District (optional)"),
+      page.getByLabel("Congressional District"),
     ).toBeDisabled();
-    await page.getByLabel("State (optional)").selectOption("PA");
+    await page.getByLabel("State").selectOption("PA");
     await expect(
-      page.getByLabel("Congressional District (optional)"),
+      page.getByLabel("Congressional District"),
     ).toBeEnabled();
   });
 
