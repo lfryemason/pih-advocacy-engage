@@ -107,8 +107,12 @@ test.describe("team detail page", () => {
     await expect(
       page.getByRole("button", { name: /Members of Congress/ }),
     ).toBeVisible();
-    await expect(page.getByText("Susan Collins")).toBeVisible();
-    await expect(page.getByText("Adam Smith")).toBeVisible();
+    await expect(
+      page.locator('[aria-label="Senators"]').getByText("Susan Collins"),
+    ).toBeVisible();
+    await expect(
+      page.locator('[aria-label="Representatives"]').getByText("Adam Smith"),
+    ).toBeVisible();
   });
 
   test("collapsing Representatives toggle hides the rep list", async ({
