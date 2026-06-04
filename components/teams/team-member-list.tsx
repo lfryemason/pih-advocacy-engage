@@ -10,11 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  displayName,
-  LEAD_ROLES,
-  type MembershipWithProfile,
-} from "@/lib/teams";
+import { LEAD_ROLES, type MembershipWithProfile } from "@/lib/teams";
+import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
 
 export type { MembershipWithProfile };
 
@@ -74,12 +71,7 @@ export function TeamMemberList({
                 generalMembers.map((m) => (
                   <TableRow key={`${m.user_id}-${m.role}`}>
                     <TableCell className="font-medium">
-                      {displayName(m.profiles)}
-                      {m.profiles?.pronouns && (
-                        <span className="ml-1 text-sm italic text-muted-foreground">
-                          {m.profiles.pronouns}
-                        </span>
-                      )}
+                      <NameWithPronouns profiles={m.profiles} />
                     </TableCell>
                     <TableCell>
                       {m.profiles?.email && (
