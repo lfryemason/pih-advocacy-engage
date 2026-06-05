@@ -11,7 +11,6 @@ import {
 } from "@/lib/meetings/types";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
-import { useStaffers } from "@/lib/meetings/use-staffers";
 import { MeetingDetailView } from "@/components/meetings/meeting-detail-view";
 import {
   MeetingDetailEdit,
@@ -72,21 +71,6 @@ export function MeetingDetail({
       isMountedRef.current = false;
     };
   }, []);
-
-  const staffers = useStaffers(form.representativeId);
-
-  // Keep congressional contact in sync when the staffers list changes
-  useEffect(() => {
-    if (staffers.length === 0) return;
-    setForm((prev) => ({
-      ...prev,
-      congressionalContactId: staffers.some(
-        (s) => s.id === prev.congressionalContactId,
-      )
-        ? prev.congressionalContactId
-        : "",
-    }));
-  }, [staffers]);
 
   useEffect(() => {
     let cancelled = false;
@@ -228,7 +212,6 @@ export function MeetingDetail({
       form={form}
       onFormChange={updateForm}
       initialLinks={initialLinks}
-      staffers={staffers}
       onLinksChange={setLinks}
       onSubmit={handleSubmit}
       onCancel={handleCancel}

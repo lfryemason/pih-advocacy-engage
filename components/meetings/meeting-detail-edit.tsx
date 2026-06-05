@@ -1,7 +1,9 @@
 "use client";
 
+import { useEffect } from "react";
 import { CHAMPION_LABELS } from "@/lib/meetings/meeting-roles";
 import { LinkFormEntry, StafferOption } from "@/lib/meetings/types";
+import { useStaffers } from "@/lib/meetings/use-staffers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +36,6 @@ type Props = {
   form: FormState;
   onFormChange: (partial: Partial<FormState>) => void;
   initialLinks: LinkFormEntry[];
-  staffers: StafferOption[];
   onLinksChange: (links: LinkFormEntry[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
@@ -42,7 +43,7 @@ type Props = {
   isSaving: boolean;
 };
 
-type ColumnProps = Props;
+type ColumnProps = Props & { staffers: StafferOption[] };
 
 function LeftColumn({
   meetingId,
@@ -256,12 +257,24 @@ function RightColumn({
 }
 
 export function MeetingDetailEdit(props: Props) {
+  const staffers = useStaffers(props.form.representativeId);
+
+  useEffect(() => {
+    if (staffers.length === 0) return;
+    if (props.form.congressionalContactId === "") return;
+    if (!staffers.some((s) => s.id === props.form.congressionalContactId)) {
+      props.onFormChange({ congressionalContactId: "" });
+    }
+  }, [staffers, props.form.congressionalContactId, props.onFormChange]);
+
+  const columnProps: ColumnProps = { ...props, staffers };
+
   return (
     <div className="p-4">
       <form onSubmit={props.onSubmit}>
         <div className="grid gap-6 @[600px]:grid-cols-2">
-          <LeftColumn {...props} />
-          <RightColumn {...props} />
+          <LeftColumn {...columnProps} />
+          <RightColumn {...columnProps} />
         </div>
       </form>
     </div>
