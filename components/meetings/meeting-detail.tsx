@@ -33,14 +33,17 @@ const TZ_DISPLAY_NAME =
     ? `${_tzLong}/${_tzOffset}`
     : _tzLong || _tzOffset || MEETING_TIMEZONE;
 
+const SECTION_LABEL_CLASSNAME =
+  "font-semibold uppercase tracking-wide text-muted-foreground";
+
+const textareaClass =
+  "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[72px] resize-none";
+
 type StafferOption = {
   id: string;
   first_name: string;
   last_name: string;
 };
-
-const textareaClass =
-  "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[72px] resize-none";
 
 function formStateFromDetail(d: MeetingDetailType) {
   return {
@@ -237,8 +240,8 @@ export function MeetingDetail({
 
   if (isLoading) {
     return (
-      <div className="p-6">
-        <p role="status" className="text-muted-foreground">
+      <div className="p-4">
+        <p role="status" className="text-sm text-muted-foreground">
           Loading meeting details…
         </p>
       </div>
@@ -247,8 +250,8 @@ export function MeetingDetail({
 
   if (loadError) {
     return (
-      <div className="p-6">
-        <p role="alert" className="text-destructive">
+      <div className="p-4">
+        <p role="alert" className="text-sm text-destructive">
           {loadError}
         </p>
       </div>
@@ -260,172 +263,203 @@ export function MeetingDetail({
   }
 
   return (
-    <div className="border-t p-6">
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
-            <div className="flex items-baseline gap-0.5">
-              <Label htmlFor={`edit-date-${meeting.id}`}>Date</Label>
-              <span
-                className="leading-none text-destructive"
-                aria-hidden="true"
+    <div className="p-4">
+      <form onSubmit={handleSubmit}>
+        <div className="grid gap-6 @[600px]:grid-cols-2">
+          {/* Left column — mirrors read-only left: champion+followup, notes, links */}
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4">
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <p className={SECTION_LABEL_CLASSNAME}>
+                  <Label htmlFor={`edit-champion-${meeting.id}`}>
+                    Champion Score (0–5)
+                  </Label>
+                </p>
+                <Input
+                  id={`edit-champion-${meeting.id}`}
+                  type="number"
+                  value={championScore}
+                  onChange={(e) => setChampionScore(e.target.value)}
+                  placeholder="—"
+                />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <p className={SECTION_LABEL_CLASSNAME}>
+                  <Label htmlFor={`edit-followup-${meeting.id}`}>
+                    Follow-up
+                  </Label>
+                </p>
+                <Input
+                  id={`edit-followup-${meeting.id}`}
+                  type="date"
+                  value={followUpDate}
+                  onChange={(e) => setFollowUpDate(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-baseline justify-between">
+                <p className={SECTION_LABEL_CLASSNAME}>
+                  <Label htmlFor={`edit-notes-${meeting.id}`}>Notes</Label>
+                </p>
+                <span
+                  className={`text-xs ${notes.trim().length > 255 ? "text-destructive" : "text-muted-foreground"}`}
+                >
+                  {notes.trim().length}/255
+                </span>
+              </div>
+              <textarea
+                id={`edit-notes-${meeting.id}`}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className={textareaClass}
+                aria-label="Notes"
+              />
+            </div>
+
+            <EditMeetingLinks
+              key={meeting.id}
+              initialLinks={initialLinks}
+              onChange={setLinks}
+            />
+          </div>
+
+          {/* Right column — mirrors read-only right: time, location, then edit-only fields */}
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4">
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <div className="flex items-baseline gap-1">
+                  <p className={SECTION_LABEL_CLASSNAME}>
+                    <Label htmlFor={`edit-date-${meeting.id}`}>Date</Label>
+                  </p>
+                  <span
+                    className="leading-none text-destructive"
+                    aria-hidden="true"
+                  >
+                    *
+                  </span>
+                </div>
+                <Input
+                  id={`edit-date-${meeting.id}`}
+                  type="date"
+                  value={meetingDate}
+                  onChange={(e) => setMeetingDate(e.target.value)}
+                />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <div className="flex items-baseline gap-1">
+                  <p className={SECTION_LABEL_CLASSNAME}>
+                    <Label htmlFor={`edit-time-${meeting.id}`}>Time</Label>
+                  </p>
+                  <span className="min-w-0 truncate text-xs italic leading-none text-muted-foreground">
+                    {TZ_DISPLAY_NAME}
+                  </span>
+                </div>
+                <Input
+                  id={`edit-time-${meeting.id}`}
+                  type="time"
+                  value={meetingTime}
+                  onChange={(e) => setMeetingTime(e.target.value)}
+                  className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className={SECTION_LABEL_CLASSNAME}>
+                <Label htmlFor={`edit-location-${meeting.id}`}>Location</Label>
+              </p>
+              <Input
+                id={`edit-location-${meeting.id}`}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-baseline gap-1">
+                <p className={SECTION_LABEL_CLASSNAME}>
+                  <Label htmlFor={`edit-rep-${meeting.id}`}>
+                    Member of Congress
+                  </Label>
+                </p>
+                <span
+                  className="leading-none text-destructive"
+                  aria-hidden="true"
+                >
+                  *
+                </span>
+              </div>
+              <RepresentativeCombobox
+                id={`edit-rep-${meeting.id}`}
+                value={representativeId}
+                onChange={(id) => {
+                  setRepresentativeId(id);
+                  setCongressionalContactId("");
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className={SECTION_LABEL_CLASSNAME}>
+                <Label htmlFor={`edit-contact-${meeting.id}`}>
+                  Congressional Contact
+                </Label>
+              </p>
+              <Select
+                id={`edit-contact-${meeting.id}`}
+                value={congressionalContactId}
+                onChange={(e) => setCongressionalContactId(e.target.value)}
+                disabled={!representativeId}
               >
-                *
-              </span>
-            </div>
-            <Input
-              id={`edit-date-${meeting.id}`}
-              type="date"
-              value={meetingDate}
-              onChange={(e) => setMeetingDate(e.target.value)}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <div className="flex items-baseline gap-0.5">
-              <Label htmlFor={`edit-time-${meeting.id}`}>Time</Label>
-              <span className="min-w-0 truncate text-xs italic leading-none text-muted-foreground">
-                {TZ_DISPLAY_NAME}
-              </span>
-            </div>
-            <Input
-              id={`edit-time-${meeting.id}`}
-              type="time"
-              value={meetingTime}
-              onChange={(e) => setMeetingTime(e.target.value)}
-              className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-            />
-          </div>
-
-          <div className="grid gap-2 sm:col-span-2">
-            <div className="flex items-baseline gap-0.5">
-              <Label htmlFor={`edit-rep-${meeting.id}`}>
-                Member of Congress
-              </Label>
-              <span
-                className="leading-none text-destructive"
-                aria-hidden="true"
-              >
-                *
-              </span>
-            </div>
-            <RepresentativeCombobox
-              id={`edit-rep-${meeting.id}`}
-              value={representativeId}
-              onChange={(id) => {
-                setRepresentativeId(id);
-                setCongressionalContactId("");
-              }}
-            />
-          </div>
-
-          <div className="grid gap-2 sm:col-span-2">
-            <Label htmlFor={`edit-contact-${meeting.id}`}>
-              Congressional Contact
-            </Label>
-            <Select
-              id={`edit-contact-${meeting.id}`}
-              value={congressionalContactId}
-              onChange={(e) => setCongressionalContactId(e.target.value)}
-              disabled={!representativeId}
-            >
-              <option value="">— Meeting with representative directly —</option>
-              {staffers.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.first_name} {s.last_name}
+                <option value="">
+                  — Meeting with representative directly —
                 </option>
-              ))}
-            </Select>
-          </div>
-
-          <div className="grid gap-2 sm:col-span-2">
-            <Label htmlFor={`edit-team-${meeting.id}`}>Primary PIH Team</Label>
-            <TeamCombobox
-              id={`edit-team-${meeting.id}`}
-              value={primaryTeamId}
-              onChange={(id) => setPrimaryTeamId(id)}
-            />
-          </div>
-
-          <div className="grid gap-2 sm:col-span-2">
-            <Label htmlFor={`edit-location-${meeting.id}`}>Location</Label>
-            <Input
-              id={`edit-location-${meeting.id}`}
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
-            />
-          </div>
-
-          <div className="grid gap-2 sm:col-span-2">
-            <div className="flex items-baseline justify-between">
-              <Label htmlFor={`edit-notes-${meeting.id}`}>Notes</Label>
-              <span
-                className={`text-xs ${notes.trim().length > 255 ? "text-destructive" : "text-muted-foreground"}`}
-              >
-                {notes.trim().length}/255
-              </span>
+                {staffers.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.first_name} {s.last_name}
+                  </option>
+                ))}
+              </Select>
             </div>
-            <textarea
-              id={`edit-notes-${meeting.id}`}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={3}
-              className={textareaClass}
-              aria-label="Notes"
-            />
+
+            <div className="flex flex-col gap-2">
+              <p className={SECTION_LABEL_CLASSNAME}>
+                <Label htmlFor={`edit-team-${meeting.id}`}>
+                  Primary PIH Team
+                </Label>
+              </p>
+              <TeamCombobox
+                id={`edit-team-${meeting.id}`}
+                value={primaryTeamId}
+                onChange={(id) => setPrimaryTeamId(id)}
+              />
+            </div>
+
+            <div className="mt-auto pt-2">
+              {saveError && (
+                <p className="mb-2 text-sm text-destructive" role="alert">
+                  {saveError}
+                </p>
+              )}
+              <div className="flex gap-2">
+                <Button type="submit" disabled={isSaving}>
+                  {isSaving ? "Saving…" : "Save changes"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
           </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor={`edit-followup-${meeting.id}`}>
-              Follow-up Date
-            </Label>
-            <Input
-              id={`edit-followup-${meeting.id}`}
-              type="date"
-              value={followUpDate}
-              onChange={(e) => setFollowUpDate(e.target.value)}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor={`edit-champion-${meeting.id}`}>
-              Champion Score (0–5)
-            </Label>
-            <Input
-              id={`edit-champion-${meeting.id}`}
-              type="number"
-              value={championScore}
-              onChange={(e) => setChampionScore(e.target.value)}
-              placeholder="—"
-            />
-          </div>
-        </div>
-
-        <EditMeetingLinks
-          key={meeting.id}
-          initialLinks={initialLinks}
-          onChange={setLinks}
-        />
-
-        {saveError && (
-          <p className="text-sm text-destructive" role="alert">
-            {saveError}
-          </p>
-        )}
-
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving…" : "Save changes"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={handleCancel}
-            disabled={isSaving}
-          >
-            Cancel
-          </Button>
         </div>
       </form>
     </div>

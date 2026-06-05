@@ -5,7 +5,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
   <table>
     <tbody>
       <tr
-        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+        class="has-aria-expanded:bg-muted border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -102,6 +102,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
             class="lucide lucide-circle-check-big m-auto h-4 w-4 text-green-600"
             fill="none"
             height="24"
+            role="img"
             stroke="currentColor"
             stroke-linecap="round"
             stroke-linejoin="round"
@@ -119,6 +120,11 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
           </svg>
         </td>
       </tr>
+      <tr
+        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted hidden"
+        data-slot="table-row"
+        id="meeting-detail-id-1"
+      />
     </tbody>
   </table>
 </DocumentFragment>
@@ -129,7 +135,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
   <table>
     <tbody>
       <tr
-        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+        class="has-aria-expanded:bg-muted border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -217,6 +223,11 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state with isPas
           data-slot="table-cell"
         />
       </tr>
+      <tr
+        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted hidden"
+        data-slot="table-row"
+        id="meeting-detail-id-1"
+      />
     </tbody>
   </table>
 </DocumentFragment>
@@ -227,7 +238,7 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without is
   <table>
     <tbody>
       <tr
-        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+        class="has-aria-expanded:bg-muted border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-accent"
         data-slot="table-row"
       >
         <td
@@ -316,6 +327,11 @@ exports[`MeetingRow (collapsed) > matches snapshot in collapsed state without is
           Alice Lead
         </td>
       </tr>
+      <tr
+        class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted hidden"
+        data-slot="table-row"
+        id="meeting-detail-id-1"
+      />
     </tbody>
   </table>
 </DocumentFragment>
@@ -353,7 +369,7 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
       Upcoming Meetings
     </h2>
     <div
-      class="relative w-full overflow-x-auto rounded-md border"
+      class="relative w-full overflow-x-auto rounded-md border @container"
       data-slot="table-container"
     >
       <table
@@ -426,7 +442,7 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
           data-slot="table-body"
         >
           <tr
-            class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted"
+            class="has-aria-expanded:bg-muted border-b transition-colors data-[state=selected]:bg-muted cursor-pointer hover:bg-accent"
             data-slot="table-row"
           >
             <td
@@ -510,6 +526,11 @@ exports[`MeetingsSection > matches snapshot with meetings 1`] = `
               —
             </td>
           </tr>
+          <tr
+            class="has-aria-expanded:bg-muted border-b transition-colors hover:bg-muted data-[state=selected]:bg-muted hidden"
+            data-slot="table-row"
+            id="meeting-detail-id-1"
+          />
         </tbody>
       </table>
     </div>

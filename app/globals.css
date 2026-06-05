@@ -20,6 +20,8 @@
     --primary-dark: 36 100% 33%;
     --primary-light: 36 100% 62%;
     --primary-lighter: 36 100% 70%;
+    --nav-active: 36 90% 57%;
+    --nav-active-foreground: 0 0% 0%;
     --secondary: 0 0% 94.1%;
     --secondary-foreground: 0 0% 9%;
     --secondary-dark: 0 0% 85%;
@@ -53,6 +55,8 @@
     --primary-dark: 0 0% 0%;
     --primary-light: 0 0% 18%;
     --primary-lighter: 0 0% 28%;
+    --nav-active: 0 0% 0%;
+    --nav-active-foreground: 0 0% 100%;
     --secondary: 0 0% 75%;
     --secondary-foreground: 0 0% 0%;
     --secondary-dark: 0 0% 65%;
@@ -84,6 +88,8 @@
     --primary-dark: 33 100% 43%;
     --primary-light: 33 96.6% 58%;
     --primary-lighter: 33 92.6% 66%;
+    --nav-active: 36 90% 57%;
+    --nav-active-foreground: 0 0% 0%;
     --secondary: 0 0% 22%;
     --secondary-foreground: 0 0% 98%;
     --secondary-dark: 0 0% 28%;

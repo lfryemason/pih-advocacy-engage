@@ -103,7 +103,7 @@ export function TeamForm({
               team_id: data.id,
               user_id: user.id,
               org_id: orgId,
-              role: "team_lead",
+              role: "team_coordinator",
             });
           if (membershipError) throw membershipError;
         }

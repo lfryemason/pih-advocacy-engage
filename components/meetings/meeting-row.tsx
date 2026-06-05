@@ -6,40 +6,8 @@ import { ChevronDown, ChevronRight, CircleCheckBig } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
+import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
-
-function formatDate(isoDate: string): string {
-  return new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  });
-}
-
-function formatTime(
-  meetingDate: string,
-  time: string,
-  timezone: string,
-): string {
-  const [h, m] = time.split(":").map(Number);
-  const hour12 = h % 12 || 12;
-  const ampm = h < 12 ? "AM" : "PM";
-  const minuteStr = m.toString().padStart(2, "0");
-  let tzAbbr = "";
-  try {
-    const refDate = new Date(`${meetingDate}T12:00:00Z`);
-    tzAbbr =
-      new Intl.DateTimeFormat("en-US", {
-        timeZone: timezone,
-        timeZoneName: "short",
-      })
-        .formatToParts(refDate)
-        .find((p) => p.type === "timeZoneName")?.value ?? "";
-  } catch {}
-  return tzAbbr
-    ? `${hour12}:${minuteStr} ${ampm} ${tzAbbr}`
-    : `${hour12}:${minuteStr} ${ampm}`;
-}
 
 export function MeetingRow({
   meeting,
@@ -54,11 +22,13 @@ export function MeetingRow({
   const colSpan = isPast ? 8 : 7;
   const detailRowId = `meeting-detail-${meeting.id}`;
 
+  const toggle = () => setIsExpanded((v) => !v);
+
   return (
     <>
       <TableRow
-        className={`cursor-pointer ${isExpanded ? "bg-accent hover:bg-accent" : "hover:bg-accent"}`}
-        onClick={() => setIsExpanded((v) => !v)}
+        className={`cursor-pointer hover:bg-accent ${isExpanded ? "bg-accent" : ""}`}
+        onClick={toggle}
       >
         <TableCell>
           <Button
@@ -66,7 +36,11 @@ export function MeetingRow({
             size="icon"
             aria-label={`Expand meeting with ${meeting.representative_name}`}
             aria-expanded={isExpanded}
-            aria-controls={isExpanded ? detailRowId : undefined}
+            aria-controls={detailRowId}
+            onClick={(e) => {
+              e.stopPropagation();
+              toggle();
+            }}
           >
             {isExpanded ? (
               <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
@@ -89,7 +63,7 @@ export function MeetingRow({
           <div className="truncate">
             <Link
               href={`/representatives/${meeting.representative_bioguide_id}`}
-              className="text-primary-dark underline-offset-4 hover:underline"
+              className={LINK_CN}
               onClick={(e) => e.stopPropagation()}
             >
               {meeting.representative_district === null ? "Sen. " : "Rep. "}
@@ -114,7 +88,7 @@ export function MeetingRow({
           {meeting.primary_team_slug ? (
             <Link
               href={`/teams/${meeting.primary_team_slug}`}
-              className="block truncate text-primary-dark underline-offset-4 hover:underline"
+              className={`block truncate ${LINK_CN}`}
               onClick={(e) => e.stopPropagation()}
             >
               {meeting.primary_team_name}
@@ -130,6 +104,7 @@ export function MeetingRow({
           <TableCell className="text-center">
             {meeting.follow_up_date ? (
               <CircleCheckBig
+                role="img"
                 aria-label="Follow-up sent"
                 className="m-auto h-4 w-4 text-green-600"
               />
@@ -137,13 +112,16 @@ export function MeetingRow({
           </TableCell>
         )}
       </TableRow>
-      {isExpanded && (
-        <TableRow id={detailRowId} className="hover:bg-background">
-          <TableCell colSpan={colSpan} className="p-0">
+      <TableRow
+        id={detailRowId}
+        className={isExpanded ? "hover:bg-background" : "hidden"}
+      >
+        {isExpanded && (
+          <TableCell colSpan={colSpan} className="whitespace-normal p-0">
             <MeetingDetail meeting={meeting} onSaved={onRefresh} />
           </TableCell>
-        </TableRow>
-      )}
+        )}
+      </TableRow>
     </>
   );
 }

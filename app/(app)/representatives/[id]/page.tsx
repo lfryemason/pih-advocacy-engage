@@ -4,7 +4,14 @@ import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentRole } from "@/lib/auth/role";
 import { ORG_ID } from "@/lib/org";
-import { Button } from "@/components/ui/button";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { StafferList } from "@/components/staffers/staffer-list";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
 
@@ -78,14 +85,22 @@ async function RepresentativeContent({
 
   return (
     <>
-      <div>
-        <Button asChild variant="ghost" size="sm" className="-ml-3">
-          <Link href="/representatives" aria-label="Representatives">
-            <span aria-hidden="true">← </span>
-            Representatives
-          </Link>
-        </Button>
-      </div>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link href="/representatives">Representatives</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>
+              {representative.official_full_name ??
+                `${representative.first_name} ${representative.last_name}`}
+            </BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       <h1 className="mt-4 text-2xl font-bold">
         {representative.official_full_name ??
           `${representative.first_name} ${representative.last_name}`}

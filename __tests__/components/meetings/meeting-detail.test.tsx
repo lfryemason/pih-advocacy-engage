@@ -318,7 +318,7 @@ describe("MeetingDetail — validation: champion score out of range", () => {
 
     await user.click(screen.getByRole("button", { name: "Save changes" }));
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Champion score must be between 0 and 5",
+      "Champion score must be a whole number between 0 and 5",
     );
     expect(mockUpdateMeeting).not.toHaveBeenCalled();
   });

@@ -220,7 +220,11 @@ type RawDetailDelegationMember = {
   role: string;
   team_id: string | null;
   team_name_snapshot: string | null;
-  profiles: { first_name: string | null; last_name: string | null } | null;
+  profiles: {
+    first_name: string | null;
+    last_name: string | null;
+    email: string | null;
+  } | null;
 };
 
 type RawDetailRow = Omit<RawRow, "meeting_delegation_members"> & {
@@ -246,7 +250,7 @@ const SELECT_DETAIL = `
   representatives!inner ( bioguide_id, official_full_name, state, district, party ),
   staffers ( first_name, last_name ),
   teams ( name, slug ),
-  meeting_delegation_members ( id, user_id, role, team_id, team_name_snapshot, profiles ( first_name, last_name ) )
+  meeting_delegation_members ( id, user_id, role, team_id, team_name_snapshot, profiles ( first_name, last_name, email ) )
 `;
 
 export async function fetchMeetingDetail(
@@ -266,11 +270,14 @@ export async function fetchMeetingDetail(
     row.meeting_delegation_members.map((m) => ({
       id: m.id,
       user_id: m.user_id,
+      first_name: m.profiles?.first_name ?? "",
+      last_name: m.profiles?.last_name ?? "",
       display_name: m.profiles
         ? [m.profiles.first_name, m.profiles.last_name]
             .filter(Boolean)
             .join(" ") || "Anonymous"
         : "Anonymous",
+      email: m.profiles?.email ?? null,
       role: m.role as DelegationRole,
       team_id: m.team_id,
       team_name_snapshot: m.team_name_snapshot,
