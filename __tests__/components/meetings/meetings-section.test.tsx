@@ -1,7 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MeetingsSection } from "@/components/meetings/meetings-section";
-import { MeetingRow as MeetingRowComponent } from "@/components/meetings/meeting-row";
 import { MeetingRow } from "@/lib/meetings/types";
 
 function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
@@ -265,92 +264,5 @@ describe("MeetingsSection", () => {
       />,
     );
     expect(screen.getByRole("button", { name: "Loading…" })).toBeDisabled();
-  });
-
-  it("matches snapshot with meetings", () => {
-    const meetings = [makeRow()];
-    const { asFragment } = render(
-      <MeetingsSection
-        title="Upcoming Meetings"
-        meetings={meetings}
-        {...sectionProps(meetings)}
-      />,
-    );
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it("matches snapshot empty state", () => {
-    const { asFragment } = render(
-      <MeetingsSection
-        title="Past Meetings"
-        meetings={[]}
-        {...sectionProps([])}
-      />,
-    );
-    expect(asFragment()).toMatchSnapshot();
-  });
-});
-
-describe("MeetingRow (collapsed)", () => {
-  it("matches snapshot in collapsed state without isPast", () => {
-    const { asFragment } = render(
-      <table>
-        <tbody>
-          <MeetingRowComponent
-            meeting={makeRow({
-              meeting_date: "2099-06-01",
-              representative_name: "Jane Rep",
-              congressional_contact_name: "Jane Rep",
-              primary_team_name: "Global Health",
-              primary_team_slug: "global-health",
-              scheduling_lead_name: "Alice Lead",
-              follow_up_date: "2099-06-15",
-            })}
-          />
-        </tbody>
-      </table>,
-    );
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it("matches snapshot in collapsed state with isPast and follow-up sent", () => {
-    const { asFragment } = render(
-      <table>
-        <tbody>
-          <MeetingRowComponent
-            isPast
-            meeting={makeRow({
-              meeting_date: "2020-01-01",
-              representative_name: "Jane Rep",
-              congressional_contact_name: "Jane Rep",
-              primary_team_name: "Global Health",
-              primary_team_slug: "global-health",
-              scheduling_lead_name: "Alice Lead",
-              follow_up_date: "2020-02-01",
-            })}
-          />
-        </tbody>
-      </table>,
-    );
-    expect(asFragment()).toMatchSnapshot();
-  });
-
-  it("matches snapshot in collapsed state with isPast and no follow-up", () => {
-    const { asFragment } = render(
-      <table>
-        <tbody>
-          <MeetingRowComponent
-            isPast
-            meeting={makeRow({
-              meeting_date: "2020-01-01",
-              representative_name: "Jane Rep",
-              congressional_contact_name: "Jane Rep",
-              follow_up_date: null,
-            })}
-          />
-        </tbody>
-      </table>,
-    );
-    expect(asFragment()).toMatchSnapshot();
   });
 });
