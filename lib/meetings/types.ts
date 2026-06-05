@@ -52,6 +52,14 @@ export type MeetingDetail = MeetingRow & {
   represented_teams: string[];
 };
 
+// ─── Shared component types ───────────────────────────────────────────────────
+
+export type StafferOption = {
+  id: string;
+  first_name: string;
+  last_name: string;
+};
+
 // ─── Form input types ─────────────────────────────────────────────────────────
 
 export type CreateMeetingValues = {
@@ -63,6 +71,11 @@ export type CreateMeetingValues = {
   primary_team_id: string | null;
   notes: string | null;
   location: string | null;
+};
+
+export type MeetingFormValues = CreateMeetingValues & {
+  follow_up_date: string | null;
+  champion_score: number | null;
 };
 
 export type LinkFormEntry = MeetingLink;

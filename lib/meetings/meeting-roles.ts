@@ -19,3 +19,12 @@ export const ROLE_COLORS: Record<DelegationRole, string> = {
 export const MEMBER_ROLES: DelegationRole[] = (
   Object.keys(ROLE_LABELS) as DelegationRole[]
 ).filter((r) => r !== "scheduling_lead" && r !== "pih_team_member");
+
+export const CHAMPION_LABELS: Record<number, string> = {
+  0: "Opposed",
+  1: "Neutral/Uninformed",
+  2: "Supporter",
+  3: "Advocate",
+  4: "Leader",
+  5: "Champion",
+};

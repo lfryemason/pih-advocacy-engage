@@ -27,4 +27,33 @@ for (const theme of themes) {
 
     expect(results.violations).toEqual([]);
   });
+
+  test(`meeting edit panel (${theme}) has no accessibility violations`, async ({
+    page,
+  }) => {
+    await page.addInitScript((t) => {
+      window.localStorage.setItem("theme", t);
+    }, theme);
+    await page.goto("/meetings");
+    await page.waitForLoadState("networkidle");
+    await page.evaluate((t) => {
+      document.documentElement.classList.remove("light", "dark");
+      document.documentElement.classList.add(t);
+      document.documentElement.style.colorScheme = t;
+    }, theme);
+
+    // Expand a meeting row then enter edit mode so the edit form is in the DOM.
+    await page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first()
+      .click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).analyze();
+
+    expect(results.violations).toEqual([]);
+  });
 }

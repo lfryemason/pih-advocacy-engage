@@ -11,6 +11,8 @@ export function initials(firstName: string, lastName: string): string {
 }
 
 export const LINK_CN = "text-primary-dark underline-offset-4 hover:underline";
+export const SECTION_LABEL_CLASSNAME =
+  "font-semibold uppercase tracking-wide text-muted-foreground";
 
 export function formatTime(
   meetingDate: string,

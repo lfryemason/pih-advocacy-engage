@@ -184,7 +184,7 @@ test.describe("create meeting", () => {
   });
 });
 
-test.describe("expand meeting", () => {
+test.describe("edit meeting", () => {
   test("expand row shows read-only detail panel (not edit form)", async ({
     page,
   }) => {
@@ -202,5 +202,124 @@ test.describe("expand meeting", () => {
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).not.toBeVisible();
+  });
+
+  test("clicking Edit Meeting shows the edit form", async ({ page }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Cancel" })).toBeVisible();
+  });
+
+  test("cancel from edit returns to read-only panel (row stays expanded)", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+
+    // Wait for edit form to load, mutate a field.
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+    await page
+      .getByLabel(/^Date$/)
+      .last()
+      .fill("2055-01-01");
+
+    // Cancel — should return to read-only panel, row stays expanded.
+    await page.getByRole("button", { name: "Cancel" }).click();
+
+    await expect(expandBtn).toHaveAttribute("aria-expanded", "true");
+    await expect(
+      page.getByRole("button", { name: /Edit Meeting/i }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+  });
+
+  test("edit date to future moves meeting to Upcoming section", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    // Expand a past meeting row and enter edit mode
+    const pastSection = page.getByLabel("Past Meetings");
+    const pastExpandBtn = pastSection
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await pastExpandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+
+    // Wait for edit form to load
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    // Change date to a future date
+    await page
+      .getByLabel(/^Date$/)
+      .last()
+      .fill("2099-07-04");
+
+    // Save
+    await page.getByRole("button", { name: "Save changes" }).click();
+
+    // Panel returns to read-only and list refreshes
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Edit Meeting/i }),
+    ).toBeVisible();
+
+    // Meeting should now appear in Upcoming
+    await expect(
+      page.getByLabel("Upcoming Meetings").getByText("Jul 4, 2099"),
+    ).toBeVisible();
+  });
+
+  test("edit date to past moves meeting to Past section", async ({ page }) => {
+    await page.goto("/meetings");
+
+    // Expand an upcoming meeting row and enter edit mode
+    const upcomingSection = page.getByLabel("Upcoming Meetings");
+    const upcomingExpandBtn = upcomingSection
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await upcomingExpandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    await page
+      .getByLabel(/^Date$/)
+      .last()
+      .fill("2020-01-15");
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+
+    await expect(
+      page.getByLabel("Past Meetings").getByText("Jan 15, 2020"),
+    ).toBeVisible();
   });
 });

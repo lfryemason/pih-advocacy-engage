@@ -1,33 +1,27 @@
 "use client";
 
-import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { LinkFormEntry } from "@/lib/meetings/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export function EditMeetingLinks({
+  links,
   onChange,
 }: {
+  links: LinkFormEntry[];
   onChange: (links: LinkFormEntry[]) => void;
 }) {
-  const [links, setLinks] = useState<LinkFormEntry[]>([]);
-
-  function update(next: LinkFormEntry[]) {
-    setLinks(next);
-    onChange(next);
-  }
-
   function handleAdd() {
-    update([...links, { label: "", url: "" }]);
+    onChange([...links, { label: "", url: "" }]);
   }
 
   function handleRemove(i: number) {
-    update(links.filter((_, idx) => idx !== i));
+    onChange(links.filter((_, idx) => idx !== i));
   }
 
   function handleChange(i: number, field: keyof LinkFormEntry, value: string) {
-    update(links.map((l, idx) => (idx === i ? { ...l, [field]: value } : l)));
+    onChange(links.map((l, idx) => (idx === i ? { ...l, [field]: value } : l)));
   }
 
   return (

@@ -1,36 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 import { CreateMeetingValues, LinkFormEntry } from "@/lib/meetings/types";
+import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
+import { validateMeetingFields } from "@/lib/meetings/validate";
+import { useStaffers } from "@/lib/meetings/use-staffers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { RepresentativeCombobox } from "@/components/meetings/create/representative-combobox";
 import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
-
-const MEETING_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const _tzDate = new Date();
-const _tzLong =
-  new Intl.DateTimeFormat("en-US", { timeZoneName: "long" })
-    .formatToParts(_tzDate)
-    .find((p) => p.type === "timeZoneName")?.value ?? "";
-const _tzOffset =
-  new Intl.DateTimeFormat("en-US", { timeZoneName: "shortOffset" })
-    .formatToParts(_tzDate)
-    .find((p) => p.type === "timeZoneName")?.value ?? "";
-const TZ_DISPLAY_NAME =
-  _tzLong && _tzOffset
-    ? `${_tzLong}/${_tzOffset}`
-    : _tzLong || _tzOffset || MEETING_TIMEZONE;
-
-type StafferOption = {
-  id: string;
-  first_name: string;
-  last_name: string;
-};
+import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
 
 type SubmitFn = (
   values: CreateMeetingValues,
@@ -47,6 +30,9 @@ export function CreateMeetingForm({
 }) {
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("14:00");
+  const [meetingTimezone, setMeetingTimezone] = useState(
+    DEFAULT_MEETING_TIMEZONE,
+  );
   const [representativeId, setRepresentativeId] = useState("");
   const [congressionalContactId, setCongressionalContactId] = useState("");
   const [primaryTeamId, setPrimaryTeamId] = useState("");
@@ -55,61 +41,32 @@ export function CreateMeetingForm({
   const [notes, setNotes] = useState("");
   const [links, setLinks] = useState<LinkFormEntry[]>([]);
 
-  const [staffers, setStaffers] = useState<StafferOption[]>([]);
+  const staffers = useStaffers(representativeId);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-
-  useEffect(() => {
-    if (!representativeId) {
-      setStaffers([]);
-      return;
-    }
-    let cancelled = false;
-    const supabase = createClient();
-    supabase
-      .from("staffers")
-      .select("id, first_name, last_name")
-      .eq("representative_id", representativeId)
-      .order("last_name")
-      .then(({ data }) => {
-        if (cancelled) return;
-        const rows = data ?? [];
-        setStaffers(rows);
-        setCongressionalContactId((prev) =>
-          rows.find((s) => s.id === prev) ? prev : "",
-        );
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [representativeId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (!meetingDate) {
-      setError("Meeting date is required.");
-      return;
-    }
-    if (!representativeId) {
-      setError("Member of Congress is required.");
-      return;
-    }
-    const notesTrimmed = notes.trim();
-    if (notesTrimmed.length > 255) {
-      setError("Notes must be 255 characters or fewer.");
+    const validationError = validateMeetingFields(
+      meetingDate,
+      representativeId,
+      notes,
+    );
+    if (validationError) {
+      setError(validationError);
       return;
     }
 
     const values: CreateMeetingValues = {
       meeting_date: meetingDate,
       meeting_time: meetingTime.trim() || null,
-      meeting_timezone: MEETING_TIMEZONE,
+      meeting_timezone: meetingTimezone,
       representative_id: representativeId,
       congressional_contact_id: congressionalContactId || null,
       primary_team_id: primaryTeamId || null,
-      notes: notesTrimmed || null,
+      notes: notes.trim() || null,
       location: location.trim() || null,
     };
 
@@ -124,9 +81,6 @@ export function CreateMeetingForm({
       setIsSaving(false);
     }
   }
-
-  const textareaClass =
-    "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[72px] resize-none";
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -146,18 +100,22 @@ export function CreateMeetingForm({
           />
         </div>
         <div className="grid gap-2">
-          <div className="flex items-baseline gap-0.5">
-            <Label htmlFor="meeting-time">Time</Label>
-            <span className="min-w-0 truncate text-xs italic leading-none text-muted-foreground">
-              {TZ_DISPLAY_NAME}
-            </span>
-          </div>
+          <Label htmlFor="meeting-time">Time</Label>
           <Input
             id="meeting-time"
             type="time"
             value={meetingTime}
             onChange={(e) => setMeetingTime(e.target.value)}
             className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          />
+        </div>
+
+        <div className="grid gap-2 sm:col-span-2">
+          <Label htmlFor="meeting-timezone">Timezone</Label>
+          <TimezoneSelect
+            id="meeting-timezone"
+            value={meetingTimezone}
+            onChange={setMeetingTimezone}
           />
         </div>
 
@@ -226,18 +184,17 @@ export function CreateMeetingForm({
               {notes.trim().length}/255
             </span>
           </div>
-          <textarea
+          <Textarea
             id="meeting-notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             rows={3}
-            className={textareaClass}
             aria-label="Notes"
           />
         </div>
       </div>
 
-      <EditMeetingLinks onChange={setLinks} />
+      <EditMeetingLinks links={links} onChange={setLinks} />
 
       {error && (
         <p className="text-sm text-destructive" role="alert">
