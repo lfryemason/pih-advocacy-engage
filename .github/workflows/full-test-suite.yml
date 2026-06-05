@@ -21,10 +21,10 @@ jobs:
           node-version: lts/*
       - name: Install dependencies
         run: npm ci
-      - name: Start Supabase
-        run: npx supabase start
       - name: Run Vitest tests
         run: npx vitest run
+      - name: Start Supabase
+        run: npx supabase start
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps chromium
       - name: Run E2E Playwright tests
