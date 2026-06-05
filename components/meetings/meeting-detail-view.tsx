@@ -8,7 +8,12 @@ import type {
   DelegationMember,
   DelegationRole,
 } from "@/lib/meetings/types";
-import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
+import {
+  formatDate,
+  formatTime,
+  LINK_CN,
+  SECTION_LABEL_CLASSNAME,
+} from "@/lib/meetings/format";
 import {
   MEMBER_ROLES,
   ROLE_LABELS,
@@ -16,9 +21,6 @@ import {
 } from "@/lib/meetings/meeting-roles";
 import { MemberAvatar } from "@/components/meetings/member-avatar";
 import { AvatarInitialsCircle } from "@/components/ui/avatar-initials-circle";
-
-const SECTION_LABEL_CLASSNAME =
-  "font-semibold uppercase tracking-wide text-muted-foreground";
 
 function DelegationMemberRow({ member }: { member: DelegationMember }) {
   return (

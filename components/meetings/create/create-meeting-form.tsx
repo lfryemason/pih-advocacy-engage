@@ -194,7 +194,7 @@ export function CreateMeetingForm({
         </div>
       </div>
 
-      <EditMeetingLinks onChange={setLinks} />
+      <EditMeetingLinks links={links} onChange={setLinks} />
 
       {error && (
         <p className="text-sm text-destructive" role="alert">

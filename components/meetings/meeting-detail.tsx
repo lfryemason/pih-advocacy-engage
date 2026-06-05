@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchMeetingDetail, updateMeeting } from "@/lib/meetings/queries";
 import {
@@ -59,8 +59,6 @@ export function MeetingDetail({
 
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [links, setLinks] = useState<LinkFormEntry[]>([]);
-  const [initialLinks, setInitialLinks] = useState<LinkFormEntry[]>([]);
-  const [editSessionKey, setEditSessionKey] = useState(0);
 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -84,7 +82,6 @@ export function MeetingDetail({
         setDetail(d);
         setForm(formStateFromDetail(d));
         setLinks(d.links);
-        setInitialLinks(d.links);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -101,22 +98,19 @@ export function MeetingDetail({
     };
   }, [meeting.id]);
 
-  function updateForm(partial: Partial<FormState>) {
+  const updateForm = useCallback((partial: Partial<FormState>) => {
     setForm((prev) => ({ ...prev, ...partial }));
-  }
+  }, []);
 
   function handleEnterEdit() {
     setSaveError(null);
-    setEditSessionKey((k) => k + 1); // remounts EditMeetingLinks with fresh initialLinks
     setMode("edit");
   }
 
   function handleCancel() {
     if (!detail) return;
-    const state = formStateFromDetail(detail);
-    setForm(state);
+    setForm(formStateFromDetail(detail));
     setLinks(detail.links);
-    setInitialLinks(detail.links); // fix: reset so EditMeetingLinks remounts clean
     setSaveError(null);
     setMode("view");
   }
@@ -155,26 +149,29 @@ export function MeetingDetail({
     try {
       const supabase = createClient();
       await updateMeeting(supabase, meeting.id, values, links);
-      onSaved();
 
-      // Refresh detail in the background; guard against unmount
-      const savedLinks = links.filter((l) => l.label.trim() || l.url.trim());
-      setInitialLinks(savedLinks);
+      // Transition to view mode before notifying the parent — the parent's
+      // onSaved triggers a list refresh that can unmount this component
+      // (e.g. when the meeting's date moves it to a different section).
+      setMode("view");
+
+      // Refresh detail in the background so the view panel is up-to-date
+      // if the component stays mounted. Guard against post-unmount setState.
       fetchMeetingDetail(supabase, meeting.id)
         .then((d) => {
           if (!isMountedRef.current) return;
           setDetail(d);
-          setInitialLinks(d.links);
+          setLinks(d.links);
         })
         .catch(() => {});
 
-      setMode("view");
+      onSaved();
     } catch (err: unknown) {
       setSaveError(
         err instanceof Error ? err.message : "Failed to save meeting",
       );
     } finally {
-      setIsSaving(false);
+      if (isMountedRef.current) setIsSaving(false);
     }
   }
 
@@ -208,10 +205,9 @@ export function MeetingDetail({
   return (
     <MeetingDetailEdit
       meetingId={meeting.id}
-      editSessionKey={editSessionKey}
       form={form}
       onFormChange={updateForm}
-      initialLinks={initialLinks}
+      links={links}
       onLinksChange={setLinks}
       onSubmit={handleSubmit}
       onCancel={handleCancel}

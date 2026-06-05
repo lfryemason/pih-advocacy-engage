@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { CHAMPION_LABELS } from "@/lib/meetings/meeting-roles";
+import { SECTION_LABEL_CLASSNAME } from "@/lib/meetings/format";
 import { LinkFormEntry, StafferOption } from "@/lib/meetings/types";
 import { useStaffers } from "@/lib/meetings/use-staffers";
 import { Button } from "@/components/ui/button";
@@ -13,9 +14,6 @@ import { RepresentativeCombobox } from "@/components/meetings/create/representat
 import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
 import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
-
-const SECTION_LABEL_CLASSNAME =
-  "font-semibold uppercase tracking-wide text-muted-foreground";
 
 export type FormState = {
   meetingDate: string;
@@ -32,10 +30,9 @@ export type FormState = {
 
 type Props = {
   meetingId: string;
-  editSessionKey: number;
   form: FormState;
   onFormChange: (partial: Partial<FormState>) => void;
-  initialLinks: LinkFormEntry[];
+  links: LinkFormEntry[];
   onLinksChange: (links: LinkFormEntry[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
@@ -47,10 +44,9 @@ type ColumnProps = Props & { staffers: StafferOption[] };
 
 function LeftColumn({
   meetingId,
-  editSessionKey,
   form,
   onFormChange,
-  initialLinks,
+  links,
   staffers,
   onLinksChange,
 }: ColumnProps) {
@@ -159,11 +155,7 @@ function LeftColumn({
         />
       </div>
 
-      <EditMeetingLinks
-        key={`${meetingId}-${editSessionKey}`}
-        initialLinks={initialLinks}
-        onChange={onLinksChange}
-      />
+      <EditMeetingLinks links={links} onChange={onLinksChange} />
     </div>
   );
 }
