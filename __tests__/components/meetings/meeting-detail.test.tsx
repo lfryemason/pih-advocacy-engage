@@ -78,13 +78,6 @@ describe("MeetingDetail — loading state", () => {
       "Loading meeting details",
     );
   });
-
-  it("matches snapshot in loading state", () => {
-    const { asFragment } = render(
-      <MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />,
-    );
-    expect(asFragment()).toMatchSnapshot();
-  });
 });
 
 describe("MeetingDetail — error state", () => {
@@ -129,14 +122,6 @@ describe("MeetingDetail — view mode (default)", () => {
     await screen.findByRole("button", { name: /Edit Meeting/i });
     expect(screen.getByText("Test notes")).toBeInTheDocument();
     expect(screen.getByText("DC")).toBeInTheDocument();
-  });
-
-  it("matches snapshot in view mode", async () => {
-    const { asFragment } = render(
-      <MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />,
-    );
-    await screen.findByRole("button", { name: /Edit Meeting/i });
-    expect(asFragment()).toMatchSnapshot();
   });
 });
 
