@@ -279,32 +279,3 @@ describe("MeetingDetail — validation: notes too long", () => {
     expect(mockUpdateMeeting).not.toHaveBeenCalled();
   });
 });
-
-describe("MeetingDetail — validation: champion score out of range", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    stubEmpty();
-    mockFetchMeetingDetail.mockResolvedValue({
-      ...mockDetail,
-      champion_score: 6,
-    });
-    mockUpdateMeeting.mockResolvedValue(undefined);
-  });
-
-  it("shows error when champion score is out of range", async () => {
-    const user = userEvent.setup();
-    render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
-
-    const editBtn = await screen.findByRole("button", {
-      name: /Edit Meeting/i,
-    });
-    await user.click(editBtn);
-    await screen.findByRole("button", { name: "Save changes" });
-
-    await user.click(screen.getByRole("button", { name: "Save changes" }));
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Champion score must be a whole number between 0 and 5",
-    );
-    expect(mockUpdateMeeting).not.toHaveBeenCalled();
-  });
-});

@@ -10,21 +10,9 @@ import { Select } from "@/components/ui/select";
 import { RepresentativeCombobox } from "@/components/meetings/create/representative-combobox";
 import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
+import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
 
 const MEETING_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const _tzDate = new Date();
-const _tzLong =
-  new Intl.DateTimeFormat("en-US", { timeZoneName: "long" })
-    .formatToParts(_tzDate)
-    .find((p) => p.type === "timeZoneName")?.value ?? "";
-const _tzOffset =
-  new Intl.DateTimeFormat("en-US", { timeZoneName: "shortOffset" })
-    .formatToParts(_tzDate)
-    .find((p) => p.type === "timeZoneName")?.value ?? "";
-const TZ_DISPLAY_NAME =
-  _tzLong && _tzOffset
-    ? `${_tzLong}/${_tzOffset}`
-    : _tzLong || _tzOffset || MEETING_TIMEZONE;
 
 type StafferOption = {
   id: string;
@@ -47,6 +35,7 @@ export function CreateMeetingForm({
 }) {
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("14:00");
+  const [meetingTimezone, setMeetingTimezone] = useState(MEETING_TIMEZONE);
   const [representativeId, setRepresentativeId] = useState("");
   const [congressionalContactId, setCongressionalContactId] = useState("");
   const [primaryTeamId, setPrimaryTeamId] = useState("");
@@ -105,7 +94,7 @@ export function CreateMeetingForm({
     const values: CreateMeetingValues = {
       meeting_date: meetingDate,
       meeting_time: meetingTime.trim() || null,
-      meeting_timezone: MEETING_TIMEZONE,
+      meeting_timezone: meetingTimezone,
       representative_id: representativeId,
       congressional_contact_id: congressionalContactId || null,
       primary_team_id: primaryTeamId || null,
@@ -146,18 +135,22 @@ export function CreateMeetingForm({
           />
         </div>
         <div className="grid gap-2">
-          <div className="flex items-baseline gap-0.5">
-            <Label htmlFor="meeting-time">Time</Label>
-            <span className="min-w-0 truncate text-xs italic leading-none text-muted-foreground">
-              {TZ_DISPLAY_NAME}
-            </span>
-          </div>
+          <Label htmlFor="meeting-time">Time</Label>
           <Input
             id="meeting-time"
             type="time"
             value={meetingTime}
             onChange={(e) => setMeetingTime(e.target.value)}
             className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+          />
+        </div>
+
+        <div className="grid gap-2 sm:col-span-2">
+          <Label htmlFor="meeting-timezone">Timezone</Label>
+          <TimezoneSelect
+            id="meeting-timezone"
+            value={meetingTimezone}
+            onChange={setMeetingTimezone}
           />
         </div>
 

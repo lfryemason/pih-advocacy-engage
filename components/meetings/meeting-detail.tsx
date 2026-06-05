@@ -10,6 +10,7 @@ import {
   LinkFormEntry,
 } from "@/lib/meetings/types";
 import { MeetingDetailView } from "@/components/meetings/meeting-detail-view";
+import { CHAMPION_LABELS } from "@/lib/meetings/meeting-roles";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,21 +18,9 @@ import { Select } from "@/components/ui/select";
 import { RepresentativeCombobox } from "@/components/meetings/create/representative-combobox";
 import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
+import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
 
 const MEETING_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const _tzDate = new Date();
-const _tzLong =
-  new Intl.DateTimeFormat("en-US", { timeZoneName: "long" })
-    .formatToParts(_tzDate)
-    .find((p) => p.type === "timeZoneName")?.value ?? "";
-const _tzOffset =
-  new Intl.DateTimeFormat("en-US", { timeZoneName: "shortOffset" })
-    .formatToParts(_tzDate)
-    .find((p) => p.type === "timeZoneName")?.value ?? "";
-const TZ_DISPLAY_NAME =
-  _tzLong && _tzOffset
-    ? `${_tzLong}/${_tzOffset}`
-    : _tzLong || _tzOffset || MEETING_TIMEZONE;
 
 const SECTION_LABEL_CLASSNAME =
   "font-semibold uppercase tracking-wide text-muted-foreground";
@@ -49,6 +38,7 @@ function formStateFromDetail(d: MeetingDetailType) {
   return {
     meetingDate: d.meeting_date,
     meetingTime: d.meeting_time ?? "",
+    meetingTimezone: d.meeting_timezone,
     representativeId: d.representative_id,
     congressionalContactId: d.congressional_contact_id ?? "",
     primaryTeamId: d.primary_team_id ?? "",
@@ -74,6 +64,7 @@ export function MeetingDetail({
 
   const [meetingDate, setMeetingDate] = useState("");
   const [meetingTime, setMeetingTime] = useState("");
+  const [meetingTimezone, setMeetingTimezone] = useState(MEETING_TIMEZONE);
   const [representativeId, setRepresentativeId] = useState("");
   const [congressionalContactId, setCongressionalContactId] = useState("");
   const [primaryTeamId, setPrimaryTeamId] = useState("");
@@ -101,6 +92,7 @@ export function MeetingDetail({
         const form = formStateFromDetail(d);
         setMeetingDate(form.meetingDate);
         setMeetingTime(form.meetingTime);
+        setMeetingTimezone(form.meetingTimezone);
         setRepresentativeId(form.representativeId);
         setCongressionalContactId(form.congressionalContactId);
         setPrimaryTeamId(form.primaryTeamId);
@@ -162,6 +154,7 @@ export function MeetingDetail({
     const form = formStateFromDetail(detail);
     setMeetingDate(form.meetingDate);
     setMeetingTime(form.meetingTime);
+    setMeetingTimezone(form.meetingTimezone);
     setRepresentativeId(form.representativeId);
     setCongressionalContactId(form.congressionalContactId);
     setPrimaryTeamId(form.primaryTeamId);
@@ -192,18 +185,11 @@ export function MeetingDetail({
       return;
     }
     const parsedScore = championScore !== "" ? Number(championScore) : null;
-    if (
-      parsedScore !== null &&
-      (!Number.isInteger(parsedScore) || parsedScore < 0 || parsedScore > 5)
-    ) {
-      setSaveError("Champion score must be a whole number between 0 and 5.");
-      return;
-    }
 
     const values: MeetingFormValues = {
       meeting_date: meetingDate,
       meeting_time: meetingTime.trim() || null,
-      meeting_timezone: MEETING_TIMEZONE,
+      meeting_timezone: meetingTimezone,
       representative_id: representativeId,
       congressional_contact_id: congressionalContactId || null,
       primary_team_id: primaryTeamId || null,
@@ -266,119 +252,8 @@ export function MeetingDetail({
     <div className="p-4">
       <form onSubmit={handleSubmit}>
         <div className="grid gap-6 @[600px]:grid-cols-2">
-          {/* Left column — mirrors read-only left: champion+followup, notes, links */}
+          {/* Left column — who + outcome + content */}
           <div className="flex flex-col gap-4">
-            <div className="flex gap-4">
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <p className={SECTION_LABEL_CLASSNAME}>
-                  <Label htmlFor={`edit-champion-${meeting.id}`}>
-                    Champion Score (0–5)
-                  </Label>
-                </p>
-                <Input
-                  id={`edit-champion-${meeting.id}`}
-                  type="number"
-                  value={championScore}
-                  onChange={(e) => setChampionScore(e.target.value)}
-                  placeholder="—"
-                />
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <p className={SECTION_LABEL_CLASSNAME}>
-                  <Label htmlFor={`edit-followup-${meeting.id}`}>
-                    Follow-up
-                  </Label>
-                </p>
-                <Input
-                  id={`edit-followup-${meeting.id}`}
-                  type="date"
-                  value={followUpDate}
-                  onChange={(e) => setFollowUpDate(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex items-baseline justify-between">
-                <p className={SECTION_LABEL_CLASSNAME}>
-                  <Label htmlFor={`edit-notes-${meeting.id}`}>Notes</Label>
-                </p>
-                <span
-                  className={`text-xs ${notes.trim().length > 255 ? "text-destructive" : "text-muted-foreground"}`}
-                >
-                  {notes.trim().length}/255
-                </span>
-              </div>
-              <textarea
-                id={`edit-notes-${meeting.id}`}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                className={textareaClass}
-                aria-label="Notes"
-              />
-            </div>
-
-            <EditMeetingLinks
-              key={meeting.id}
-              initialLinks={initialLinks}
-              onChange={setLinks}
-            />
-          </div>
-
-          {/* Right column — mirrors read-only right: time, location, then edit-only fields */}
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-4">
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <div className="flex items-baseline gap-1">
-                  <p className={SECTION_LABEL_CLASSNAME}>
-                    <Label htmlFor={`edit-date-${meeting.id}`}>Date</Label>
-                  </p>
-                  <span
-                    className="leading-none text-destructive"
-                    aria-hidden="true"
-                  >
-                    *
-                  </span>
-                </div>
-                <Input
-                  id={`edit-date-${meeting.id}`}
-                  type="date"
-                  value={meetingDate}
-                  onChange={(e) => setMeetingDate(e.target.value)}
-                />
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <div className="flex items-baseline gap-1">
-                  <p className={SECTION_LABEL_CLASSNAME}>
-                    <Label htmlFor={`edit-time-${meeting.id}`}>Time</Label>
-                  </p>
-                  <span className="min-w-0 truncate text-xs italic leading-none text-muted-foreground">
-                    {TZ_DISPLAY_NAME}
-                  </span>
-                </div>
-                <Input
-                  id={`edit-time-${meeting.id}`}
-                  type="time"
-                  value={meetingTime}
-                  onChange={(e) => setMeetingTime(e.target.value)}
-                  className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className={SECTION_LABEL_CLASSNAME}>
-                <Label htmlFor={`edit-location-${meeting.id}`}>Location</Label>
-              </p>
-              <Input
-                id={`edit-location-${meeting.id}`}
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
-              />
-            </div>
-
             <div className="flex flex-col gap-2">
               <div className="flex items-baseline gap-1">
                 <p className={SECTION_LABEL_CLASSNAME}>
@@ -436,6 +311,128 @@ export function MeetingDetail({
                 id={`edit-team-${meeting.id}`}
                 value={primaryTeamId}
                 onChange={(id) => setPrimaryTeamId(id)}
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <p className={SECTION_LABEL_CLASSNAME}>
+                  <Label htmlFor={`edit-champion-${meeting.id}`}>
+                    Champion Score
+                  </Label>
+                </p>
+                <Select
+                  id={`edit-champion-${meeting.id}`}
+                  value={championScore}
+                  onChange={(e) => setChampionScore(e.target.value)}
+                >
+                  <option value="">—</option>
+                  {Object.entries(CHAMPION_LABELS).map(([score, label]) => (
+                    <option key={score} value={score}>
+                      {score} – {label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <p className={SECTION_LABEL_CLASSNAME}>
+                  <Label htmlFor={`edit-followup-${meeting.id}`}>
+                    Follow-up
+                  </Label>
+                </p>
+                <Input
+                  id={`edit-followup-${meeting.id}`}
+                  type="date"
+                  value={followUpDate}
+                  onChange={(e) => setFollowUpDate(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <div className="flex items-baseline justify-between">
+                <p className={SECTION_LABEL_CLASSNAME}>
+                  <Label htmlFor={`edit-notes-${meeting.id}`}>Notes</Label>
+                </p>
+                <span
+                  className={`text-xs ${notes.trim().length > 255 ? "text-destructive" : "text-muted-foreground"}`}
+                >
+                  {notes.trim().length}/255
+                </span>
+              </div>
+              <textarea
+                id={`edit-notes-${meeting.id}`}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+                className={textareaClass}
+                aria-label="Notes"
+              />
+            </div>
+
+            <EditMeetingLinks
+              key={meeting.id}
+              initialLinks={initialLinks}
+              onChange={setLinks}
+            />
+          </div>
+
+          {/* Right column — when + where */}
+          <div className="flex flex-col gap-4">
+            <div className="flex gap-4">
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <div className="flex items-baseline gap-1">
+                  <p className={SECTION_LABEL_CLASSNAME}>
+                    <Label htmlFor={`edit-date-${meeting.id}`}>Date</Label>
+                  </p>
+                  <span
+                    className="leading-none text-destructive"
+                    aria-hidden="true"
+                  >
+                    *
+                  </span>
+                </div>
+                <Input
+                  id={`edit-date-${meeting.id}`}
+                  type="date"
+                  value={meetingDate}
+                  onChange={(e) => setMeetingDate(e.target.value)}
+                />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <p className={SECTION_LABEL_CLASSNAME}>
+                  <Label htmlFor={`edit-time-${meeting.id}`}>Time</Label>
+                </p>
+                <Input
+                  id={`edit-time-${meeting.id}`}
+                  type="time"
+                  value={meetingTime}
+                  onChange={(e) => setMeetingTime(e.target.value)}
+                  className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className={SECTION_LABEL_CLASSNAME}>
+                <Label htmlFor={`edit-timezone-${meeting.id}`}>Timezone</Label>
+              </p>
+              <TimezoneSelect
+                id={`edit-timezone-${meeting.id}`}
+                value={meetingTimezone}
+                onChange={setMeetingTimezone}
+              />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <p className={SECTION_LABEL_CLASSNAME}>
+                <Label htmlFor={`edit-location-${meeting.id}`}>Location</Label>
+              </p>
+              <Input
+                id={`edit-location-${meeting.id}`}
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
               />
             </div>
 
