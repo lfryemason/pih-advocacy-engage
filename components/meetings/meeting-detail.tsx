@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchMeetingDetail, updateMeeting } from "@/lib/meetings/queries";
 import {
@@ -9,32 +9,29 @@ import {
   MeetingFormValues,
   LinkFormEntry,
 } from "@/lib/meetings/types";
+import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
+import { validateMeetingFields } from "@/lib/meetings/validate";
+import { useStaffers } from "@/lib/meetings/use-staffers";
 import { MeetingDetailView } from "@/components/meetings/meeting-detail-view";
-import { CHAMPION_LABELS } from "@/lib/meetings/meeting-roles";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
-import { RepresentativeCombobox } from "@/components/meetings/create/representative-combobox";
-import { TeamCombobox } from "@/components/meetings/create/team-combobox";
-import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
-import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
+import {
+  MeetingDetailEdit,
+  type FormState,
+} from "@/components/meetings/meeting-detail-edit";
 
-const MEETING_TIMEZONE = Intl.DateTimeFormat().resolvedOptions().timeZone;
-
-const SECTION_LABEL_CLASSNAME =
-  "font-semibold uppercase tracking-wide text-muted-foreground";
-
-const textareaClass =
-  "flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 min-h-[72px] resize-none";
-
-type StafferOption = {
-  id: string;
-  first_name: string;
-  last_name: string;
+const DEFAULT_FORM: FormState = {
+  meetingDate: "",
+  meetingTime: "",
+  meetingTimezone: DEFAULT_MEETING_TIMEZONE,
+  representativeId: "",
+  congressionalContactId: "",
+  primaryTeamId: "",
+  location: "",
+  notes: "",
+  followUpDate: "",
+  championScore: "",
 };
 
-function formStateFromDetail(d: MeetingDetailType) {
+function formStateFromDetail(d: MeetingDetailType): FormState {
   return {
     meetingDate: d.meeting_date,
     meetingTime: d.meeting_time ?? "",
@@ -46,7 +43,6 @@ function formStateFromDetail(d: MeetingDetailType) {
     notes: d.notes ?? "",
     followUpDate: d.follow_up_date ?? "",
     championScore: d.champion_score != null ? String(d.champion_score) : "",
-    links: d.links,
   };
 }
 
@@ -62,22 +58,35 @@ export function MeetingDetail({
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  const [meetingDate, setMeetingDate] = useState("");
-  const [meetingTime, setMeetingTime] = useState("");
-  const [meetingTimezone, setMeetingTimezone] = useState(MEETING_TIMEZONE);
-  const [representativeId, setRepresentativeId] = useState("");
-  const [congressionalContactId, setCongressionalContactId] = useState("");
-  const [primaryTeamId, setPrimaryTeamId] = useState("");
-  const [location, setLocation] = useState("");
-  const [notes, setNotes] = useState("");
-  const [followUpDate, setFollowUpDate] = useState("");
-  const [championScore, setChampionScore] = useState("");
+  const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [links, setLinks] = useState<LinkFormEntry[]>([]);
   const [initialLinks, setInitialLinks] = useState<LinkFormEntry[]>([]);
+  const [editSessionKey, setEditSessionKey] = useState(0);
 
-  const [staffers, setStaffers] = useState<StafferOption[]>([]);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const staffers = useStaffers(form.representativeId);
+
+  // Keep congressional contact in sync when the staffers list changes
+  useEffect(() => {
+    if (staffers.length === 0) return;
+    setForm((prev) => ({
+      ...prev,
+      congressionalContactId: staffers.some(
+        (s) => s.id === prev.congressionalContactId,
+      )
+        ? prev.congressionalContactId
+        : "",
+    }));
+  }, [staffers]);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,19 +98,9 @@ export function MeetingDetail({
       .then((d) => {
         if (cancelled) return;
         setDetail(d);
-        const form = formStateFromDetail(d);
-        setMeetingDate(form.meetingDate);
-        setMeetingTime(form.meetingTime);
-        setMeetingTimezone(form.meetingTimezone);
-        setRepresentativeId(form.representativeId);
-        setCongressionalContactId(form.congressionalContactId);
-        setPrimaryTeamId(form.primaryTeamId);
-        setLocation(form.location);
-        setNotes(form.notes);
-        setFollowUpDate(form.followUpDate);
-        setChampionScore(form.championScore);
-        setLinks(form.links);
-        setInitialLinks(form.links);
+        setForm(formStateFromDetail(d));
+        setLinks(d.links);
+        setInitialLinks(d.links);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -118,51 +117,22 @@ export function MeetingDetail({
     };
   }, [meeting.id]);
 
-  useEffect(() => {
-    if (!representativeId) {
-      setStaffers([]);
-      return;
-    }
-    let cancelled = false;
-    const supabase = createClient();
-    supabase
-      .from("staffers")
-      .select("id, first_name, last_name")
-      .eq("representative_id", representativeId)
-      .order("last_name")
-      .then(({ data, error }) => {
-        if (cancelled) return;
-        if (error) return;
-        const rows = data ?? [];
-        setStaffers(rows);
-        setCongressionalContactId((prev) =>
-          rows.find((s) => s.id === prev) ? prev : "",
-        );
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [representativeId]);
+  function updateForm(partial: Partial<FormState>) {
+    setForm((prev) => ({ ...prev, ...partial }));
+  }
 
   function handleEnterEdit() {
     setSaveError(null);
+    setEditSessionKey((k) => k + 1); // remounts EditMeetingLinks with fresh initialLinks
     setMode("edit");
   }
 
   function handleCancel() {
     if (!detail) return;
-    const form = formStateFromDetail(detail);
-    setMeetingDate(form.meetingDate);
-    setMeetingTime(form.meetingTime);
-    setMeetingTimezone(form.meetingTimezone);
-    setRepresentativeId(form.representativeId);
-    setCongressionalContactId(form.congressionalContactId);
-    setPrimaryTeamId(form.primaryTeamId);
-    setLocation(form.location);
-    setNotes(form.notes);
-    setFollowUpDate(form.followUpDate);
-    setChampionScore(form.championScore);
-    setLinks(form.links);
+    const state = formStateFromDetail(detail);
+    setForm(state);
+    setLinks(detail.links);
+    setInitialLinks(detail.links); // fix: reset so EditMeetingLinks remounts clean
     setSaveError(null);
     setMode("view");
   }
@@ -171,31 +141,29 @@ export function MeetingDetail({
     e.preventDefault();
     setSaveError(null);
 
-    if (!meetingDate) {
-      setSaveError("Meeting date is required.");
+    const error = validateMeetingFields(
+      form.meetingDate,
+      form.representativeId,
+      form.notes,
+    );
+    if (error) {
+      setSaveError(error);
       return;
     }
-    if (!representativeId) {
-      setSaveError("Member of Congress is required.");
-      return;
-    }
-    const notesTrimmed = notes.trim();
-    if (notesTrimmed.length > 255) {
-      setSaveError("Notes must be 255 characters or fewer.");
-      return;
-    }
-    const parsedScore = championScore !== "" ? Number(championScore) : null;
+
+    const parsedScore =
+      form.championScore !== "" ? Number(form.championScore) : null;
 
     const values: MeetingFormValues = {
-      meeting_date: meetingDate,
-      meeting_time: meetingTime.trim() || null,
-      meeting_timezone: meetingTimezone,
-      representative_id: representativeId,
-      congressional_contact_id: congressionalContactId || null,
-      primary_team_id: primaryTeamId || null,
-      notes: notesTrimmed || null,
-      location: location.trim() || null,
-      follow_up_date: followUpDate || null,
+      meeting_date: form.meetingDate,
+      meeting_time: form.meetingTime.trim() || null,
+      meeting_timezone: form.meetingTimezone,
+      representative_id: form.representativeId,
+      congressional_contact_id: form.congressionalContactId || null,
+      primary_team_id: form.primaryTeamId || null,
+      notes: form.notes.trim() || null,
+      location: form.location.trim() || null,
+      follow_up_date: form.followUpDate || null,
       champion_score: parsedScore,
     };
 
@@ -205,10 +173,12 @@ export function MeetingDetail({
       await updateMeeting(supabase, meeting.id, values, links);
       onSaved();
 
+      // Refresh detail in the background; guard against unmount
       const savedLinks = links.filter((l) => l.label.trim() || l.url.trim());
       setInitialLinks(savedLinks);
       fetchMeetingDetail(supabase, meeting.id)
         .then((d) => {
+          if (!isMountedRef.current) return;
           setDetail(d);
           setInitialLinks(d.links);
         })
@@ -244,221 +214,26 @@ export function MeetingDetail({
     );
   }
 
-  if (mode === "view" && detail) {
+  // Guard: detail must be loaded before showing either panel
+  if (!detail) return null;
+
+  if (mode === "view") {
     return <MeetingDetailView meeting={detail} onEdit={handleEnterEdit} />;
   }
 
   return (
-    <div className="p-4">
-      <form onSubmit={handleSubmit}>
-        <div className="grid gap-6 @[600px]:grid-cols-2">
-          {/* Left column — who + outcome + content */}
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col gap-2">
-              <div className="flex items-baseline gap-1">
-                <p className={SECTION_LABEL_CLASSNAME}>
-                  <Label htmlFor={`edit-rep-${meeting.id}`}>
-                    Member of Congress
-                  </Label>
-                </p>
-                <span
-                  className="leading-none text-destructive"
-                  aria-hidden="true"
-                >
-                  *
-                </span>
-              </div>
-              <RepresentativeCombobox
-                id={`edit-rep-${meeting.id}`}
-                value={representativeId}
-                onChange={(id) => {
-                  setRepresentativeId(id);
-                  setCongressionalContactId("");
-                }}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className={SECTION_LABEL_CLASSNAME}>
-                <Label htmlFor={`edit-contact-${meeting.id}`}>
-                  Congressional Contact
-                </Label>
-              </p>
-              <Select
-                id={`edit-contact-${meeting.id}`}
-                value={congressionalContactId}
-                onChange={(e) => setCongressionalContactId(e.target.value)}
-                disabled={!representativeId}
-              >
-                <option value="">
-                  — Meeting with representative directly —
-                </option>
-                {staffers.map((s) => (
-                  <option key={s.id} value={s.id}>
-                    {s.first_name} {s.last_name}
-                  </option>
-                ))}
-              </Select>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className={SECTION_LABEL_CLASSNAME}>
-                <Label htmlFor={`edit-team-${meeting.id}`}>
-                  Primary PIH Team
-                </Label>
-              </p>
-              <TeamCombobox
-                id={`edit-team-${meeting.id}`}
-                value={primaryTeamId}
-                onChange={(id) => setPrimaryTeamId(id)}
-              />
-            </div>
-
-            <div className="flex gap-4">
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <p className={SECTION_LABEL_CLASSNAME}>
-                  <Label htmlFor={`edit-champion-${meeting.id}`}>
-                    Champion Score
-                  </Label>
-                </p>
-                <Select
-                  id={`edit-champion-${meeting.id}`}
-                  value={championScore}
-                  onChange={(e) => setChampionScore(e.target.value)}
-                >
-                  <option value="">—</option>
-                  {Object.entries(CHAMPION_LABELS).map(([score, label]) => (
-                    <option key={score} value={score}>
-                      {score} – {label}
-                    </option>
-                  ))}
-                </Select>
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <p className={SECTION_LABEL_CLASSNAME}>
-                  <Label htmlFor={`edit-followup-${meeting.id}`}>
-                    Follow-up
-                  </Label>
-                </p>
-                <Input
-                  id={`edit-followup-${meeting.id}`}
-                  type="date"
-                  value={followUpDate}
-                  onChange={(e) => setFollowUpDate(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <div className="flex items-baseline justify-between">
-                <p className={SECTION_LABEL_CLASSNAME}>
-                  <Label htmlFor={`edit-notes-${meeting.id}`}>Notes</Label>
-                </p>
-                <span
-                  className={`text-xs ${notes.trim().length > 255 ? "text-destructive" : "text-muted-foreground"}`}
-                >
-                  {notes.trim().length}/255
-                </span>
-              </div>
-              <textarea
-                id={`edit-notes-${meeting.id}`}
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-                className={textareaClass}
-                aria-label="Notes"
-              />
-            </div>
-
-            <EditMeetingLinks
-              key={meeting.id}
-              initialLinks={initialLinks}
-              onChange={setLinks}
-            />
-          </div>
-
-          {/* Right column — when + where */}
-          <div className="flex flex-col gap-4">
-            <div className="flex gap-4">
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <div className="flex items-baseline gap-1">
-                  <p className={SECTION_LABEL_CLASSNAME}>
-                    <Label htmlFor={`edit-date-${meeting.id}`}>Date</Label>
-                  </p>
-                  <span
-                    className="leading-none text-destructive"
-                    aria-hidden="true"
-                  >
-                    *
-                  </span>
-                </div>
-                <Input
-                  id={`edit-date-${meeting.id}`}
-                  type="date"
-                  value={meetingDate}
-                  onChange={(e) => setMeetingDate(e.target.value)}
-                />
-              </div>
-              <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <p className={SECTION_LABEL_CLASSNAME}>
-                  <Label htmlFor={`edit-time-${meeting.id}`}>Time</Label>
-                </p>
-                <Input
-                  id={`edit-time-${meeting.id}`}
-                  type="time"
-                  value={meetingTime}
-                  onChange={(e) => setMeetingTime(e.target.value)}
-                  className="appearance-none bg-background [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className={SECTION_LABEL_CLASSNAME}>
-                <Label htmlFor={`edit-timezone-${meeting.id}`}>Timezone</Label>
-              </p>
-              <TimezoneSelect
-                id={`edit-timezone-${meeting.id}`}
-                value={meetingTimezone}
-                onChange={setMeetingTimezone}
-              />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <p className={SECTION_LABEL_CLASSNAME}>
-                <Label htmlFor={`edit-location-${meeting.id}`}>Location</Label>
-              </p>
-              <Input
-                id={`edit-location-${meeting.id}`}
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
-              />
-            </div>
-
-            <div className="mt-auto pt-2">
-              {saveError && (
-                <p className="mb-2 text-sm text-destructive" role="alert">
-                  {saveError}
-                </p>
-              )}
-              <div className="flex gap-2">
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving ? "Saving…" : "Save changes"}
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </form>
-    </div>
+    <MeetingDetailEdit
+      meetingId={meeting.id}
+      editSessionKey={editSessionKey}
+      form={form}
+      onFormChange={updateForm}
+      initialLinks={initialLinks}
+      staffers={staffers}
+      onLinksChange={setLinks}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+      saveError={saveError}
+      isSaving={isSaving}
+    />
   );
 }

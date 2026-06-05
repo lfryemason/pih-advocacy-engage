@@ -42,11 +42,12 @@ for (const theme of themes) {
       document.documentElement.style.colorScheme = t;
     }, theme);
 
-    // Expand a meeting row so the edit form is in the DOM.
+    // Expand a meeting row then enter edit mode so the edit form is in the DOM.
     await page
       .getByRole("button", { name: /Expand meeting with/ })
       .first()
       .click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).toBeVisible();
