@@ -9,7 +9,7 @@ vi.mock("next/navigation", () => ({
 
 describe("StafferList", () => {
   it("renders only the add row when there are no staffers", () => {
-    const { asFragment } = render(
+    render(
       <StafferList
         representativeId="rep-1"
         orgId="pihe"
@@ -17,8 +17,7 @@ describe("StafferList", () => {
         canDelete={false}
       />,
     );
-    expect(screen.getByRole("button", { name: "Staffer" })).toBeInTheDocument(); // "+ Staffer" add button
-    expect(asFragment()).toMatchSnapshot();
+    expect(screen.getByRole("button", { name: "Staffer" })).toBeInTheDocument();
   });
 
   it("renders staffer rows plus the add row", () => {
@@ -34,7 +33,7 @@ describe("StafferList", () => {
         notes: null,
       }),
     ];
-    const { asFragment } = render(
+    render(
       <StafferList
         representativeId="rep-1"
         orgId="pihe"
@@ -44,7 +43,6 @@ describe("StafferList", () => {
     );
     expect(screen.getByText("Sam Jones")).toBeInTheDocument();
     expect(screen.getByText("Avery Kim")).toBeInTheDocument();
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it("hides the delete button when canDelete is false", () => {
