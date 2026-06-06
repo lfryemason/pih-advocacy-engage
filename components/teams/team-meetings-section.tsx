@@ -122,7 +122,7 @@ function MeetingsTable({
         ) : (
           <div className="mt-2">
             <Table aria-label={title}>
-              <TableHeader className="[&_tr]:bg-orange-400 [&_tr]:hover:bg-orange-400">
+              <TableHeader className="[&_tr]:bg-primary [&_tr]:hover:bg-primary">
                 <TableRow>
                   <TableHead className="w-10">
                     <span className="sr-only">View in meetings</span>
