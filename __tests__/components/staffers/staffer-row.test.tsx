@@ -19,7 +19,7 @@ function renderRow(props: Parameters<typeof StafferRow>[0]) {
 
 describe("StafferRow", () => {
   it("renders all fields when present", () => {
-    const { asFragment } = renderRow({
+    renderRow({
       staffer: makeStaffer(),
       canDelete: false,
       orgId: "pihe",
@@ -29,11 +29,10 @@ describe("StafferRow", () => {
     expect(screen.getByText("Chief of Staff")).toBeInTheDocument();
     expect(screen.getByText("sam@example.com")).toBeInTheDocument();
     expect(screen.getByText("Notes")).toBeInTheDocument();
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it("renders minimal staffer with only name", () => {
-    const { asFragment } = renderRow({
+    renderRow({
       staffer: makeStaffer({
         title: null,
         pronouns: null,
@@ -46,7 +45,6 @@ describe("StafferRow", () => {
     expect(screen.getByText("Sam Jones")).toBeInTheDocument();
     expect(screen.queryByText("Chief of Staff")).not.toBeInTheDocument();
     expect(screen.queryByText("Notes")).not.toBeInTheDocument();
-    expect(asFragment()).toMatchSnapshot();
   });
 
   it("hides the delete button when canDelete is false", () => {

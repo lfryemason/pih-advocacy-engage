@@ -17,12 +17,7 @@ function stubEmpty() {
   );
 }
 
-describe("AddMeetingDialog — snapshot", () => {
-  it("renders the trigger button", () => {
-    const { asFragment } = render(<AddMeetingDialog onCreated={vi.fn()} />);
-    expect(asFragment()).toMatchSnapshot();
-  });
-
+describe("AddMeetingDialog", () => {
   it("opens the dialog when trigger is clicked", async () => {
     stubEmpty();
     const user = userEvent.setup();

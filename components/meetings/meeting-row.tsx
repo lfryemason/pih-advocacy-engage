@@ -12,9 +12,11 @@ import { MeetingDetail } from "@/components/meetings/meeting-detail";
 export function MeetingRow({
   meeting,
   isPast = false,
+  onRefresh = () => {},
 }: {
   meeting: MeetingRowType;
   isPast?: boolean;
+  onRefresh?: () => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const colSpan = isPast ? 8 : 7;
@@ -116,7 +118,7 @@ export function MeetingRow({
       >
         {isExpanded && (
           <TableCell colSpan={colSpan} className="whitespace-normal p-0">
-            <MeetingDetail meeting={meeting} />
+            <MeetingDetail meeting={meeting} onSaved={onRefresh} />
           </TableCell>
         )}
       </TableRow>
