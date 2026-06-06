@@ -72,12 +72,9 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
 
   // Coaches are excluded from meeting counts, consistent with how they are
   // excluded from membership counts elsewhere.
-  const coachUserIds = new Set(
-    memberships.filter((m) => m.role === "coach").map((m) => m.user_id),
-  );
   const userIds = memberships
-    .map((m) => m.user_id)
-    .filter((id) => !coachUserIds.has(id));
+    .filter((m) => m.role !== "coach")
+    .map((m) => m.user_id);
   const meetingCounts: Record<string, number> = {};
 
   if (userIds.length > 0) {
