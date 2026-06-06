@@ -40,13 +40,12 @@ function MeetingsTable({
   title,
   teamId,
   section,
-  isPast = false,
 }: {
   title: string;
   teamId: string;
   section: "upcoming" | "past";
-  isPast?: boolean;
 }) {
+  const isPast = section === "past";
   const headingId = title.toLowerCase().replace(/\s+/g, "-");
   const [open, setOpen] = useState(true);
   const [meetings, setMeetings] = useState<MeetingRow[]>([]);
@@ -219,12 +218,7 @@ export function TeamMeetingsSection({ teamId }: { teamId: string }) {
         teamId={teamId}
         section="upcoming"
       />
-      <MeetingsTable
-        title="Past Meetings"
-        teamId={teamId}
-        section="past"
-        isPast
-      />
+      <MeetingsTable title="Past Meetings" teamId={teamId} section="past" />
     </>
   );
 }

@@ -46,7 +46,7 @@ export function TeamsTableClient({ teams }: { teams: TeamTableRow[] }) {
       <div className="mt-4">
         <Table>
           <caption className="sr-only">Teams</caption>
-          <TableHeader className="[&_tr]:bg-orange-400 [&_tr]:hover:bg-orange-400">
+          <TableHeader className="[&_th]:text-primary-foreground [&_tr]:bg-primary [&_tr]:hover:bg-primary">
             <TableRow>
               <TableHead>Team</TableHead>
               <TableHead>Type</TableHead>
