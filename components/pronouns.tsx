@@ -4,5 +4,7 @@ export function Pronouns({
   pronouns: string | null | undefined;
 }) {
   if (!pronouns) return null;
-  return <span className="text-sm text-muted-foreground">{pronouns}</span>;
+  return (
+    <span className="text-sm italic text-muted-foreground">{pronouns}</span>
+  );
 }
