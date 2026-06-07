@@ -10,10 +10,12 @@ const SUPABASE_URL = "http://localhost";
 
 const mockFetchMeetingDetail = vi.hoisted(() => vi.fn());
 const mockUpdateMeeting = vi.hoisted(() => vi.fn());
+const mockSyncDelegationMembers = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/meetings/queries", () => ({
   fetchMeetingDetail: mockFetchMeetingDetail,
   updateMeeting: mockUpdateMeeting,
+  syncDelegationMembers: mockSyncDelegationMembers,
 }));
 
 function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
@@ -70,6 +72,7 @@ describe("MeetingDetail — loading state", () => {
     stubEmpty();
     mockFetchMeetingDetail.mockReturnValue(new Promise(() => {}));
     mockUpdateMeeting.mockResolvedValue(undefined);
+    mockSyncDelegationMembers.mockResolvedValue(undefined);
   });
 
   it("shows loading indicator while fetching", () => {
@@ -85,6 +88,7 @@ describe("MeetingDetail — error state", () => {
     stubEmpty();
     mockFetchMeetingDetail.mockRejectedValue(new Error("Network error"));
     mockUpdateMeeting.mockResolvedValue(undefined);
+    mockSyncDelegationMembers.mockResolvedValue(undefined);
   });
 
   it("shows error message on fetch failure", async () => {
@@ -100,6 +104,7 @@ describe("MeetingDetail — view mode (default)", () => {
     stubEmpty();
     mockFetchMeetingDetail.mockResolvedValue(mockDetail);
     mockUpdateMeeting.mockResolvedValue(undefined);
+    mockSyncDelegationMembers.mockResolvedValue(undefined);
   });
 
   it("shows read-only panel with Edit Meeting button by default", async () => {
@@ -130,6 +135,7 @@ describe("MeetingDetail — mode toggle", () => {
     stubEmpty();
     mockFetchMeetingDetail.mockResolvedValue(mockDetail);
     mockUpdateMeeting.mockResolvedValue(undefined);
+    mockSyncDelegationMembers.mockResolvedValue(undefined);
   });
 
   it("clicking Edit Meeting switches to edit form", async () => {
@@ -231,6 +237,7 @@ describe("MeetingDetail — validation: empty date", () => {
       meeting_date: "",
     });
     mockUpdateMeeting.mockResolvedValue(undefined);
+    mockSyncDelegationMembers.mockResolvedValue(undefined);
   });
 
   it("shows error when date is empty and save is attempted", async () => {
@@ -260,6 +267,7 @@ describe("MeetingDetail — validation: notes too long", () => {
       notes: "a".repeat(256),
     });
     mockUpdateMeeting.mockResolvedValue(undefined);
+    mockSyncDelegationMembers.mockResolvedValue(undefined);
   });
 
   it("shows error when notes exceed 255 characters", async () => {

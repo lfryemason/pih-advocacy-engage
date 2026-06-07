@@ -9,6 +9,9 @@ import {
   MeetingLink,
   DelegationMember,
   DelegationRole,
+  DelegationFormEntry,
+  LocalDelegationMember,
+  ProfileSearchResult,
 } from "@/lib/meetings/types";
 import { localDateString } from "@/lib/utils";
 import { ORG_ID } from "@/lib/org";
@@ -333,4 +336,113 @@ export async function updateMeeting(
     .eq("id", id);
 
   if (error) throw error;
+}
+
+export async function searchProfiles(
+  supabase: SupabaseBrowserClient,
+  query: string,
+): Promise<ProfileSearchResult[]> {
+  if (!query.trim()) return [];
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select(
+      `user_id, first_name, last_name, team_memberships ( team_id, teams ( name ) )`,
+    )
+    .eq("org_id", ORG_ID)
+    .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+    .limit(10);
+
+  if (error) throw error;
+
+  type RawProfile = {
+    user_id: string;
+    first_name: string | null;
+    last_name: string | null;
+    team_memberships: Array<{
+      team_id: string;
+      teams: { name: string } | null;
+    }>;
+  };
+
+  return (data as unknown as RawProfile[]).map((p) => ({
+    user_id: p.user_id,
+    display_name:
+      [p.first_name, p.last_name].filter(Boolean).join(" ") || "Anonymous",
+    teams: (p.team_memberships ?? [])
+      .filter((tm) => tm.teams?.name)
+      .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
+  }));
+}
+
+export async function addDelegationMember(
+  supabase: SupabaseBrowserClient,
+  meetingId: string,
+  entry: DelegationFormEntry,
+  teamSnapshot: string | null,
+): Promise<void> {
+  const { error } = await supabase.from("meeting_delegation_members").insert({
+    org_id: ORG_ID,
+    meeting_id: meetingId,
+    user_id: entry.user_id,
+    role: entry.role,
+    team_id: entry.team_id,
+    team_name_snapshot: teamSnapshot,
+  });
+  if (error) throw error;
+}
+
+export async function removeDelegationMember(
+  supabase: SupabaseBrowserClient,
+  delegationMemberId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("meeting_delegation_members")
+    .delete()
+    .eq("id", delegationMemberId);
+  if (error) throw error;
+}
+
+export async function syncDelegationMembers(
+  supabase: SupabaseBrowserClient,
+  meetingId: string,
+  originalMembers: DelegationMember[],
+  currentMembers: LocalDelegationMember[],
+): Promise<void> {
+  const currentDbIds = new Set(
+    currentMembers.filter((m) => m.dbId).map((m) => m.dbId!),
+  );
+
+  const toRemove = originalMembers.filter((m) => !currentDbIds.has(m.id));
+  const toAdd = currentMembers.filter((m) => !m.dbId);
+  const roleChanged = currentMembers.filter((m) => {
+    if (!m.dbId) return false;
+    const orig = originalMembers.find((o) => o.id === m.dbId);
+    return orig && orig.role !== m.role;
+  });
+
+  await Promise.all(
+    toRemove.map((m) => removeDelegationMember(supabase, m.id)),
+  );
+
+  for (const m of roleChanged) {
+    await removeDelegationMember(supabase, m.dbId!);
+    await addDelegationMember(
+      supabase,
+      meetingId,
+      { user_id: m.user_id, role: m.role, team_id: m.team_id },
+      m.team_name_snapshot,
+    );
+  }
+
+  await Promise.all(
+    toAdd.map((m) =>
+      addDelegationMember(
+        supabase,
+        meetingId,
+        { user_id: m.user_id, role: m.role, team_id: m.team_id },
+        m.team_name_snapshot,
+      ),
+    ),
+  );
 }

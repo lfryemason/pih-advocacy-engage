@@ -1,0 +1,361 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`DelegationForm — snapshots > matches snapshot with delegation members 1`] = `
+<div>
+  <div
+    class="flex flex-col gap-4"
+  >
+    <div>
+      <p
+        class="font-semibold uppercase tracking-wide text-muted-foreground"
+      >
+        Delegation
+      </p>
+      <div
+        class="mt-2 flex flex-col gap-2"
+      >
+        <div
+          class="flex items-center gap-3 rounded-md border p-2"
+        >
+          <span
+            aria-hidden="true"
+            class="flex shrink-0 items-center justify-center rounded-full text-xs font-semibold h-8 w-8 bg-muted text-foreground"
+          >
+            AS
+          </span>
+          <div
+            class="min-w-0 flex-1"
+          >
+            <p
+              class="text-sm font-medium"
+            >
+              Alice Smith
+            </p>
+            <p
+              class="text-xs text-muted-foreground"
+            >
+              Global Health
+            </p>
+          </div>
+          <div
+            class="shrink-0"
+          >
+            <label
+              class="flex select-none items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50 group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 sr-only"
+              data-slot="label"
+              for="role-dm-1"
+            >
+              Role for Alice Smith
+            </label>
+            <div
+              class="relative"
+            >
+              <select
+                aria-label="Role for Alice Smith"
+                class="flex h-9 w-full appearance-none rounded-md border border-input bg-transparent px-3 py-1 pr-8 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm text-xs"
+                id="role-dm-1"
+              >
+                <option
+                  value="scheduling_lead"
+                >
+                  Scheduling Lead
+                </option>
+                <option
+                  value="attendee_talking"
+                >
+                  Attendee (Talking)
+                </option>
+                <option
+                  value="attendee_listening"
+                >
+                  Attendee (Listening)
+                </option>
+                <option
+                  value="pih_team_member"
+                >
+                  PIH Team Member
+                </option>
+                <option
+                  value="note_taker"
+                >
+                  Note Taker
+                </option>
+              </select>
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-chevron-down pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m6 9 6 6 6-6"
+                />
+              </svg>
+            </div>
+          </div>
+          <button
+            aria-label="Remove Alice Smith"
+            class="inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 rounded-md px-3 text-xs has-[>svg]:px-2.5"
+            data-size="sm"
+            data-slot="button"
+            data-variant="outline"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-trash2 lucide-trash-2 h-3.5 w-3.5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 6h18"
+              />
+              <path
+                d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"
+              />
+              <path
+                d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"
+              />
+              <line
+                x1="10"
+                x2="10"
+                y1="11"
+                y2="17"
+              />
+              <line
+                x1="14"
+                x2="14"
+                y1="11"
+                y2="17"
+              />
+            </svg>
+          </button>
+        </div>
+        <div
+          class="flex items-center gap-3 rounded-md border p-2"
+        >
+          <span
+            aria-hidden="true"
+            class="flex shrink-0 items-center justify-center rounded-full text-xs font-semibold h-8 w-8 bg-muted text-foreground"
+          >
+            BJ
+          </span>
+          <div
+            class="min-w-0 flex-1"
+          >
+            <p
+              class="text-sm font-medium"
+            >
+              Bob Jones
+            </p>
+            <p
+              class="text-xs text-muted-foreground"
+            >
+              Advocacy
+            </p>
+          </div>
+          <div
+            class="shrink-0"
+          >
+            <label
+              class="flex select-none items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50 group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 sr-only"
+              data-slot="label"
+              for="role-dm-2"
+            >
+              Role for Bob Jones
+            </label>
+            <div
+              class="relative"
+            >
+              <select
+                aria-label="Role for Bob Jones"
+                class="flex h-9 w-full appearance-none rounded-md border border-input bg-transparent px-3 py-1 pr-8 shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm text-xs"
+                id="role-dm-2"
+              >
+                <option
+                  value="scheduling_lead"
+                >
+                  Scheduling Lead
+                </option>
+                <option
+                  value="attendee_talking"
+                >
+                  Attendee (Talking)
+                </option>
+                <option
+                  value="attendee_listening"
+                >
+                  Attendee (Listening)
+                </option>
+                <option
+                  value="pih_team_member"
+                >
+                  PIH Team Member
+                </option>
+                <option
+                  value="note_taker"
+                >
+                  Note Taker
+                </option>
+              </select>
+              <svg
+                aria-hidden="true"
+                class="lucide lucide-chevron-down pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                fill="none"
+                height="24"
+                stroke="currentColor"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                viewBox="0 0 24 24"
+                width="24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="m6 9 6 6 6-6"
+                />
+              </svg>
+            </div>
+          </div>
+          <button
+            aria-label="Remove Bob Jones"
+            class="inline-flex shrink-0 items-center justify-center font-medium whitespace-nowrap transition-all outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50 h-8 gap-1.5 rounded-md px-3 text-xs has-[>svg]:px-2.5"
+            data-size="sm"
+            data-slot="button"
+            data-variant="outline"
+            type="button"
+          >
+            <svg
+              aria-hidden="true"
+              class="lucide lucide-trash2 lucide-trash-2 h-3.5 w-3.5"
+              fill="none"
+              height="24"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              viewBox="0 0 24 24"
+              width="24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M3 6h18"
+              />
+              <path
+                d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"
+              />
+              <path
+                d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"
+              />
+              <line
+                x1="10"
+                x2="10"
+                y1="11"
+                y2="17"
+              />
+              <line
+                x1="14"
+                x2="14"
+                y1="11"
+                y2="17"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div
+      class="relative"
+    >
+      <label
+        class="flex select-none items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50 group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 sr-only"
+        data-slot="label"
+        for="search-meeting-1"
+      >
+        Search members by name
+      </label>
+      <input
+        aria-label="Search members by name"
+        autocomplete="off"
+        class="shadow-xs h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 md:text-sm focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 read-only:cursor-default read-only:bg-muted read-only:caret-transparent read-only:focus-visible:ring-0"
+        data-slot="input"
+        id="search-meeting-1"
+        placeholder="Search by name to add a delegation member…"
+        value=""
+      />
+    </div>
+    <div>
+      <p
+        class="font-semibold uppercase tracking-wide text-muted-foreground"
+      >
+        Represented Teams
+      </p>
+      <ul
+        aria-label="Represented Teams"
+        class="mt-1 flex flex-wrap gap-1.5"
+      >
+        <li
+          class="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
+        >
+          Global Health
+        </li>
+        <li
+          class="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
+        >
+          Advocacy
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`DelegationForm — snapshots > matches snapshot with empty delegation 1`] = `
+<div>
+  <div
+    class="flex flex-col gap-4"
+  >
+    <div>
+      <p
+        class="font-semibold uppercase tracking-wide text-muted-foreground"
+      >
+        Delegation
+      </p>
+    </div>
+    <div
+      class="relative"
+    >
+      <label
+        class="flex select-none items-center gap-2 text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-50 group-data-[disabled=true]:pointer-events-none group-data-[disabled=true]:opacity-50 sr-only"
+        data-slot="label"
+        for="search-meeting-1"
+      >
+        Search members by name
+      </label>
+      <input
+        aria-label="Search members by name"
+        autocomplete="off"
+        class="shadow-xs h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base outline-none transition-[color,box-shadow] selection:bg-primary selection:text-primary-foreground file:inline-flex file:h-7 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 dark:bg-input/30 md:text-sm focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 read-only:cursor-default read-only:bg-muted read-only:caret-transparent read-only:focus-visible:ring-0"
+        data-slot="input"
+        id="search-meeting-1"
+        placeholder="Search by name to add a delegation member…"
+        value=""
+      />
+    </div>
+  </div>
+</div>
+`;

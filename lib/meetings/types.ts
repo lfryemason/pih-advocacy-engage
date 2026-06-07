@@ -106,3 +106,18 @@ export type ProfileSearchResult = {
   display_name: string;
   teams: ProfileTeam[];
 };
+
+// ─── Local delegation member (managed by DelegationForm in edit mode) ─────────
+
+export type LocalDelegationMember = {
+  key: string;
+  dbId: string | null;
+  user_id: string;
+  display_name: string;
+  first_name: string;
+  last_name: string;
+  email: string | null;
+  role: DelegationRole;
+  team_id: string | null;
+  team_name_snapshot: string | null;
+};

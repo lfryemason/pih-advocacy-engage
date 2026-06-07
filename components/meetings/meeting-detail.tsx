@@ -2,13 +2,19 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { fetchMeetingDetail, updateMeeting } from "@/lib/meetings/queries";
+import {
+  fetchMeetingDetail,
+  updateMeeting,
+  syncDelegationMembers,
+} from "@/lib/meetings/queries";
 import {
   MeetingRow,
   MeetingDetail as MeetingDetailType,
   MeetingFormValues,
   LinkFormEntry,
+  LocalDelegationMember,
 } from "@/lib/meetings/types";
+import { DelegationForm } from "@/components/meetings/delegation-form";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
 import { MeetingDetailView } from "@/components/meetings/meeting-detail-view";
@@ -59,6 +65,9 @@ export function MeetingDetail({
 
   const [form, setForm] = useState<FormState>(DEFAULT_FORM);
   const [links, setLinks] = useState<LinkFormEntry[]>([]);
+  const [pendingDelegation, setPendingDelegation] = useState<
+    LocalDelegationMember[]
+  >([]);
 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -82,6 +91,20 @@ export function MeetingDetail({
         setDetail(d);
         setForm(formStateFromDetail(d));
         setLinks(d.links);
+        setPendingDelegation(
+          d.delegation_members.map((m) => ({
+            key: m.id,
+            dbId: m.id,
+            user_id: m.user_id,
+            display_name: m.display_name,
+            first_name: m.first_name,
+            last_name: m.last_name,
+            email: m.email,
+            role: m.role,
+            team_id: m.team_id,
+            team_name_snapshot: m.team_name_snapshot,
+          })),
+        );
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -111,6 +134,20 @@ export function MeetingDetail({
     if (!detail) return;
     setForm(formStateFromDetail(detail));
     setLinks(detail.links);
+    setPendingDelegation(
+      detail.delegation_members.map((m) => ({
+        key: m.id,
+        dbId: m.id,
+        user_id: m.user_id,
+        display_name: m.display_name,
+        first_name: m.first_name,
+        last_name: m.last_name,
+        email: m.email,
+        role: m.role,
+        team_id: m.team_id,
+        team_name_snapshot: m.team_name_snapshot,
+      })),
+    );
     setSaveError(null);
     setMode("view");
   }
@@ -149,6 +186,14 @@ export function MeetingDetail({
     try {
       const supabase = createClient();
       await updateMeeting(supabase, meeting.id, values, links);
+      if (detail) {
+        await syncDelegationMembers(
+          supabase,
+          meeting.id,
+          detail.delegation_members,
+          pendingDelegation,
+        );
+      }
 
       // Transition to view mode before notifying the parent — the parent's
       // onSaved triggers a list refresh that can unmount this component
@@ -162,6 +207,20 @@ export function MeetingDetail({
           if (!isMountedRef.current) return;
           setDetail(d);
           setLinks(d.links);
+          setPendingDelegation(
+            d.delegation_members.map((m) => ({
+              key: m.id,
+              dbId: m.id,
+              user_id: m.user_id,
+              display_name: m.display_name,
+              first_name: m.first_name,
+              last_name: m.last_name,
+              email: m.email,
+              role: m.role,
+              team_id: m.team_id,
+              team_name_snapshot: m.team_name_snapshot,
+            })),
+          );
         })
         .catch(() => {});
 
@@ -203,16 +262,25 @@ export function MeetingDetail({
   }
 
   return (
-    <MeetingDetailEdit
-      meetingId={meeting.id}
-      form={form}
-      onFormChange={updateForm}
-      links={links}
-      onLinksChange={setLinks}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-      saveError={saveError}
-      isSaving={isSaving}
-    />
+    <div>
+      <MeetingDetailEdit
+        meetingId={meeting.id}
+        form={form}
+        onFormChange={updateForm}
+        links={links}
+        onLinksChange={setLinks}
+        onSubmit={handleSubmit}
+        onCancel={handleCancel}
+        saveError={saveError}
+        isSaving={isSaving}
+      />
+      <div className="border-t px-4 pb-4 pt-4">
+        <DelegationForm
+          meetingId={meeting.id}
+          initialMembers={detail.delegation_members}
+          onChange={setPendingDelegation}
+        />
+      </div>
+    </div>
   );
 }
