@@ -1,15 +1,11 @@
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ORG_ID } from "@/lib/org";
-import { TYPE_LABELS } from "@/lib/teams";
+import { LEAD_ROLES, TYPE_LABELS } from "@/lib/teams";
+import { US_STATES } from "@/lib/us-districts";
+import {
+  TeamsTableClient,
+  type TeamTableRow,
+} from "@/components/teams/teams-table-client";
 
 type TeamRow = {
   id: string;
@@ -17,14 +13,28 @@ type TeamRow = {
   slug: string;
   state: string;
   type: string;
-  team_memberships: { role: string }[];
+  team_memberships: { role: string; user_id: string }[];
 };
+
+const LEAD_ROLE_SET = new Set<string>(
+  LEAD_ROLES.filter((role) => role !== "coach"),
+);
+
+function distinctUsers(
+  memberships: { role: string; user_id: string }[],
+  predicate: (role: string) => boolean,
+): number {
+  const ids = new Set(
+    memberships.filter((m) => predicate(m.role)).map((m) => m.user_id),
+  );
+  return ids.size;
+}
 
 export async function TeamsTable() {
   const supabase = await createClient();
   const { data: teams, error } = await supabase
     .from("teams")
-    .select("id, name, slug, state, type, team_memberships(role)")
+    .select("id, name, slug, state, type, team_memberships(role, user_id)")
     .eq("org_id", ORG_ID)
     .order("name");
 
@@ -33,41 +43,17 @@ export async function TeamsTable() {
   if (!teams?.length)
     return <p className="mt-6 text-muted-foreground">No teams yet.</p>;
 
-  return (
-    <div className="mt-6">
-      <Table>
-        <caption className="sr-only">Teams</caption>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>State</TableHead>
-            <TableHead>Type</TableHead>
-            <TableHead>Members</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {(teams as TeamRow[]).map((team) => (
-            <TableRow key={team.id} className="relative">
-              <TableCell className="font-medium">
-                <Link
-                  href={`/teams/${team.slug}`}
-                  className="after:absolute after:inset-0"
-                >
-                  {team.name}
-                </Link>
-              </TableCell>
-              <TableCell>{team.state}</TableCell>
-              <TableCell>
-                {TYPE_LABELS[team.type as keyof typeof TYPE_LABELS] ??
-                  team.type}
-              </TableCell>
-              <TableCell>
-                {team.team_memberships.filter((m) => m.role !== "coach").length}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  );
+  const rows: TeamTableRow[] = (teams as TeamRow[]).map((team) => ({
+    name: team.name,
+    slug: team.slug,
+    type: team.type,
+    typeLabel: TYPE_LABELS[team.type as keyof typeof TYPE_LABELS] ?? team.type,
+    state: US_STATES.find((s) => s.code === team.state)?.name ?? team.state,
+    leads: distinctUsers(team.team_memberships, (role) =>
+      LEAD_ROLE_SET.has(role),
+    ),
+    members: distinctUsers(team.team_memberships, (role) => role !== "coach"),
+  }));
+
+  return <TeamsTableClient teams={rows} />;
 }

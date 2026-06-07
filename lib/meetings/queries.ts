@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   MeetingFilters,
   CreateMeetingValues,
+  MeetingFormValues,
   LinkFormEntry,
   MeetingRow,
   MeetingDetail,
@@ -98,12 +99,14 @@ export async function fetchMeetings(
     section,
     offset,
     limit,
+    teamId,
   }: {
     filters: MeetingFilters;
     representativeId?: string;
     section: "upcoming" | "past";
     offset: number;
     limit: number;
+    teamId?: string;
   },
 ): Promise<{ meetings: MeetingRow[]; count: number }> {
   const today = localDateString();
@@ -121,6 +124,10 @@ export async function fetchMeetings(
 
   if (representativeId) {
     query = query.eq("representative_id", representativeId);
+  }
+
+  if (teamId) {
+    query = query.eq("primary_team_id", teamId);
   }
 
   if (filters.states.length > 0) {
@@ -304,4 +311,32 @@ export async function fetchMeetingDetail(
     delegation_members,
     represented_teams,
   };
+}
+
+export async function updateMeeting(
+  supabase: SupabaseBrowserClient,
+  id: string,
+  values: MeetingFormValues,
+  rawLinks: LinkFormEntry[],
+): Promise<void> {
+  const links = rawLinks.filter((l) => l.label.trim() || l.url.trim());
+
+  const { error } = await supabase
+    .from("meetings")
+    .update({
+      meeting_date: values.meeting_date,
+      meeting_time: values.meeting_time,
+      meeting_timezone: values.meeting_timezone,
+      representative_id: values.representative_id,
+      congressional_contact_id: values.congressional_contact_id,
+      primary_team_id: values.primary_team_id,
+      notes: values.notes,
+      location: values.location,
+      follow_up_date: values.follow_up_date,
+      champion_score: values.champion_score,
+      links,
+    })
+    .eq("id", id);
+
+  if (error) throw error;
 }

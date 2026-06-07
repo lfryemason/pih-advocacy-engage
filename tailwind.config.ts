@@ -58,6 +58,31 @@ export default {
           light: "hsl(var(--destructive-light))",
           lighter: "hsl(var(--destructive-lighter))",
         },
+        "secondary-teal": {
+          DEFAULT: "hsl(var(--secondary-teal))",
+          foreground: "hsl(var(--secondary-teal-foreground))",
+          accent: "hsl(var(--secondary-teal-accent))",
+        },
+        "secondary-magenta": {
+          DEFAULT: "hsl(var(--secondary-magenta))",
+          foreground: "hsl(var(--secondary-magenta-foreground))",
+          accent: "hsl(var(--secondary-magenta-accent))",
+        },
+        "secondary-purple": {
+          DEFAULT: "hsl(var(--secondary-purple))",
+          foreground: "hsl(var(--secondary-purple-foreground))",
+          accent: "hsl(var(--secondary-purple-accent))",
+        },
+        "secondary-green": {
+          DEFAULT: "hsl(var(--secondary-green))",
+          foreground: "hsl(var(--secondary-green-foreground))",
+          accent: "hsl(var(--secondary-green-accent))",
+        },
+        "secondary-yellow": {
+          DEFAULT: "hsl(var(--secondary-yellow))",
+          foreground: "hsl(var(--secondary-yellow-foreground))",
+          accent: "hsl(var(--secondary-yellow-accent))",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",

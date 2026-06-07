@@ -169,6 +169,7 @@ export function MeetingsPage() {
             totalCount={upcoming.count}
             onShowMore={() => loadMore("upcoming")}
             disableLoadMore={loadingMore === "upcoming" || filtering}
+            onRefresh={() => loadInitial(filtersRef.current)}
           />
           <MeetingsSection
             title="Past Meetings"
@@ -176,6 +177,7 @@ export function MeetingsPage() {
             totalCount={past.count}
             onShowMore={() => loadMore("past")}
             disableLoadMore={loadingMore === "past" || filtering}
+            onRefresh={() => loadInitial(filtersRef.current)}
             isPast
           />
           {loadMoreError && (

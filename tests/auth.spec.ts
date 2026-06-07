@@ -51,10 +51,23 @@ test.describe("sign up page", () => {
     await expect(
       page.getByText("Sign up", { exact: true }).first(),
     ).toBeVisible();
+    await expect(page.getByLabel("First Name")).toBeVisible();
+    await expect(page.getByLabel("Last Name")).toBeVisible();
+    await expect(page.getByLabel("Pronouns")).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
     await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
     await expect(page.getByLabel("Repeat Password")).toBeVisible();
+    await expect(page.getByLabel("State")).toBeVisible();
+    await expect(page.getByLabel("Congressional District")).toBeVisible();
     await expect(page.getByRole("button", { name: "Sign up" })).toBeVisible();
+  });
+
+  test("congressional district is disabled until a state is chosen", async ({
+    page,
+  }) => {
+    await expect(page.getByLabel("Congressional District")).toBeDisabled();
+    await page.getByLabel("State").selectOption("PA");
+    await expect(page.getByLabel("Congressional District")).toBeEnabled();
   });
 
   test("links back to login", async ({ page }) => {
@@ -65,6 +78,8 @@ test.describe("sign up page", () => {
   });
 
   test("shows error when passwords do not match", async ({ page }) => {
+    await page.getByLabel("First Name").fill("Test");
+    await page.getByLabel("Last Name").fill("User");
     await page.getByLabel("Email").fill("test@example.com");
     await page.getByLabel("Password", { exact: true }).fill("password123");
     await page.getByLabel("Repeat Password").fill("different123");
@@ -72,6 +87,20 @@ test.describe("sign up page", () => {
     await expect(page.getByText("Passwords do not match")).toBeVisible({
       timeout: 10000,
     });
+  });
+});
+
+test.describe("sign up success page", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("/auth/sign-up-success");
+    await page.waitForLoadState("networkidle");
+  });
+
+  test("shows confirmation and links back to login", async ({ page }) => {
+    await expect(page.getByText("Thank you for signing up!")).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: "Back to login" }),
+    ).toHaveAttribute("href", "/auth/login");
   });
 });
 

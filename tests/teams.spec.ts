@@ -14,6 +14,9 @@ test.describe("teams list page", () => {
     await expect(
       page.getByRole("cell", { name: "Portland University" }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("cell", { name: "Haverford/Bryn Mawr College" }),
+    ).toBeVisible();
   });
 
   test("clicking a team row navigates to the detail page", async ({ page }) => {
@@ -40,14 +43,38 @@ test.describe("team detail page", () => {
     await expect(page.getByText("High School", { exact: true })).toBeVisible();
   });
 
-  test("shows the test user as a lead", async ({ page }) => {
+  test("shows the test user as Team Coordinator in the leadership table", async ({
+    page,
+  }) => {
     await page.goto("/teams/seattle-high-school");
-    // Test Admin is the seeded team_lead — scope to the lead list so the
-    // sidebar nav link (which also shows the user's name) doesn't cause a
-    // strict-mode violation.
     await expect(
-      page.getByRole("listitem").getByText("Test Admin"),
+      page.getByRole("cell", { name: "Team Coordinator" }),
     ).toBeVisible();
+    // Name "Test Admin" should appear in the row
+    await expect(page.getByRole("cell", { name: /Test Admin/ })).toBeVisible();
+  });
+
+  test("advocacy lead row shows correct member name", async ({ page }) => {
+    await page.goto("/teams/seattle-high-school");
+    await expect(
+      page.getByRole("cell", { name: "Advocacy Lead" }),
+    ).toBeVisible();
+    await expect(page.getByRole("cell", { name: /Alex Rivera/ })).toBeVisible();
+  });
+
+  test("community building lead row shows correct member name", async ({
+    page,
+  }) => {
+    await page.goto("/teams/seattle-high-school");
+    await expect(
+      page.getByRole("cell", { name: "Community Building Lead" }),
+    ).toBeVisible();
+    await expect(page.getByRole("cell", { name: /Jordan Kim/ })).toBeVisible();
+  });
+
+  test("general members section shows the seeded member", async ({ page }) => {
+    await page.goto("/teams/seattle-high-school");
+    await expect(page.getByRole("cell", { name: /Sam Patel/ })).toBeVisible();
   });
 
   test("member sees Edit button and not Join team", async ({ page }) => {
@@ -78,17 +105,21 @@ test.describe("team detail page", () => {
   }) => {
     await page.goto("/teams/seattle-high-school");
     await expect(
-      page.getByRole("button", { name: /Representatives/ }),
+      page.getByRole("button", { name: /Members of Congress/ }),
     ).toBeVisible();
-    await expect(page.getByText("Susan Collins")).toBeVisible();
-    await expect(page.getByText("Adam Smith")).toBeVisible();
+    await expect(
+      page.locator('[aria-label="Senators"]').getByText("Susan Collins"),
+    ).toBeVisible();
+    await expect(
+      page.locator('[aria-label="Representatives"]').getByText("Adam Smith"),
+    ).toBeVisible();
   });
 
   test("collapsing Representatives toggle hides the rep list", async ({
     page,
   }) => {
     await page.goto("/teams/seattle-high-school");
-    await page.getByRole("button", { name: /Representatives/ }).click();
+    await page.getByRole("button", { name: /Members of Congress/ }).click();
     await expect(page.getByText("Susan Collins")).toHaveCount(0);
   });
 
@@ -97,7 +128,7 @@ test.describe("team detail page", () => {
   }) => {
     await page.goto("/teams/portland-university");
     await expect(
-      page.getByRole("button", { name: /Representatives/ }),
+      page.getByRole("button", { name: /Members of Congress/ }),
     ).toHaveCount(0);
   });
 
@@ -123,6 +154,18 @@ test.describe("team detail page", () => {
     await page.goto("/teams/does-not-exist");
     await expect(page).toHaveURL(/\/teams$/);
   });
+
+  test("HMC team page shows Pennsylvania and districts 4 and 5", async ({
+    page,
+  }) => {
+    await page.goto("/teams/haverford-bryn-mawr-college");
+    await expect(
+      page.getByRole("heading", { name: "Haverford/Bryn Mawr College" }),
+    ).toBeVisible();
+    await expect(page.getByText(/Pennsylvania/)).toBeVisible();
+    await expect(page.getByText(/District 4/)).toBeVisible();
+    await expect(page.getByText(/District 5/)).toBeVisible();
+  });
 });
 
 test.describe("create team page", () => {
@@ -134,6 +177,11 @@ test.describe("create team page", () => {
     await expect(page.getByLabel(/Name/)).toBeVisible();
     await expect(page.getByLabel(/State/)).toBeVisible();
     await expect(page.getByLabel(/Type/)).toBeVisible();
+  });
+
+  test("shows required field legend", async ({ page }) => {
+    await page.goto("/teams/new");
+    await expect(page.getByText("* Required")).toBeVisible();
   });
 
   test("creating a team navigates to the new team page", async ({ page }) => {
@@ -187,7 +235,9 @@ test.describe("edit team page", () => {
     await expect(page).toHaveURL(/\/teams\/seattle-high-school$/);
   });
 
-  test("changing a member role persists after refresh", async ({ page }) => {
+  test("changing a member role from team_coordinator to member persists after refresh", async ({
+    page,
+  }) => {
     await page.goto("/teams/seattle-high-school/edit");
     const roleSelect = page
       .getByRole("row", { name: /Test/ })
@@ -197,6 +247,33 @@ test.describe("edit team page", () => {
     await expect(roleSelect).toBeEnabled();
     await page.reload();
     await expect(roleSelect).toHaveValue("member");
+  });
+
+  test("role dropdown includes Team Coordinator and not Team Lead", async ({
+    page,
+  }) => {
+    await page.goto("/teams/seattle-high-school/edit");
+    const roleSelect = page
+      .getByRole("row", { name: /Test/ })
+      .getByRole("combobox");
+    await expect(
+      roleSelect.locator("option[value='team_coordinator']"),
+    ).toHaveCount(1);
+    await expect(roleSelect.locator("option[value='team_lead']")).toHaveCount(
+      0,
+    );
+  });
+
+  test("can assign community_building_lead role in edit page dropdown", async ({
+    page,
+  }) => {
+    await page.goto("/teams/seattle-high-school/edit");
+    const roleSelect = page
+      .getByRole("row", { name: /Test/ })
+      .getByRole("combobox");
+    await expect(
+      roleSelect.locator("option[value='community_building_lead']"),
+    ).toHaveCount(1);
   });
 
   test("removing a member removes them from the table", async ({ page }) => {

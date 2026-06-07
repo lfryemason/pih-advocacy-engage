@@ -124,6 +124,7 @@ export function TeamForm({
   return (
     <form onSubmit={handleSubmit} noValidate className="flex max-w-lg flex-col">
       <h2 className="text-lg font-semibold">Team settings</h2>
+      <p className="mt-1 text-xs text-muted-foreground">* Required</p>
       <div className="mt-2 flex max-w-lg flex-col gap-6">
         <div className="grid gap-2">
           <Label htmlFor="team-name">

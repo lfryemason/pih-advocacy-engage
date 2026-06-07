@@ -17,6 +17,7 @@ export function MeetingsSection({
   totalCount,
   onShowMore,
   disableLoadMore,
+  onRefresh = () => {},
   isPast = false,
   showRepColumn = true,
 }: {
@@ -25,6 +26,7 @@ export function MeetingsSection({
   totalCount: number;
   onShowMore: () => void;
   disableLoadMore: boolean;
+  onRefresh?: () => void;
   isPast?: boolean;
   showRepColumn?: boolean;
 }) {
@@ -69,6 +71,7 @@ export function MeetingsSection({
                   meeting={meeting}
                   isPast={isPast}
                   showRepColumn={showRepColumn}
+                  onRefresh={onRefresh}
                 />
               ))}
             </TableBody>
