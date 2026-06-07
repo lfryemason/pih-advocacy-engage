@@ -70,7 +70,7 @@ test.describe("staffers on rep detail page", () => {
 
     await expect(page.getByText("Sam Jones")).toBeVisible();
     await expect(page.getByText("Chief of Staff")).toBeVisible();
-    await expect(page.getByText("(they/them)")).toBeVisible();
+    await expect(page.getByText("they/them")).toBeVisible();
   });
 
   test("member can edit a staffer", async ({ page }) => {
