@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
 import { Button } from "@/components/ui/button";
 import { StafferForm } from "@/components/staffers/staffer-form";
+import { Pronouns } from "@/components/pronouns";
 
 type Staffer = Tables<"staffers">;
 
@@ -69,14 +70,10 @@ export function StafferRow({
             <span className="font-bold">
               {staffer.first_name} {staffer.last_name}
             </span>
-            {staffer.pronouns && (
-              <span className="text-sm text-muted-foreground">
-                ({staffer.pronouns})
-              </span>
-            )}
+            <Pronouns pronouns={staffer.pronouns} />
           </div>
           {staffer.title && (
-            <p className="mt-0.5 text-sm text-primary">{staffer.title}</p>
+            <p className="mt-0.5 text-sm text-foreground">{staffer.title}</p>
           )}
           <div className="mt-2 flex flex-col gap-1 text-sm text-muted-foreground">
             {staffer.location && (
@@ -90,7 +87,7 @@ export function StafferRow({
                 <Mail size={13} className="shrink-0" aria-hidden="true" />
                 <a
                   href={`mailto:${staffer.email}`}
-                  className="text-primary hover:underline"
+                  className="text-primary-dark hover:underline"
                 >
                   {staffer.email}
                 </a>
@@ -110,7 +107,7 @@ export function StafferRow({
               <summary className="cursor-pointer text-muted-foreground">
                 Notes
               </summary>
-              <div className="prose prose-sm mt-1 max-w-none rounded border p-2 text-foreground dark:prose-invert prose-headings:my-1 prose-p:my-0 prose-a:text-primary prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none prose-pre:my-2 prose-pre:bg-muted">
+              <div className="prose prose-sm mt-1 max-w-none rounded border p-2 text-foreground dark:prose-invert prose-headings:my-1 prose-p:my-0 prose-a:text-primary-dark prose-code:rounded prose-code:bg-muted prose-code:px-1 prose-code:text-foreground prose-code:before:content-none prose-code:after:content-none prose-pre:my-2 prose-pre:bg-muted">
                 <ReactMarkdown
                   remarkPlugins={[remarkGfm, remarkBreaks]}
                   disallowedElements={["img"]}

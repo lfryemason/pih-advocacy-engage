@@ -79,7 +79,7 @@ export async function RepTeamsSection({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {(teams as unknown as TeamRow[]).map((team) => {
+            {(teams as TeamRow[]).map((team) => {
               const coordinators = team.team_memberships
                 .filter((m) => m.role === "team_lead")
                 .map((m) => profileName(m.profiles))
@@ -90,7 +90,7 @@ export async function RepTeamsSection({
                   <TableCell className="font-medium">
                     <Link
                       href={`/teams/${team.slug}`}
-                      className="text-primary hover:underline"
+                      className="text-primary-dark hover:underline"
                     >
                       {team.name}
                     </Link>

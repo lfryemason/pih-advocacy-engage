@@ -20,6 +20,7 @@ import {
   type GeneralLink,
 } from "@/components/representatives/rep-external-resources";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
+import { Pronouns } from "@/components/pronouns";
 
 export async function generateMetadata({
   params,
@@ -105,11 +106,7 @@ async function RepresentativeContent({
     throw new Error(`Failed to load staffers: ${staffersError.message}`);
   }
 
-  const canDelete =
-    role?.role === "super_admin" ||
-    (role?.role === "org_admin" && role.org_id === ORG_ID);
-
-  const canEdit =
+  const canManage =
     role?.role === "super_admin" ||
     (role?.role === "org_admin" && role.org_id === ORG_ID);
 
@@ -155,11 +152,7 @@ async function RepresentativeContent({
         <div className="min-w-0">
           <div className="flex flex-wrap items-baseline gap-x-2">
             <h1 className="text-xl font-bold">{name}</h1>
-            {representative.pronouns && (
-              <span className="text-sm text-muted-foreground">
-                {representative.pronouns}
-              </span>
-            )}
+            <Pronouns pronouns={representative.pronouns} />
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
             <span className={`font-medium ${textClass}`}>
@@ -182,7 +175,7 @@ async function RepresentativeContent({
                 </span>
                 <a
                   href={`mailto:${representative.email}`}
-                  className="text-primary hover:underline"
+                  className="text-primary-dark hover:underline"
                 >
                   {representative.email}
                 </a>
@@ -198,7 +191,7 @@ async function RepresentativeContent({
         representativeId={representative.id}
         orgId={ORG_ID}
         staffers={staffers ?? []}
-        canDelete={canDelete}
+        canDelete={canManage}
       />
 
       <RepTeamsSection
@@ -212,7 +205,7 @@ async function RepresentativeContent({
         orgId={ORG_ID}
         generalLinks={generalLinks}
         initialOrgLinks={orgLinks}
-        canEdit={canEdit}
+        canEdit={canManage}
       />
     </>
   );
