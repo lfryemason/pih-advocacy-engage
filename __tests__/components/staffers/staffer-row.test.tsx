@@ -25,7 +25,7 @@ describe("StafferRow", () => {
       orgId: "pihe",
     });
     expect(screen.getByText("Sam Jones")).toBeInTheDocument();
-    expect(screen.getByText("(they/them)")).toBeInTheDocument();
+    expect(screen.getByText("they/them")).toBeInTheDocument();
     expect(screen.getByText("Chief of Staff")).toBeInTheDocument();
     expect(screen.getByText("sam@example.com")).toBeInTheDocument();
     expect(screen.getByText("Notes")).toBeInTheDocument();

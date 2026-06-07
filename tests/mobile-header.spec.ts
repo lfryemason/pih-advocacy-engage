@@ -35,7 +35,7 @@ test.describe("mobile header", () => {
       page.getByRole("menuitem", { name: "Meetings" }),
     ).toBeVisible();
     await expect(
-      page.getByRole("menuitem", { name: "Representatives" }),
+      page.getByRole("menuitem", { name: "Members of Congress" }),
     ).toBeVisible();
     await expect(page.getByRole("menuitem", { name: "Teams" })).toBeVisible();
     await expect(

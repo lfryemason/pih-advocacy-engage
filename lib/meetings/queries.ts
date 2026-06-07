@@ -95,12 +95,14 @@ export async function fetchMeetings(
   supabase: SupabaseBrowserClient,
   {
     filters,
+    representativeId,
     section,
     offset,
     limit,
     teamId,
   }: {
     filters: MeetingFilters;
+    representativeId?: string;
     section: "upcoming" | "past";
     offset: number;
     limit: number;
@@ -118,6 +120,10 @@ export async function fetchMeetings(
     query = query.gte("meeting_date", today);
   } else {
     query = query.lt("meeting_date", today);
+  }
+
+  if (representativeId) {
+    query = query.eq("representative_id", representativeId);
   }
 
   if (teamId) {

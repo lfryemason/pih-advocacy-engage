@@ -83,7 +83,9 @@ export function MyRepresentativesTable() {
 
   if (error)
     return (
-      <p className="text-destructive">Failed to load your representatives.</p>
+      <p className="text-destructive">
+        Failed to load your members of Congress.
+      </p>
     );
 
   if (missingProfile)
@@ -93,20 +95,20 @@ export function MyRepresentativesTable() {
         <Link href="/profile" className="underline underline-offset-4">
           profile
         </Link>{" "}
-        to see your representatives.
+        to see your members of Congress.
       </p>
     );
 
   if (reps.length === 0)
     return (
       <p className="text-muted-foreground">
-        No representatives found for your district.
+        No members of Congress found for your district.
       </p>
     );
 
   return (
     <Table>
-      <caption className="sr-only">My Representatives</caption>
+      <caption className="sr-only">My Members of Congress</caption>
       <TableHeader>
         <TableRow>
           <TableHead>Name</TableHead>

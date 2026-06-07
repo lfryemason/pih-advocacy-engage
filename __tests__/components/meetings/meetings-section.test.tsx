@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MeetingsSection } from "@/components/meetings/meetings-section";
+import { MeetingRow as MeetingRowComponent } from "@/components/meetings/meeting-row";
 import { MeetingRow } from "@/lib/meetings/types";
 
 function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
@@ -86,6 +87,28 @@ describe("MeetingsSection", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole("columnheader", { name: "Member of Congress" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("columnheader", { name: "Staff Contact" }),
+    ).toBeInTheDocument();
+  });
+
+  it("hides the Member of Congress column when showRepColumn is false", () => {
+    const meetings = [makeRow()];
+    render(
+      <MeetingsSection
+        title="Future Meetings"
+        meetings={meetings}
+        {...sectionProps(meetings)}
+        showRepColumn={false}
+      />,
+    );
+    expect(
+      screen.queryByRole("columnheader", { name: "Member of Congress" }),
+    ).not.toBeInTheDocument();
+    // Other columns remain
+    expect(
+      screen.getByRole("columnheader", { name: "Date" }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole("columnheader", { name: "Staff Contact" }),
@@ -264,5 +287,34 @@ describe("MeetingsSection", () => {
       />,
     );
     expect(screen.getByRole("button", { name: "Loading…" })).toBeDisabled();
+  });
+});
+
+describe("MeetingRow showRepColumn", () => {
+  it("omits the representative cell when showRepColumn is false", () => {
+    render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            showRepColumn={false}
+            meeting={makeRow({ representative_name: "Jane Rep" })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(screen.queryByText(/Jane Rep/)).not.toBeInTheDocument();
+  });
+
+  it("includes the representative cell by default", () => {
+    render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            meeting={makeRow({ representative_name: "Jane Rep" })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(screen.getByText(/Jane Rep/)).toBeInTheDocument();
   });
 });

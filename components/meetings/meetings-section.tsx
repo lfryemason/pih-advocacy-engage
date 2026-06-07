@@ -19,6 +19,7 @@ export function MeetingsSection({
   disableLoadMore,
   onRefresh = () => {},
   isPast = false,
+  showRepColumn = true,
 }: {
   title: string;
   meetings: MeetingRowType[];
@@ -27,6 +28,7 @@ export function MeetingsSection({
   disableLoadMore: boolean;
   onRefresh?: () => void;
   isPast?: boolean;
+  showRepColumn?: boolean;
 }) {
   const headingId = title.toLowerCase().replace(/\s+/g, "-");
   const hasMore = meetings.length < totalCount;
@@ -51,7 +53,9 @@ export function MeetingsSection({
                 </TableHead>
                 <TableHead className="w-28">Date</TableHead>
                 <TableHead className="w-24">Time</TableHead>
-                <TableHead className="w-56">Member of Congress</TableHead>
+                {showRepColumn && (
+                  <TableHead className="w-56">Member of Congress</TableHead>
+                )}
                 <TableHead className="w-36">Staff Contact</TableHead>
                 <TableHead className="w-52">PIH Team</TableHead>
                 <TableHead className="w-36">Scheduling Lead</TableHead>
@@ -66,6 +70,7 @@ export function MeetingsSection({
                   key={meeting.id}
                   meeting={meeting}
                   isPast={isPast}
+                  showRepColumn={showRepColumn}
                   onRefresh={onRefresh}
                 />
               ))}

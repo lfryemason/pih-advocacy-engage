@@ -92,7 +92,7 @@ export function MobileHeader() {
         <DropdownMenuItem asChild>
           <Link href="/representatives" className="flex items-center gap-2">
             <Landmark size={16} />
-            Representatives
+            Members of Congress
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>

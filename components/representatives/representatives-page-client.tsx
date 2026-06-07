@@ -15,12 +15,12 @@ export function RepresentativesPageClient() {
 
   return (
     <div className="flex flex-col p-8">
-      <h1 className="mb-6 text-3xl font-bold">Representatives</h1>
+      <h1 className="mb-6 text-3xl font-bold">Members of Congress</h1>
       <div className="mb-8">
-        <h2 className="mb-3 text-2xl font-bold">My Representatives</h2>
+        <h2 className="mb-3 text-2xl font-bold">My Members of Congress</h2>
         <MyRepresentativesTable />
       </div>
-      <h2 className="mb-3 text-2xl font-bold">Filter Representatives</h2>
+      <h2 className="mb-3 text-2xl font-bold">Filter Members of Congress</h2>
       <RepresentativesFilters filters={filters} onChange={setFilters} />
       <div className="flex flex-col gap-8 md:flex-row">
         <SenatorsTable filters={filters} />
