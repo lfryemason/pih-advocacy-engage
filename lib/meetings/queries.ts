@@ -98,11 +98,13 @@ export async function fetchMeetings(
     section,
     offset,
     limit,
+    teamId,
   }: {
     filters: MeetingFilters;
     section: "upcoming" | "past";
     offset: number;
     limit: number;
+    teamId?: string;
   },
 ): Promise<{ meetings: MeetingRow[]; count: number }> {
   const today = localDateString();
@@ -116,6 +118,10 @@ export async function fetchMeetings(
     query = query.gte("meeting_date", today);
   } else {
     query = query.lt("meeting_date", today);
+  }
+
+  if (teamId) {
+    query = query.eq("primary_team_id", teamId);
   }
 
   if (filters.states.length > 0) {

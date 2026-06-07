@@ -5,13 +5,19 @@ import {
   TEST_PASSWORD,
   SEED_REPRESENTATIVES,
   SEED_PROFILE,
+  SEED_EXTRA_PROFILES,
   SEED_TEAMS,
   SEED_TEAM_MEMBERSHIPS,
   SEED_TEAM_ID,
   SEED_TEAM_NO_MEMBER_ID,
+  SEED_TEAM_HMC_ID,
   SEED_MEETING_UPCOMING_ID,
   SEED_MEETING_PAST_ID,
   SEED_REP_WA_BIOGUIDE,
+  SEED_USER_2_ID,
+  SEED_USER_3_ID,
+  SEED_USER_4_ID,
+  SEED_USER_5_ID,
 } from "./seed";
 
 const SUPABASE_URL =
@@ -31,27 +37,38 @@ function adminClient() {
   });
 }
 
-/** Ensure the test user exists, creating it if needed. */
+const EXTRA_USERS = [
+  { id: SEED_USER_2_ID, email: "user2@example.com" },
+  { id: SEED_USER_3_ID, email: "user3@example.com" },
+  { id: SEED_USER_4_ID, email: "user4@example.com" },
+  { id: SEED_USER_5_ID, email: "user5@example.com" },
+];
+
+/** Ensure the test user and extra seed users exist, creating them if needed. */
 export async function seedTestUser() {
   const supabase = adminClient();
-  const { data, error: getError } =
-    await supabase.auth.admin.getUserById(TEST_USER_ID);
 
-  // 404 = user doesn't exist yet; any other error is a real failure
-  if (getError && getError.status !== 404) {
-    throw new Error(`Failed to look up test user: ${getError.message}`);
-  }
+  for (const { id, email } of [
+    { id: TEST_USER_ID, email: TEST_EMAIL },
+    ...EXTRA_USERS,
+  ]) {
+    const { data, error: getError } = await supabase.auth.admin.getUserById(id);
 
-  if (!data?.user) {
-    const { error: createError } = await supabase.auth.admin.createUser({
-      id: TEST_USER_ID,
-      email: TEST_EMAIL,
-      password: TEST_PASSWORD,
-      email_confirm: true,
-      user_metadata: {},
-    });
-    if (createError) {
-      throw new Error(`Failed to create test user: ${createError.message}`);
+    if (getError && getError.status !== 404) {
+      throw new Error(`Failed to look up user ${id}: ${getError.message}`);
+    }
+
+    if (!data?.user) {
+      const { error: createError } = await supabase.auth.admin.createUser({
+        id,
+        email,
+        password: TEST_PASSWORD,
+        email_confirm: true,
+        user_metadata: {},
+      });
+      if (createError) {
+        throw new Error(`Failed to create user ${id}: ${createError.message}`);
+      }
     }
   }
 }
@@ -60,8 +77,7 @@ export async function seedTestUser() {
 export async function resetDatabase() {
   const supabase = adminClient();
 
-  // Reset the test user's profile to the seed state (blank name/pronouns/state
-  // so profile tests always start from a known clean slate).
+  // Reset primary test user profile
   const { error: profileError } = await supabase
     .from("profiles")
     .upsert(SEED_PROFILE, { onConflict: "user_id" });
@@ -71,9 +87,17 @@ export async function resetDatabase() {
     );
   }
 
-  // Reset the test user's role to member of pihe. The auth trigger creates
-  // this row on user insert; the upsert here ensures tests that promote the
-  // user to org_admin/super_admin don't leak state across runs.
+  // Upsert extra seed profiles
+  const { error: extraProfileError } = await supabase
+    .from("profiles")
+    .upsert(SEED_EXTRA_PROFILES, { onConflict: "user_id" });
+  if (extraProfileError) {
+    throw new Error(
+      `Failed to upsert extra profiles: ${extraProfileError.message}`,
+    );
+  }
+
+  // Reset the test user's role to member of pihe.
   const { error: roleError } = await supabase
     .from("user_role")
     .upsert(
@@ -84,9 +108,7 @@ export async function resetDatabase() {
     throw new Error(`Failed to reset test user role: ${roleError.message}`);
   }
 
-  // Reset representatives table to seed state. We only delete rows NOT in the
-  // seed set (safe for parallel workers — never touches the seed rows), then
-  // upsert to restore any seed rows that a test may have modified.
+  // Reset representatives table to seed state.
   const seedIds = SEED_REPRESENTATIVES.map((r) => r.bioguide_id);
   const { error: deleteError } = await supabase
     .from("representatives")
@@ -105,8 +127,7 @@ export async function resetDatabase() {
     throw new Error(`Failed to seed representatives: ${upsertError.message}`);
   }
 
-  // Staffers have no seed set — wipe everything between tests so suites that
-  // create staffers don't leak state. Filter is `id is not null` (matches all).
+  // Staffers have no seed set — wipe everything between tests.
   const { error: stafferError } = await supabase
     .from("staffers")
     .delete()
@@ -116,7 +137,7 @@ export async function resetDatabase() {
   }
 
   // Reset team_memberships: wipe all non-seed memberships, then restore seed.
-  const seedTeamIds = [SEED_TEAM_ID, SEED_TEAM_NO_MEMBER_ID];
+  const seedTeamIds = [SEED_TEAM_ID, SEED_TEAM_NO_MEMBER_ID, SEED_TEAM_HMC_ID];
   const { error: membershipDeleteError } = await supabase
     .from("team_memberships")
     .delete()
@@ -126,10 +147,6 @@ export async function resetDatabase() {
       `Failed to clear non-seed team memberships: ${membershipDeleteError.message}`,
     );
   }
-  // Wipe all memberships on seed teams — restored from seed upsert below.
-  // This covers extra-role rows the test user may have from role-change tests
-  // (e.g. team_lead → member), other users joining seed teams, and the test
-  // user joining the no-member team from join-team tests.
   const { error: extraMembershipError } = await supabase
     .from("team_memberships")
     .delete()
@@ -141,9 +158,6 @@ export async function resetDatabase() {
   }
 
   // Reset teams: delete non-seed teams, restore seed teams via UPDATE.
-  // We must use UPDATE (not upsert/insert) because the BEFORE INSERT trigger
-  // fires on upsert's INSERT attempt, sees the existing row's slug, and
-  // increments it to "-2". UPDATE bypasses that trigger entirely.
   const { error: teamDeleteError } = await supabase
     .from("teams")
     .delete()
@@ -164,10 +178,6 @@ export async function resetDatabase() {
         `Failed to update seed team ${id}: ${updateError.message}`,
       );
     }
-    // On first run (empty DB) the UPDATE matches nothing — fall back to INSERT.
-    // The trigger then runs cleanly against an empty table and assigns the
-    // correct slug. This path only runs during global setup (serial), so there
-    // is no parallel-insert race.
     if (!updated || updated.length === 0) {
       const { error: insertError } = await supabase
         .from("teams")
@@ -180,7 +190,7 @@ export async function resetDatabase() {
     }
   }
 
-  // Restore seed team memberships (upsert is idempotent on the composite PK).
+  // Restore seed team memberships.
   const { error: membershipUpsertError } = await supabase
     .from("team_memberships")
     .upsert(SEED_TEAM_MEMBERSHIPS, { onConflict: "team_id,user_id,role" });
