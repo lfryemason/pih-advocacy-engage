@@ -13,6 +13,7 @@ import {
   MeetingFormValues,
   LinkFormEntry,
   LocalDelegationMember,
+  memberFromDelegation,
 } from "@/lib/meetings/types";
 import { DelegationForm } from "@/components/meetings/delegation-form";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
@@ -91,20 +92,7 @@ export function MeetingDetail({
         setDetail(d);
         setForm(formStateFromDetail(d));
         setLinks(d.links);
-        setPendingDelegation(
-          d.delegation_members.map((m) => ({
-            key: m.id,
-            dbId: m.id,
-            user_id: m.user_id,
-            display_name: m.display_name,
-            first_name: m.first_name,
-            last_name: m.last_name,
-            email: m.email,
-            role: m.role,
-            team_id: m.team_id,
-            team_name_snapshot: m.team_name_snapshot,
-          })),
-        );
+        setPendingDelegation(d.delegation_members.map(memberFromDelegation));
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -134,20 +122,7 @@ export function MeetingDetail({
     if (!detail) return;
     setForm(formStateFromDetail(detail));
     setLinks(detail.links);
-    setPendingDelegation(
-      detail.delegation_members.map((m) => ({
-        key: m.id,
-        dbId: m.id,
-        user_id: m.user_id,
-        display_name: m.display_name,
-        first_name: m.first_name,
-        last_name: m.last_name,
-        email: m.email,
-        role: m.role,
-        team_id: m.team_id,
-        team_name_snapshot: m.team_name_snapshot,
-      })),
-    );
+    setPendingDelegation(detail.delegation_members.map(memberFromDelegation));
     setSaveError(null);
     setMode("view");
   }
@@ -207,20 +182,7 @@ export function MeetingDetail({
           if (!isMountedRef.current) return;
           setDetail(d);
           setLinks(d.links);
-          setPendingDelegation(
-            d.delegation_members.map((m) => ({
-              key: m.id,
-              dbId: m.id,
-              user_id: m.user_id,
-              display_name: m.display_name,
-              first_name: m.first_name,
-              last_name: m.last_name,
-              email: m.email,
-              role: m.role,
-              team_id: m.team_id,
-              team_name_snapshot: m.team_name_snapshot,
-            })),
-          );
+          setPendingDelegation(d.delegation_members.map(memberFromDelegation));
         })
         .catch(() => {});
 
@@ -262,25 +224,23 @@ export function MeetingDetail({
   }
 
   return (
-    <div>
-      <MeetingDetailEdit
-        meetingId={meeting.id}
-        form={form}
-        onFormChange={updateForm}
-        links={links}
-        onLinksChange={setLinks}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        saveError={saveError}
-        isSaving={isSaving}
-      />
-      <div className="border-t px-4 pb-4 pt-4">
+    <MeetingDetailEdit
+      meetingId={meeting.id}
+      form={form}
+      onFormChange={updateForm}
+      links={links}
+      onLinksChange={setLinks}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+      saveError={saveError}
+      isSaving={isSaving}
+      delegationSlot={
         <DelegationForm
           meetingId={meeting.id}
           initialMembers={detail.delegation_members}
           onChange={setPendingDelegation}
         />
-      </div>
-    </div>
+      }
+    />
   );
 }

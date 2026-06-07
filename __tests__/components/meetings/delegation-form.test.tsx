@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { DelegationForm } from "@/components/meetings/delegation-form";
 import type { DelegationMember } from "@/lib/meetings/types";
@@ -22,6 +22,7 @@ function makeMember(
     user_id: "user-1",
     first_name: "Alice",
     last_name: "Smith",
+    pronouns: null,
     display_name: "Alice Smith",
     email: "alice@example.com",
     role: "scheduling_lead",
@@ -31,81 +32,8 @@ function makeMember(
   };
 }
 
-// T034: Represented-teams derivation logic
-describe("DelegationForm — represented teams derivation", () => {
-  beforeEach(() => {
-    mockSearchProfiles.mockResolvedValue([]);
-  });
-
-  it("deduplicates teams when multiple members share the same snapshot", () => {
-    render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[
-          makeMember({
-            id: "dm-1",
-            user_id: "u-1",
-            team_name_snapshot: "Global Health",
-          }),
-          makeMember({
-            id: "dm-2",
-            user_id: "u-2",
-            team_name_snapshot: "Global Health",
-          }),
-          makeMember({
-            id: "dm-3",
-            user_id: "u-3",
-            team_name_snapshot: "Advocacy",
-          }),
-        ]}
-        onChange={vi.fn()}
-      />,
-    );
-    const teamsSection = screen.getByRole("list", {
-      name: /represented teams/i,
-    });
-    expect(within(teamsSection).getAllByRole("listitem")).toHaveLength(2);
-  });
-
-  it("excludes null team_name_snapshot from represented teams", () => {
-    render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[makeMember({ team_name_snapshot: null })]}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(
-      screen.queryByRole("list", { name: /represented teams/i }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("excludes blank team_name_snapshot from represented teams", () => {
-    render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[makeMember({ team_name_snapshot: "   " })]}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(
-      screen.queryByRole("list", { name: /represented teams/i }),
-    ).not.toBeInTheDocument();
-  });
-
-  it("shows empty represented teams when delegation is empty", () => {
-    render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[]}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(
-      screen.queryByRole("list", { name: /represented teams/i }),
-    ).not.toBeInTheDocument();
-  });
-});
+// T034: Represented-teams logic moved to MeetingDetailView (read panel).
+// Tests live in meeting-detail-view.test.tsx.
 
 // T035: delegation-form UI tests
 describe("DelegationForm — member list display", () => {
@@ -145,12 +73,15 @@ describe("DelegationForm — add member", () => {
       {
         user_id: "user-2",
         display_name: "Bob Jones",
+        first_name: "Bob",
+        last_name: "Jones",
+        pronouns: null,
         teams: [{ team_id: "team-2", team_name: "Advocacy" }],
       },
     ]);
   });
 
-  it("adds a member after searching, selecting, and confirming", async () => {
+  it("adds a member immediately when a search result is clicked", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(
@@ -161,12 +92,9 @@ describe("DelegationForm — add member", () => {
       />,
     );
 
-    await user.type(screen.getByRole("textbox", { name: /search/i }), "Bob");
+    await user.type(screen.getByRole("combobox"), "Bob");
     await screen.findByText("Bob Jones");
     await user.click(screen.getByText("Bob Jones"));
-    await user.click(
-      screen.getByRole("button", { name: /add to delegation/i }),
-    );
 
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
     expect(onChange).toHaveBeenCalledWith(
@@ -174,6 +102,34 @@ describe("DelegationForm — add member", () => {
         expect.objectContaining({
           user_id: "user-2",
           display_name: "Bob Jones",
+          role: "attendee_listening",
+        }),
+      ]),
+    );
+  });
+
+  it("adds first result when the plus button is clicked", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <DelegationForm
+        meetingId="meeting-1"
+        initialMembers={[]}
+        onChange={onChange}
+      />,
+    );
+
+    await user.type(screen.getByRole("combobox"), "Bob");
+    await screen.findByText("Bob Jones");
+    await user.click(
+      screen.getByRole("button", { name: /add to delegation/i }),
+    );
+
+    expect(onChange).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        expect.objectContaining({
+          user_id: "user-2",
+          role: "attendee_listening",
         }),
       ]),
     );

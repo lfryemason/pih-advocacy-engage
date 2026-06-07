@@ -9,7 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { LEADERSHIP_ROLES, type MembershipWithProfile } from "@/lib/teams";
+import {
+  displayName,
+  LEADERSHIP_ROLES,
+  type MembershipWithProfile,
+} from "@/lib/teams";
 import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
 
 export function TeamLeadSectionList({
@@ -27,7 +31,7 @@ export function TeamLeadSectionList({
 
   return (
     <div className="mt-8">
-      <h2 className="text-lg font-semibold mb-2">Team Leadership</h2>
+      <h2 className="mb-2 text-lg font-semibold">Team Leadership</h2>
       <Table>
         <TableHeader className="[&_th]:text-secondary-teal-foreground [&_tr]:bg-secondary-teal [&_tr]:hover:bg-secondary-teal">
           <TableRow>
@@ -56,7 +60,10 @@ export function TeamLeadSectionList({
                   {i === 0 ? label : ""}
                 </TableCell>
                 <TableCell>
-                  <NameWithPronouns profiles={m.profiles} />
+                  <NameWithPronouns
+                    name={displayName(m.profiles)}
+                    pronouns={m.profiles?.pronouns}
+                  />
                 </TableCell>
                 <TableCell>
                   {m.profiles?.email && (
