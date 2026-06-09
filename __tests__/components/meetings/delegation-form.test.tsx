@@ -5,13 +5,17 @@ import { DelegationForm } from "@/components/meetings/delegation-form";
 import type { DelegationMember } from "@/lib/meetings/types";
 
 const mockSearchProfiles = vi.hoisted(() => vi.fn());
+const mockFetchMyTeamMembers = vi.hoisted(() => vi.fn());
 
 vi.mock("@/lib/meetings/queries", () => ({
   searchProfiles: mockSearchProfiles,
+  fetchMyTeamMembers: mockFetchMyTeamMembers,
 }));
 
 vi.mock("@/lib/supabase/client", () => ({
-  createClient: vi.fn(() => ({})),
+  createClient: vi.fn(() => ({
+    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
+  })),
 }));
 
 function makeMember(
@@ -31,6 +35,10 @@ function makeMember(
     ...overrides,
   };
 }
+
+beforeEach(() => {
+  mockFetchMyTeamMembers.mockResolvedValue([]);
+});
 
 // T034: Represented-teams logic moved to MeetingDetailView (read panel).
 // Tests live in meeting-detail-view.test.tsx.

@@ -298,6 +298,7 @@ export async function fetchMeetingDetail(
   const represented_teams = [
     ...new Set(
       delegation_members
+        .filter((m) => m.role !== "scheduling_lead")
         .map((m) => m.team_name_snapshot)
         .filter((t): t is string => !!t && t.trim() !== ""),
     ),
@@ -341,6 +342,31 @@ export async function updateMeeting(
   if (error) throw error;
 }
 
+type RawProfile = {
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  pronouns: string | null;
+  team_memberships: Array<{
+    team_id: string;
+    teams: { name: string } | null;
+  }>;
+};
+
+function mapRawProfile(p: RawProfile): ProfileSearchResult {
+  return {
+    user_id: p.user_id,
+    display_name:
+      [p.first_name, p.last_name].filter(Boolean).join(" ") || "Anonymous",
+    first_name: p.first_name,
+    last_name: p.last_name,
+    pronouns: p.pronouns,
+    teams: (p.team_memberships ?? [])
+      .filter((tm) => tm.teams?.name)
+      .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
+  };
+}
+
 export async function searchProfiles(
   supabase: SupabaseBrowserClient,
   query: string,
@@ -350,6 +376,7 @@ export async function searchProfiles(
   // Strip characters that are structural in PostgREST filter strings to
   // prevent malformed predicates or unexpected filter injection.
   const safeQuery = query.replace(/[,()]/g, "");
+  if (!safeQuery.trim()) return [];
 
   const { data, error } = await supabase
     .from("profiles")
@@ -362,28 +389,7 @@ export async function searchProfiles(
 
   if (error) throw error;
 
-  type RawProfile = {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    pronouns: string | null;
-    team_memberships: Array<{
-      team_id: string;
-      teams: { name: string } | null;
-    }>;
-  };
-
-  return (data as unknown as RawProfile[]).map((p) => ({
-    user_id: p.user_id,
-    display_name:
-      [p.first_name, p.last_name].filter(Boolean).join(" ") || "Anonymous",
-    first_name: p.first_name,
-    last_name: p.last_name,
-    pronouns: p.pronouns,
-    teams: (p.team_memberships ?? [])
-      .filter((tm) => tm.teams?.name)
-      .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
-  }));
+  return (data as unknown as RawProfile[]).map(mapRawProfile);
 }
 
 export async function fetchMyTeamMembers(
@@ -435,30 +441,9 @@ export async function fetchMyTeamMembers(
 
   if (profilesError || !profilesData) return [];
 
-  type RawProfile = {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    pronouns: string | null;
-    team_memberships: Array<{
-      team_id: string;
-      teams: { name: string } | null;
-    }>;
-  };
-
   const profileMap = new Map<string, ProfileSearchResult>();
   for (const p of profilesData as unknown as RawProfile[]) {
-    profileMap.set(p.user_id, {
-      user_id: p.user_id,
-      display_name:
-        [p.first_name, p.last_name].filter(Boolean).join(" ") || "Anonymous",
-      first_name: p.first_name,
-      last_name: p.last_name,
-      pronouns: p.pronouns,
-      teams: (p.team_memberships ?? [])
-        .filter((tm) => tm.teams?.name)
-        .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
-    });
+    profileMap.set(p.user_id, mapRawProfile(p));
   }
 
   // Group profiles by which of my teams they're in

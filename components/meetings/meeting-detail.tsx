@@ -162,12 +162,19 @@ export function MeetingDetail({
       const supabase = createClient();
       await updateMeeting(supabase, meeting.id, values, links);
       if (detail) {
-        await syncDelegationMembers(
-          supabase,
-          meeting.id,
-          detail.delegation_members,
-          pendingDelegation,
-        );
+        try {
+          await syncDelegationMembers(
+            supabase,
+            meeting.id,
+            detail.delegation_members,
+            pendingDelegation,
+          );
+        } catch (err: unknown) {
+          throw new Error(
+            "Meeting saved, but delegation changes could not be applied: " +
+              (err instanceof Error ? err.message : "Unknown error"),
+          );
+        }
       }
 
       // Transition to view mode before notifying the parent — the parent's

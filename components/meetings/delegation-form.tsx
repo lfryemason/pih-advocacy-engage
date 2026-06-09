@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  useState,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { searchProfiles, fetchMyTeamMembers } from "@/lib/meetings/queries";
@@ -66,6 +59,7 @@ export function DelegationForm({
     width: number;
   } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const existingUserIds = useMemo(
     () => new Set(members.map((m) => m.user_id)),
@@ -156,6 +150,12 @@ export function DelegationForm({
     };
   }, [searchQuery, runSearch]);
 
+  useEffect(() => {
+    return () => {
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+    };
+  }, []);
+
   function updateMembers(next: LocalDelegationMember[]) {
     setMembers(next);
     onChange(next);
@@ -201,12 +201,24 @@ export function DelegationForm({
       isLoadingInitial ||
       filteredInitialGroups.length > 0);
 
-  useLayoutEffect(() => {
-    if (showDropdown && commandRef.current) {
-      const { bottom, left, width } =
-        commandRef.current.getBoundingClientRect();
-      setDropdownPos({ top: bottom + 4, left, width });
+  useEffect(() => {
+    if (!showDropdown) return;
+
+    function updatePos() {
+      if (commandRef.current) {
+        const { bottom, left, width } =
+          commandRef.current.getBoundingClientRect();
+        setDropdownPos({ top: bottom + 4, left, width });
+      }
     }
+
+    updatePos();
+    window.addEventListener("scroll", updatePos, true);
+    window.addEventListener("resize", updatePos);
+    return () => {
+      window.removeEventListener("scroll", updatePos, true);
+      window.removeEventListener("resize", updatePos);
+    };
   }, [showDropdown]);
 
   return (
@@ -226,7 +238,12 @@ export function DelegationForm({
                 value={searchQuery}
                 onValueChange={setSearchQuery}
                 onFocus={() => setInputFocused(true)}
-                onBlur={() => setTimeout(() => setInputFocused(false), 100)}
+                onBlur={() => {
+                  blurTimerRef.current = setTimeout(
+                    () => setInputFocused(false),
+                    100,
+                  );
+                }}
                 autoComplete="off"
               />
               {showDropdown &&

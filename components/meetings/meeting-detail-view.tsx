@@ -150,35 +150,24 @@ export function MeetingDetailView({
               <p className="mt-1 text-sm">{meeting.location}</p>
             </div>
           )}
-          {(() => {
-            const teams = [
-              ...new Set(
-                meeting.delegation_members
-                  .filter((m) => m.role !== "scheduling_lead")
-                  .map((m) => m.team_name_snapshot)
-                  .filter((n): n is string => !!n && n.trim() !== ""),
-              ),
-            ];
-            if (teams.length === 0) return null;
-            return (
-              <div>
-                <p className={SECTION_LABEL_CLASSNAME}>Represented Teams</p>
-                <ul
-                  aria-label="Represented Teams"
-                  className="mt-1 flex flex-wrap gap-1.5"
-                >
-                  {teams.map((team) => (
-                    <li
-                      key={team}
-                      className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
-                    >
-                      {team}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })()}
+          {meeting.represented_teams.length > 0 && (
+            <div>
+              <p className={SECTION_LABEL_CLASSNAME}>Represented Teams</p>
+              <ul
+                aria-label="Represented Teams"
+                className="mt-1 flex flex-wrap gap-1.5"
+              >
+                {meeting.represented_teams.map((team) => (
+                  <li
+                    key={team}
+                    className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
+                  >
+                    {team}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           <div>
             <p className={SECTION_LABEL_CLASSNAME}>Delegation</p>
             {meeting.delegation_members.length === 0 ? (
