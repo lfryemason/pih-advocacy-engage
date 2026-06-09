@@ -101,7 +101,9 @@ export function DelegationForm({
     if (!searchQuery.trim()) return [];
     const map = new Map<string, TeamGroup>();
     const noTeam: ProfileSearchResult[] = [];
-    for (const r of searchResults) {
+    for (const r of searchResults.filter(
+      (r) => !existingUserIds.has(r.user_id),
+    )) {
       if (r.teams.length === 0) {
         noTeam.push(r);
       } else {
@@ -126,7 +128,7 @@ export function DelegationForm({
       });
     }
     return groups;
-  }, [searchResults, searchQuery]);
+  }, [searchResults, searchQuery, existingUserIds]);
 
   const runSearch = useCallback((q: string) => {
     if (!q.trim()) {

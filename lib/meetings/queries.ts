@@ -223,7 +223,15 @@ export async function createMeeting(
     });
 
   if (delegationError) {
-    await supabase.from("meetings").delete().eq("id", data.id);
+    const { error: cleanupError } = await supabase
+      .from("meetings")
+      .delete()
+      .eq("id", data.id);
+    if (cleanupError) {
+      throw new Error(
+        `Meeting created but delegation failed and cleanup also failed (meeting id: ${data.id}): ${delegationError.message}`,
+      );
+    }
     throw delegationError;
   }
 
@@ -384,7 +392,7 @@ export async function searchProfiles(
 
   // Strip characters that are structural in PostgREST filter strings or
   // act as LIKE wildcards to prevent injection and unintended wildcard matches.
-  const safeQuery = query.replace(/[,()\%_]/g, "");
+  const safeQuery = query.replace(/[,()\%_"']/g, "");
   if (!safeQuery.trim()) return [];
 
   const { data, error } = await supabase
@@ -424,51 +432,34 @@ export async function fetchMyTeamMembers(
     typed.map((m) => [m.team_id, m.teams?.name ?? "Unknown"]),
   );
 
-  const { data: memberships, error: membershipsError } = await supabase
-    .from("team_memberships")
-    .select("team_id, user_id")
-    .in("team_id", myTeamIds);
-
-  if (membershipsError || !memberships || memberships.length === 0) return [];
-
-  const userToMyTeamIds = new Map<string, Set<string>>();
-  for (const m of memberships as { team_id: string; user_id: string }[]) {
-    if (!userToMyTeamIds.has(m.user_id))
-      userToMyTeamIds.set(m.user_id, new Set());
-    userToMyTeamIds.get(m.user_id)!.add(m.team_id);
-  }
-
+  // Single query: profiles that share at least one of the current user's teams.
+  // The !inner join + filter restricts both which team_memberships rows are
+  // returned and which profiles are included (inner-join semantics).
   const { data: profilesData, error: profilesError } = await supabase
     .from("profiles")
     .select(
-      "user_id, first_name, last_name, pronouns, team_memberships ( team_id, teams ( name ) )",
+      "user_id, first_name, last_name, pronouns, team_memberships!inner ( team_id, teams ( name ) )",
     )
-    .in("user_id", [...userToMyTeamIds.keys()])
-    .eq("org_id", ORG_ID);
+    .eq("org_id", ORG_ID)
+    .filter("team_memberships.team_id", "in", `(${myTeamIds.join(",")})`);
 
   if (profilesError || !profilesData) return [];
-
-  const profileMap = new Map<string, ProfileSearchResult>();
-  for (const p of profilesData as unknown as RawProfile[]) {
-    profileMap.set(p.user_id, mapRawProfile(p));
-  }
 
   const groups = new Map<
     string,
     { team_name: string; profiles: ProfileSearchResult[] }
   >();
 
-  for (const [userId, sharedTeamIds] of userToMyTeamIds) {
-    const profile = profileMap.get(userId);
-    if (!profile) continue;
-    for (const teamId of sharedTeamIds) {
-      if (!groups.has(teamId)) {
-        groups.set(teamId, {
-          team_name: teamNames.get(teamId) ?? "Unknown",
+  for (const p of profilesData as unknown as RawProfile[]) {
+    const profile = mapRawProfile(p);
+    for (const tm of p.team_memberships) {
+      if (!groups.has(tm.team_id)) {
+        groups.set(tm.team_id, {
+          team_name: teamNames.get(tm.team_id) ?? "Unknown",
           profiles: [],
         });
       }
-      groups.get(teamId)!.profiles.push(profile);
+      groups.get(tm.team_id)!.profiles.push(profile);
     }
   }
 

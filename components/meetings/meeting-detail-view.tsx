@@ -14,6 +14,7 @@ import {
   LINK_CN,
   SECTION_LABEL_CLASSNAME,
 } from "@/lib/meetings/format";
+import { localDateString } from "@/lib/utils";
 import {
   MEMBER_ROLES,
   ROLE_LABELS,
@@ -63,7 +64,7 @@ export function MeetingDetailView({
   meeting: MeetingDetail;
   onEdit?: () => void;
 }) {
-  const isPast = meeting.meeting_date < new Date().toISOString().slice(0, 10);
+  const isPast = meeting.meeting_date < localDateString();
   const showChampion = isPast || meeting.champion_score != null;
   const showFollowUp = isPast || meeting.follow_up_date != null;
 

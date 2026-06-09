@@ -81,7 +81,7 @@ export async function RepTeamsSection({
           <TableBody>
             {(teams as TeamRow[]).map((team) => {
               const coordinators = team.team_memberships
-                .filter((m) => m.role === "team_lead")
+                .filter((m) => m.role === "team_coordinator")
                 .map((m) => profileName(m.profiles))
                 .filter((n) => n !== "—");
 

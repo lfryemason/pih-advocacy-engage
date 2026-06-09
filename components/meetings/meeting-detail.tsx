@@ -95,9 +95,12 @@ export function MeetingDetail({
       fetchMeetingDetail(supabase, meeting.id)
         .then((d) => {
           if (cancelled) return;
-          setDetail(d);
           // Don't overwrite in-progress edits while the user is in edit mode.
+          // setDetail is also guarded: detail.delegation_members is the original
+          // baseline for syncDelegationMembers, so it must stay in sync with
+          // pendingDelegation (which is not reset in edit mode).
           if (modeRef.current !== "edit") {
+            setDetail(d);
             setForm(formStateFromDetail(d));
             setLinks(d.links);
             setPendingDelegation(
@@ -187,8 +190,6 @@ export function MeetingDetail({
             pendingDelegation,
           );
         } catch (err: unknown) {
-          // Refresh detail so that clicking Cancel reflects the already-saved meeting fields.
-          loadDetails({ silent: true });
           throw new Error(
             "Meeting saved, but delegation changes could not be applied: " +
               (err instanceof Error ? err.message : "Unknown error"),
