@@ -13,6 +13,7 @@ import {
   MeetingFormValues,
   LinkFormEntry,
   LocalDelegationMember,
+  memberFromDelegation,
 } from "@/lib/meetings/types";
 import { DelegationForm } from "@/components/meetings/delegation-form";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
@@ -79,7 +80,12 @@ export function MeetingDetail({
     };
   }, []);
 
+  const modeRef = useRef(mode);
   useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
+  const loadDetails = useCallback(() => {
     let cancelled = false;
     const supabase = createClient();
     setIsLoading(true);
@@ -91,20 +97,10 @@ export function MeetingDetail({
         setDetail(d);
         setForm(formStateFromDetail(d));
         setLinks(d.links);
-        setPendingDelegation(
-          d.delegation_members.map((m) => ({
-            key: m.id,
-            dbId: m.id,
-            user_id: m.user_id,
-            display_name: m.display_name,
-            first_name: m.first_name,
-            last_name: m.last_name,
-            email: m.email,
-            role: m.role,
-            team_id: m.team_id,
-            team_name_snapshot: m.team_name_snapshot,
-          })),
-        );
+        // Don't overwrite in-progress delegation edits while the user is in edit mode.
+        if (modeRef.current !== "edit") {
+          setPendingDelegation(d.delegation_members.map(memberFromDelegation));
+        }
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -121,6 +117,8 @@ export function MeetingDetail({
     };
   }, [meeting.id]);
 
+  useEffect(loadDetails, [meeting.id, loadDetails]);
+
   const updateForm = useCallback((partial: Partial<FormState>) => {
     setForm((prev) => ({ ...prev, ...partial }));
   }, []);
@@ -134,20 +132,7 @@ export function MeetingDetail({
     if (!detail) return;
     setForm(formStateFromDetail(detail));
     setLinks(detail.links);
-    setPendingDelegation(
-      detail.delegation_members.map((m) => ({
-        key: m.id,
-        dbId: m.id,
-        user_id: m.user_id,
-        display_name: m.display_name,
-        first_name: m.first_name,
-        last_name: m.last_name,
-        email: m.email,
-        role: m.role,
-        team_id: m.team_id,
-        team_name_snapshot: m.team_name_snapshot,
-      })),
-    );
+    setPendingDelegation(detail.delegation_members.map(memberFromDelegation));
     setSaveError(null);
     setMode("view");
   }
@@ -187,42 +172,26 @@ export function MeetingDetail({
       const supabase = createClient();
       await updateMeeting(supabase, meeting.id, values, links);
       if (detail) {
-        await syncDelegationMembers(
-          supabase,
-          meeting.id,
-          detail.delegation_members,
-          pendingDelegation,
-        );
+        try {
+          await syncDelegationMembers(
+            supabase,
+            meeting.id,
+            detail.delegation_members,
+            pendingDelegation,
+          );
+        } catch (err: unknown) {
+          // Refresh detail so that clicking Cancel reflects the already-saved meeting fields.
+          loadDetails();
+          throw new Error(
+            "Meeting saved, but delegation changes could not be applied: " +
+              (err instanceof Error ? err.message : "Unknown error"),
+          );
+        }
       }
 
-      // Transition to view mode before notifying the parent — the parent's
-      // onSaved triggers a list refresh that can unmount this component
-      // (e.g. when the meeting's date moves it to a different section).
       setMode("view");
 
-      // Refresh detail in the background so the view panel is up-to-date
-      // if the component stays mounted. Guard against post-unmount setState.
-      fetchMeetingDetail(supabase, meeting.id)
-        .then((d) => {
-          if (!isMountedRef.current) return;
-          setDetail(d);
-          setLinks(d.links);
-          setPendingDelegation(
-            d.delegation_members.map((m) => ({
-              key: m.id,
-              dbId: m.id,
-              user_id: m.user_id,
-              display_name: m.display_name,
-              first_name: m.first_name,
-              last_name: m.last_name,
-              email: m.email,
-              role: m.role,
-              team_id: m.team_id,
-              team_name_snapshot: m.team_name_snapshot,
-            })),
-          );
-        })
-        .catch(() => {});
+      loadDetails();
 
       onSaved();
     } catch (err: unknown) {
@@ -230,7 +199,7 @@ export function MeetingDetail({
         err instanceof Error ? err.message : "Failed to save meeting",
       );
     } finally {
-      if (isMountedRef.current) setIsSaving(false);
+      setIsSaving(false);
     }
   }
 
@@ -262,25 +231,23 @@ export function MeetingDetail({
   }
 
   return (
-    <div>
-      <MeetingDetailEdit
-        meetingId={meeting.id}
-        form={form}
-        onFormChange={updateForm}
-        links={links}
-        onLinksChange={setLinks}
-        onSubmit={handleSubmit}
-        onCancel={handleCancel}
-        saveError={saveError}
-        isSaving={isSaving}
-      />
-      <div className="border-t px-4 pb-4 pt-4">
+    <MeetingDetailEdit
+      meetingId={meeting.id}
+      form={form}
+      onFormChange={updateForm}
+      links={links}
+      onLinksChange={setLinks}
+      onSubmit={handleSubmit}
+      onCancel={handleCancel}
+      saveError={saveError}
+      isSaving={isSaving}
+      delegationSlot={
         <DelegationForm
           meetingId={meeting.id}
           initialMembers={detail.delegation_members}
           onChange={setPendingDelegation}
         />
-      </div>
-    </div>
+      }
+    />
   );
 }

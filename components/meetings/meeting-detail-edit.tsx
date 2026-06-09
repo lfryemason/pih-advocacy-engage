@@ -38,6 +38,7 @@ type Props = {
   onCancel: () => void;
   saveError: string | null;
   isSaving: boolean;
+  delegationSlot?: React.ReactNode;
 };
 
 type ColumnProps = Props & { staffers: StafferOption[] };
@@ -167,6 +168,7 @@ function RightColumn({
   onCancel,
   saveError,
   isSaving,
+  delegationSlot,
 }: ColumnProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -223,6 +225,8 @@ function RightColumn({
           placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
         />
       </div>
+
+      {delegationSlot && <div>{delegationSlot}</div>}
 
       <div className="mt-auto pt-2">
         {saveError && (

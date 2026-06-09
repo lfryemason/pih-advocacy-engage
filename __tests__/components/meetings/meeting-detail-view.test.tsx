@@ -182,6 +182,7 @@ describe("MeetingDetailView — delegation", () => {
               display_name: "Alice Smith",
               email: "alice@example.com",
               role: "scheduling_lead",
+              pronouns: null,
               team_id: null,
               team_name_snapshot: null,
             },
@@ -193,6 +194,7 @@ describe("MeetingDetailView — delegation", () => {
               display_name: "Bob Jones",
               email: null,
               role: "attendee_talking",
+              pronouns: null,
               team_id: null,
               team_name_snapshot: null,
             },
@@ -222,6 +224,7 @@ describe("MeetingDetailView — delegation", () => {
               display_name: "Alice Smith",
               email: "alice@example.com",
               role: "scheduling_lead",
+              pronouns: null,
               team_id: null,
               team_name_snapshot: null,
             },
@@ -231,30 +234,6 @@ describe("MeetingDetailView — delegation", () => {
       />,
     );
     expect(screen.getByText(/alice@example\.com/)).toBeInTheDocument();
-  });
-
-  it("shows email for pih_team_member when present", () => {
-    render(
-      <MeetingDetailView
-        meeting={makeMeeting({
-          delegation_members: [
-            {
-              id: "dm-1",
-              user_id: "u-1",
-              first_name: "Carol",
-              last_name: "Pih",
-              display_name: "Carol Pih",
-              email: "carol@example.com",
-              role: "pih_team_member",
-              team_id: null,
-              team_name_snapshot: null,
-            },
-          ],
-        })}
-        onEdit={vi.fn()}
-      />,
-    );
-    expect(screen.getByText(/carol@example\.com/)).toBeInTheDocument();
   });
 
   it("does not show email for attendee roles", () => {
@@ -270,6 +249,7 @@ describe("MeetingDetailView — delegation", () => {
               display_name: "Bob Jones",
               email: "bob@example.com",
               role: "attendee_talking",
+              pronouns: null,
               team_id: null,
               team_name_snapshot: null,
             },

@@ -37,6 +37,7 @@ export type DelegationMember = {
   user_id: string;
   first_name: string;
   last_name: string;
+  pronouns: string | null;
   display_name: string;
   email: string | null;
   role: DelegationRole;
@@ -101,9 +102,18 @@ export type ProfileTeam = {
   team_name: string;
 };
 
+export type TeamGroup = {
+  team_id: string;
+  team_name: string;
+  profiles: ProfileSearchResult[];
+};
+
 export type ProfileSearchResult = {
   user_id: string;
   display_name: string;
+  first_name: string | null;
+  last_name: string | null;
+  pronouns: string | null;
   teams: ProfileTeam[];
 };
 
@@ -116,8 +126,32 @@ export type LocalDelegationMember = {
   display_name: string;
   first_name: string;
   last_name: string;
+  pronouns: string | null;
   email: string | null;
   role: DelegationRole;
   team_id: string | null;
   team_name_snapshot: string | null;
+  display_teams: ProfileTeam[];
 };
+
+export function memberFromDelegation(
+  m: DelegationMember,
+): LocalDelegationMember {
+  return {
+    key: m.id,
+    dbId: m.id,
+    user_id: m.user_id,
+    display_name: m.display_name,
+    first_name: m.first_name,
+    last_name: m.last_name,
+    pronouns: m.pronouns,
+    email: m.email,
+    role: m.role,
+    team_id: m.team_id,
+    team_name_snapshot: m.team_name_snapshot,
+    display_teams:
+      m.team_id && m.team_name_snapshot
+        ? [{ team_id: m.team_id, team_name: m.team_name_snapshot }]
+        : [],
+  };
+}

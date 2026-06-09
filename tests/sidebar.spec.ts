@@ -20,7 +20,7 @@ test.describe("sidebar", () => {
     const sidebar = page.locator("aside");
     await expect(sidebar.getByRole("link", { name: "Meetings" })).toBeVisible();
     await expect(
-      sidebar.getByRole("link", { name: "Representatives" }),
+      sidebar.getByRole("link", { name: "Members of Congress" }),
     ).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Teams" })).toBeVisible();
     // href-based selector used because the link label is dynamic (shows user's full name when set)
@@ -64,7 +64,7 @@ test.describe("sidebar", () => {
     const sidebar = page.locator("aside");
     await expect(sidebar.getByRole("link", { name: "Meetings" })).toBeVisible();
     await expect(
-      sidebar.getByRole("link", { name: "Representatives" }),
+      sidebar.getByRole("link", { name: "Members of Congress" }),
     ).toBeVisible();
     await expect(sidebar.getByRole("link", { name: "Teams" })).toBeVisible();
   });

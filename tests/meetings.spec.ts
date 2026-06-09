@@ -282,9 +282,6 @@ test.describe("edit meeting", () => {
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).not.toBeVisible();
-    await expect(
-      page.getByRole("button", { name: /Edit Meeting/i }),
-    ).toBeVisible();
 
     // Meeting should now appear in Upcoming
     await expect(

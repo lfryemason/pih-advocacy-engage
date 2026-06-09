@@ -12,7 +12,7 @@ export const ROLE_COLORS: Record<DelegationRole, string> = {
   scheduling_lead: "bg-muted text-foreground",
   attendee_talking: "bg-blue-500 text-white",
   attendee_listening: "bg-violet-500 text-white",
-  pih_team_member: "bg-muted text-foreground",
+  pih_team_member: "bg-teal-500 text-white",
   note_taker: "bg-amber-500 text-white",
 };
 

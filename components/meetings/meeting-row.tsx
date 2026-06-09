@@ -12,14 +12,16 @@ import { MeetingDetail } from "@/components/meetings/meeting-detail";
 export function MeetingRow({
   meeting,
   isPast = false,
+  showRepColumn = true,
   onRefresh = () => {},
 }: {
   meeting: MeetingRowType;
   isPast?: boolean;
+  showRepColumn?: boolean;
   onRefresh?: () => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const colSpan = isPast ? 8 : 7;
+  const colSpan = (isPast ? 8 : 7) - (showRepColumn ? 0 : 1);
   const detailRowId = `meeting-detail-${meeting.id}`;
 
   const toggle = () => setIsExpanded((v) => !v);
@@ -59,20 +61,22 @@ export function MeetingRow({
               )
             : "—"}
         </TableCell>
-        <TableCell className="max-w-0">
-          <div className="truncate">
-            <Link
-              href={`/representatives/${meeting.representative_bioguide_id}`}
-              className={LINK_CN}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {meeting.representative_district === null ? "Sen. " : "Rep. "}
-              {meeting.representative_name}
-            </Link>{" "}
-            — {meeting.representative_state} (
-            {meeting.representative_party[0] ?? "?"})
-          </div>
-        </TableCell>
+        {showRepColumn && (
+          <TableCell className="max-w-0">
+            <div className="truncate">
+              <Link
+                href={`/representatives/${meeting.representative_bioguide_id}`}
+                className={LINK_CN}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {meeting.representative_district === null ? "Sen. " : "Rep. "}
+                {meeting.representative_name}
+              </Link>{" "}
+              — {meeting.representative_state} (
+              {meeting.representative_party[0] ?? "?"})
+            </div>
+          </TableCell>
+        )}
         <TableCell className="max-w-0 truncate">
           {meeting.congressional_contact_id === null ? (
             <em>

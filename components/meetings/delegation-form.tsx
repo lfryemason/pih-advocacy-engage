@@ -1,15 +1,25 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { createPortal } from "react-dom";
+import { debounce } from "es-toolkit";
 import { createClient } from "@/lib/supabase/client";
-import { searchProfiles } from "@/lib/meetings/queries";
+import { searchProfiles, fetchMyTeamMembers } from "@/lib/meetings/queries";
 import { ROLE_LABELS } from "@/lib/meetings/meeting-roles";
 import { SECTION_LABEL_CLASSNAME } from "@/lib/meetings/format";
 import { AvatarInitialsCircle } from "@/components/ui/avatar-initials-circle";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  CommandLoading,
+} from "@/components/ui/command";
 import { Trash2, Plus } from "lucide-react";
 import type {
   DelegationMember,
@@ -17,40 +27,11 @@ import type {
   LocalDelegationMember,
   ProfileSearchResult,
   ProfileTeam,
+  TeamGroup,
 } from "@/lib/meetings/types";
-
-function deriveRepresentedTeams(members: LocalDelegationMember[]): string[] {
-  return [
-    ...new Set(
-      members
-        .map((m) => m.team_name_snapshot)
-        .filter((n): n is string => !!n && n.trim() !== ""),
-    ),
-  ];
-}
-
-function memberFromDelegation(m: DelegationMember): LocalDelegationMember {
-  return {
-    key: m.id,
-    dbId: m.id,
-    user_id: m.user_id,
-    display_name: m.display_name,
-    first_name: m.first_name,
-    last_name: m.last_name,
-    email: m.email,
-    role: m.role,
-    team_id: m.team_id,
-    team_name_snapshot: m.team_name_snapshot,
-  };
-}
+import { memberFromDelegation } from "@/lib/meetings/types";
 
 const DELEGATION_ROLES = Object.keys(ROLE_LABELS) as DelegationRole[];
-
-type PendingProfile = {
-  profile: ProfileSearchResult;
-  role: DelegationRole;
-  selectedTeam: ProfileTeam | null;
-};
 
 export function DelegationForm({
   meetingId,
@@ -67,19 +48,90 @@ export function DelegationForm({
 
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ProfileSearchResult[]>([]);
-  const [pending, setPending] = useState<PendingProfile | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [searchError, setSearchError] = useState<string | null>(null);
+  const [inputFocused, setInputFocused] = useState(false);
+  const [myTeamGroups, setMyTeamGroups] = useState<TeamGroup[]>([]);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+  const commandRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
+  const [pendingProfile, setPendingProfile] =
+    useState<ProfileSearchResult | null>(null);
+  const [pendingTeam, setPendingTeam] = useState<ProfileTeam | undefined>(
+    undefined,
+  );
+  const [pendingRole, setPendingRole] =
+    useState<DelegationRole>("attendee_listening");
+  const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const existingUserIds = new Set(members.map((m) => m.user_id));
+  const existingUserIds = useMemo(
+    () => new Set(members.map((m) => m.user_id)),
+    [members],
+  );
+
+  useEffect(() => {
+    const supabase = createClient();
+    fetchMyTeamMembers(supabase)
+      .then(setMyTeamGroups)
+      .catch(() => {})
+      .finally(() => setIsLoadingInitial(false));
+  }, []);
+
+  const filteredInitialGroups = useMemo(
+    () =>
+      myTeamGroups
+        .map((g) => ({
+          ...g,
+          profiles: g.profiles.filter((p) => !existingUserIds.has(p.user_id)),
+        }))
+        .filter((g) => g.profiles.length > 0),
+    [myTeamGroups, existingUserIds],
+  );
+
+  const groupedResults = useMemo((): TeamGroup[] => {
+    if (!searchQuery.trim()) return [];
+    const map = new Map<string, TeamGroup>();
+    const noTeam: ProfileSearchResult[] = [];
+    for (const r of searchResults) {
+      if (r.teams.length === 0) {
+        noTeam.push(r);
+      } else {
+        for (const t of r.teams) {
+          if (!map.has(t.team_id)) {
+            map.set(t.team_id, {
+              team_id: t.team_id,
+              team_name: t.team_name,
+              profiles: [],
+            });
+          }
+          map.get(t.team_id)!.profiles.push(r);
+        }
+      }
+    }
+    const groups: TeamGroup[] = [...map.values()];
+    if (noTeam.length > 0) {
+      groups.push({
+        team_id: "__none__",
+        team_name: "Unknown",
+        profiles: noTeam,
+      });
+    }
+    return groups;
+  }, [searchResults, searchQuery]);
 
   const runSearch = useCallback(
     (q: string) => {
       if (!q.trim()) {
         setSearchResults([]);
+        setSearchError(null);
         return;
       }
       setIsSearching(true);
+      setSearchError(null);
       const supabase = createClient();
       searchProfiles(supabase, q)
         .then((results) => {
@@ -87,20 +139,29 @@ export function DelegationForm({
             results.filter((r) => !existingUserIds.has(r.user_id)),
           );
         })
-        .catch(() => {})
+        .catch((err: unknown) => {
+          setSearchError(
+            err instanceof Error ? err.message : "Search failed. Try again.",
+          );
+        })
         .finally(() => setIsSearching(false));
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [members],
+    [existingUserIds],
   );
 
+  const debouncedSearch = useMemo(() => debounce(runSearch, 300), [runSearch]);
+
+  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
+
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => runSearch(searchQuery), 300);
+    debouncedSearch(searchQuery);
+  }, [searchQuery, debouncedSearch]);
+
+  useEffect(() => {
     return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
     };
-  }, [searchQuery, runSearch]);
+  }, []);
 
   function updateMembers(next: LocalDelegationMember[]) {
     setMembers(next);
@@ -115,243 +176,283 @@ export function DelegationForm({
     updateMembers(members.map((m) => (m.key === key ? { ...m, role } : m)));
   }
 
-  function handleSelectProfile(profile: ProfileSearchResult) {
-    const firstTeam = profile.teams[0] ?? null;
-    setPending({
-      profile,
-      role: "attendee_listening",
-      selectedTeam: firstTeam,
-    });
+  function selectProfile(
+    profile: ProfileSearchResult,
+    teamOverride?: ProfileTeam,
+  ) {
+    setPendingProfile(profile);
+    setPendingTeam(teamOverride);
     setSearchQuery("");
     setSearchResults([]);
   }
 
-  function handleAddPending() {
-    if (!pending) return;
-    const newMember: LocalDelegationMember = {
-      key: crypto.randomUUID(),
-      dbId: null,
-      user_id: pending.profile.user_id,
-      display_name: pending.profile.display_name,
-      first_name: pending.profile.display_name.split(" ")[0] ?? "",
-      last_name:
-        pending.profile.display_name.split(" ").slice(1).join(" ") ?? "",
-      email: null,
-      role: pending.role,
-      team_id: pending.selectedTeam?.team_id ?? null,
-      team_name_snapshot: pending.selectedTeam?.team_name ?? null,
+  function addProfile() {
+    if (!pendingProfile) return;
+    const team = pendingTeam ?? pendingProfile.teams[0] ?? null;
+    updateMembers([
+      ...members,
+      {
+        key: crypto.randomUUID(),
+        dbId: null,
+        user_id: pendingProfile.user_id,
+        display_name: pendingProfile.display_name,
+        first_name: pendingProfile.first_name ?? "",
+        last_name: pendingProfile.last_name ?? "",
+        pronouns: pendingProfile.pronouns,
+        email: null,
+        role: pendingRole,
+        team_id: team?.team_id ?? null,
+        team_name_snapshot: team?.team_name ?? null,
+        display_teams: pendingProfile.teams,
+      },
+    ]);
+    setPendingProfile(null);
+    setPendingTeam(undefined);
+    setSearchQuery("");
+    setSearchResults([]);
+  }
+
+  const showDropdown =
+    inputFocused &&
+    !pendingProfile &&
+    (!!searchQuery.trim() ||
+      isLoadingInitial ||
+      filteredInitialGroups.length > 0);
+
+  useEffect(() => {
+    if (!showDropdown) return;
+
+    function updatePos() {
+      if (commandRef.current) {
+        const { bottom, left, width } =
+          commandRef.current.getBoundingClientRect();
+        setDropdownPos({ top: bottom + 4, left, width });
+      }
+    }
+
+    updatePos();
+    window.addEventListener("scroll", updatePos, true);
+    window.addEventListener("resize", updatePos);
+    return () => {
+      window.removeEventListener("scroll", updatePos, true);
+      window.removeEventListener("resize", updatePos);
     };
-    updateMembers([...members, newMember]);
-    setPending(null);
-  }
-
-  function handleCancelPending() {
-    setPending(null);
-  }
-
-  const representedTeams = deriveRepresentedTeams(members);
+  }, [showDropdown]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div>
         <p className={SECTION_LABEL_CLASSNAME}>Delegation</p>
 
-        {members.length > 0 && (
-          <div className="mt-2 flex flex-col gap-2">
-            {members.map((m) => (
-              <div
-                key={m.key}
-                className="flex items-center gap-3 rounded-md border p-2"
-              >
-                <AvatarInitialsCircle
-                  firstName={m.first_name}
-                  lastName={m.last_name}
-                  aria-hidden="true"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium">{m.display_name}</p>
-                  {m.team_name_snapshot && (
-                    <p className="text-xs text-muted-foreground">
-                      {m.team_name_snapshot}
-                    </p>
-                  )}
-                </div>
-                <div className="shrink-0">
-                  <Label
-                    htmlFor={`role-${m.key}`}
-                    className="sr-only"
-                  >{`Role for ${m.display_name}`}</Label>
-                  <Select
-                    id={`role-${m.key}`}
-                    aria-label={`Role for ${m.display_name}`}
-                    value={m.role}
-                    onChange={(e) =>
-                      handleRoleChange(m.key, e.target.value as DelegationRole)
-                    }
-                    className="text-xs"
-                  >
-                    {DELEGATION_ROLES.map((r) => (
-                      <option key={r} value={r}>
-                        {ROLE_LABELS[r]}
-                      </option>
-                    ))}
-                  </Select>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  aria-label={`Remove ${m.display_name}`}
-                  onClick={() => handleRemove(m.key)}
+        <div className="mt-2 flex items-center gap-2">
+          <div ref={commandRef} className="min-w-0 flex-1">
+            <Command shouldFilter={false} className="w-full">
+              <Label htmlFor={`search-${meetingId}`} className="sr-only">
+                Search members by name
+              </Label>
+              <CommandInput
+                id={`search-${meetingId}`}
+                placeholder="Search by name to add…"
+                value={pendingProfile?.display_name ?? searchQuery}
+                onValueChange={(val) => {
+                  if (pendingProfile) {
+                    setPendingProfile(null);
+                    setPendingTeam(undefined);
+                  }
+                  setSearchQuery(val);
+                }}
+                onFocus={() => {
+                  if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+                  setInputFocused(true);
+                }}
+                onBlur={() => {
+                  if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+                  blurTimerRef.current = setTimeout(
+                    () => setInputFocused(false),
+                    100,
+                  );
+                }}
+                autoComplete="off"
+              />
+              {createPortal(
+                <div
+                  className={
+                    showDropdown && dropdownPos
+                      ? "rounded-md border bg-background shadow-md"
+                      : undefined
+                  }
+                  style={
+                    showDropdown && dropdownPos
+                      ? {
+                          position: "fixed",
+                          zIndex: 50,
+                          top: dropdownPos.top,
+                          left: dropdownPos.left,
+                          width: dropdownPos.width,
+                        }
+                      : { display: "none" }
+                  }
                 >
-                  <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
-              </div>
-            ))}
+                  <CommandList>
+                    {searchQuery.trim() ? (
+                      <>
+                        {isSearching && (
+                          <CommandLoading>Searching…</CommandLoading>
+                        )}
+                        {!isSearching && searchError && (
+                          <CommandEmpty>{searchError}</CommandEmpty>
+                        )}
+                        {!isSearching &&
+                          !searchError &&
+                          groupedResults.length === 0 && (
+                            <CommandEmpty>No results</CommandEmpty>
+                          )}
+                        {!isSearching &&
+                          !searchError &&
+                          groupedResults.map((group) => (
+                            <CommandGroup
+                              key={group.team_id}
+                              heading={group.team_name}
+                            >
+                              {group.profiles.map((r) => (
+                                <CommandItem
+                                  key={`${r.user_id}-${group.team_id}`}
+                                  value={`${r.user_id}::${group.team_id}`}
+                                  onSelect={() =>
+                                    selectProfile(
+                                      r,
+                                      group.team_id !== "__none__"
+                                        ? {
+                                            team_id: group.team_id,
+                                            team_name: group.team_name,
+                                          }
+                                        : undefined,
+                                    )
+                                  }
+                                  className="cursor-pointer flex-col items-start"
+                                >
+                                  <span className="font-medium">
+                                    {r.display_name}
+                                  </span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          ))}
+                      </>
+                    ) : isLoadingInitial ? (
+                      <CommandLoading>Loading…</CommandLoading>
+                    ) : (
+                      filteredInitialGroups.map((group) => (
+                        <CommandGroup
+                          key={group.team_id}
+                          heading={group.team_name}
+                        >
+                          {group.profiles.map((r) => (
+                            <CommandItem
+                              key={`${r.user_id}-${group.team_id}`}
+                              value={`${r.user_id}::${group.team_id}`}
+                              onSelect={() =>
+                                selectProfile(r, {
+                                  team_id: group.team_id,
+                                  team_name: group.team_name,
+                                })
+                              }
+                              className="cursor-pointer flex-col items-start"
+                            >
+                              <span className="font-medium">
+                                {r.display_name}
+                              </span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ))
+                    )}
+                  </CommandList>
+                </div>,
+                document.body,
+              )}
+            </Command>
           </div>
-        )}
+
+          <Label htmlFor={`pending-role-${meetingId}`} className="sr-only">
+            Role for new member
+          </Label>
+          <Select
+            id={`pending-role-${meetingId}`}
+            value={pendingRole}
+            onChange={(e) => setPendingRole(e.target.value as DelegationRole)}
+            className="shrink-0 cursor-pointer text-xs"
+          >
+            {DELEGATION_ROLES.map((r) => (
+              <option key={r} value={r}>
+                {ROLE_LABELS[r]}
+              </option>
+            ))}
+          </Select>
+          <Button
+            type="button"
+            size="sm"
+            aria-label="Add to delegation"
+            disabled={!pendingProfile}
+            onClick={addProfile}
+          >
+            <Plus className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
       </div>
 
-      {pending && (
-        <div className="rounded-md border p-3">
-          <p className="mb-2 text-sm font-medium">
-            {pending.profile.display_name}
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <div className="flex flex-col gap-1">
-              <Label htmlFor={`pending-role-${meetingId}`} className="text-xs">
-                Role
-              </Label>
-              <Select
-                id={`pending-role-${meetingId}`}
-                value={pending.role}
-                onChange={(e) =>
-                  setPending((p) =>
-                    p ? { ...p, role: e.target.value as DelegationRole } : p,
-                  )
-                }
-              >
-                {DELEGATION_ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {ROLE_LABELS[r]}
-                  </option>
-                ))}
-              </Select>
-            </div>
-            {pending.profile.teams.length > 1 && (
-              <div className="flex flex-col gap-1">
+      {members.length > 0 && (
+        <div className="flex flex-col gap-2">
+          {members.map((m) => (
+            <div
+              key={m.key}
+              className="flex items-center gap-3 rounded-md border p-2"
+            >
+              <AvatarInitialsCircle
+                firstName={m.first_name}
+                lastName={m.last_name}
+                aria-hidden="true"
+              />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium">{m.display_name}</p>
+                {m.display_teams.length > 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    {m.display_teams.map((t) => t.team_name).join(", ")}
+                  </p>
+                )}
+              </div>
+              <div className="shrink-0">
                 <Label
-                  htmlFor={`pending-team-${meetingId}`}
+                  htmlFor={`role-${m.key}`}
+                  className="sr-only"
+                >{`Role for ${m.display_name}`}</Label>
+                <Select
+                  id={`role-${m.key}`}
+                  aria-label={`Role for ${m.display_name}`}
+                  value={m.role}
+                  onChange={(e) =>
+                    handleRoleChange(m.key, e.target.value as DelegationRole)
+                  }
                   className="text-xs"
                 >
-                  Team
-                </Label>
-                <Select
-                  id={`pending-team-${meetingId}`}
-                  value={pending.selectedTeam?.team_id ?? ""}
-                  onChange={(e) => {
-                    const found =
-                      pending.profile.teams.find(
-                        (t) => t.team_id === e.target.value,
-                      ) ?? null;
-                    setPending((p) => (p ? { ...p, selectedTeam: found } : p));
-                  }}
-                >
-                  <option value="">No team</option>
-                  {pending.profile.teams.map((t) => (
-                    <option key={t.team_id} value={t.team_id}>
-                      {t.team_name}
+                  {DELEGATION_ROLES.map((r) => (
+                    <option key={r} value={r}>
+                      {ROLE_LABELS[r]}
                     </option>
                   ))}
                 </Select>
               </div>
-            )}
-          </div>
-          <div className="mt-3 flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              onClick={handleAddPending}
-              aria-label="Add to delegation"
-            >
-              <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-              Add to delegation
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={handleCancelPending}
-            >
-              Cancel
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {!pending && (
-        <div className="relative">
-          <Label htmlFor={`search-${meetingId}`} className="sr-only">
-            Search members by name
-          </Label>
-          <Input
-            id={`search-${meetingId}`}
-            aria-label="Search members by name"
-            placeholder="Search by name to add a delegation member…"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            autoComplete="off"
-          />
-          {(searchResults.length > 0 || isSearching) && (
-            <div className="absolute z-10 mt-1 w-full rounded-md border bg-popover shadow-md">
-              {isSearching && (
-                <p className="px-3 py-2 text-sm text-muted-foreground">
-                  Searching…
-                </p>
-              )}
-              {!isSearching &&
-                searchResults.length === 0 &&
-                searchQuery.trim() && (
-                  <p className="px-3 py-2 text-sm text-muted-foreground">
-                    No results
-                  </p>
-                )}
-              {searchResults.map((r) => (
-                <button
-                  key={r.user_id}
-                  type="button"
-                  className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-accent"
-                  onClick={() => handleSelectProfile(r)}
-                >
-                  <span className="font-medium">{r.display_name}</span>
-                  {r.teams[0] && (
-                    <span className="text-xs text-muted-foreground">
-                      {r.teams[0].team_name}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {representedTeams.length > 0 && (
-        <div>
-          <p className={SECTION_LABEL_CLASSNAME}>Represented Teams</p>
-          <ul
-            aria-label="Represented Teams"
-            className="mt-1 flex flex-wrap gap-1.5"
-          >
-            {representedTeams.map((team) => (
-              <li
-                key={team}
-                className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium"
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                aria-label={`Remove ${m.display_name}`}
+                onClick={() => handleRemove(m.key)}
               >
-                {team}
-              </li>
-            ))}
-          </ul>
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" />
+              </Button>
+            </div>
+          ))}
         </div>
       )}
     </div>

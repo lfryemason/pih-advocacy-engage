@@ -12,6 +12,7 @@ import {
   DelegationFormEntry,
   LocalDelegationMember,
   ProfileSearchResult,
+  TeamGroup,
 } from "@/lib/meetings/types";
 import { localDateString } from "@/lib/utils";
 import { ORG_ID } from "@/lib/org";
@@ -98,12 +99,14 @@ export async function fetchMeetings(
   supabase: SupabaseBrowserClient,
   {
     filters,
+    representativeId,
     section,
     offset,
     limit,
     teamId,
   }: {
     filters: MeetingFilters;
+    representativeId?: string;
     section: "upcoming" | "past";
     offset: number;
     limit: number;
@@ -121,6 +124,10 @@ export async function fetchMeetings(
     query = query.gte("meeting_date", today);
   } else {
     query = query.lt("meeting_date", today);
+  }
+
+  if (representativeId) {
+    query = query.eq("representative_id", representativeId);
   }
 
   if (teamId) {
@@ -232,6 +239,7 @@ type RawDetailDelegationMember = {
   profiles: {
     first_name: string | null;
     last_name: string | null;
+    pronouns: string | null;
     email: string | null;
   } | null;
 };
@@ -259,7 +267,7 @@ const SELECT_DETAIL = `
   representatives!inner ( bioguide_id, official_full_name, state, district, party ),
   staffers ( first_name, last_name ),
   teams ( name, slug ),
-  meeting_delegation_members ( id, user_id, role, team_id, team_name_snapshot, profiles ( first_name, last_name, email ) )
+  meeting_delegation_members ( id, user_id, role, team_id, team_name_snapshot, profiles ( first_name, last_name, pronouns, email ) )
 `;
 
 export async function fetchMeetingDetail(
@@ -281,10 +289,9 @@ export async function fetchMeetingDetail(
       user_id: m.user_id,
       first_name: m.profiles?.first_name ?? "",
       last_name: m.profiles?.last_name ?? "",
+      pronouns: m.profiles?.pronouns ?? null,
       display_name: m.profiles
-        ? [m.profiles.first_name, m.profiles.last_name]
-            .filter(Boolean)
-            .join(" ") || "Anonymous"
+        ? buildDisplayName(m.profiles.first_name, m.profiles.last_name)
         : "Anonymous",
       email: m.profiles?.email ?? null,
       role: m.role as DelegationRole,
@@ -338,40 +345,137 @@ export async function updateMeeting(
   if (error) throw error;
 }
 
+type RawProfile = {
+  user_id: string;
+  first_name: string | null;
+  last_name: string | null;
+  pronouns: string | null;
+  team_memberships: Array<{
+    team_id: string;
+    teams: { name: string } | null;
+  }>;
+};
+
+function buildDisplayName(
+  firstName: string | null,
+  lastName: string | null,
+): string {
+  return [firstName, lastName].filter(Boolean).join(" ") || "Anonymous";
+}
+
+function mapRawProfile(p: RawProfile): ProfileSearchResult {
+  return {
+    user_id: p.user_id,
+    display_name: buildDisplayName(p.first_name, p.last_name),
+    first_name: p.first_name,
+    last_name: p.last_name,
+    pronouns: p.pronouns,
+    teams: (p.team_memberships ?? [])
+      .filter((tm) => tm.teams?.name)
+      .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
+  };
+}
+
 export async function searchProfiles(
   supabase: SupabaseBrowserClient,
   query: string,
 ): Promise<ProfileSearchResult[]> {
   if (!query.trim()) return [];
 
+  // Strip characters that are structural in PostgREST filter strings or
+  // act as LIKE wildcards to prevent injection and unintended wildcard matches.
+  const safeQuery = query.replace(/[,()\%_]/g, "");
+  if (!safeQuery.trim()) return [];
+
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      `user_id, first_name, last_name, team_memberships ( team_id, teams ( name ) )`,
+      `user_id, first_name, last_name, pronouns, team_memberships ( team_id, teams ( name ) )`,
     )
     .eq("org_id", ORG_ID)
-    .or(`first_name.ilike.%${query}%,last_name.ilike.%${query}%`)
+    .or(`first_name.ilike.%${safeQuery}%,last_name.ilike.%${safeQuery}%`)
     .limit(10);
 
   if (error) throw error;
 
-  type RawProfile = {
-    user_id: string;
-    first_name: string | null;
-    last_name: string | null;
-    team_memberships: Array<{
-      team_id: string;
-      teams: { name: string } | null;
-    }>;
-  };
+  return (data as unknown as RawProfile[]).map(mapRawProfile);
+}
 
-  return (data as unknown as RawProfile[]).map((p) => ({
-    user_id: p.user_id,
-    display_name:
-      [p.first_name, p.last_name].filter(Boolean).join(" ") || "Anonymous",
-    teams: (p.team_memberships ?? [])
-      .filter((tm) => tm.teams?.name)
-      .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
+export async function fetchMyTeamMembers(
+  supabase: SupabaseBrowserClient,
+): Promise<TeamGroup[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: myMemberships, error: myError } = await supabase
+    .from("team_memberships")
+    .select("team_id, teams ( name )")
+    .eq("user_id", user.id);
+
+  if (myError || !myMemberships || myMemberships.length === 0) return [];
+
+  type RawMyMembership = { team_id: string; teams: { name: string } | null };
+  const typed = myMemberships as unknown as RawMyMembership[];
+
+  const myTeamIds = typed.map((m) => m.team_id);
+  const teamNames = new Map(
+    typed.map((m) => [m.team_id, m.teams?.name ?? "Unknown"]),
+  );
+
+  const { data: memberships, error: membershipsError } = await supabase
+    .from("team_memberships")
+    .select("team_id, user_id")
+    .in("team_id", myTeamIds);
+
+  if (membershipsError || !memberships || memberships.length === 0) return [];
+
+  const userToMyTeamIds = new Map<string, Set<string>>();
+  for (const m of memberships as { team_id: string; user_id: string }[]) {
+    if (!userToMyTeamIds.has(m.user_id))
+      userToMyTeamIds.set(m.user_id, new Set());
+    userToMyTeamIds.get(m.user_id)!.add(m.team_id);
+  }
+
+  const { data: profilesData, error: profilesError } = await supabase
+    .from("profiles")
+    .select(
+      "user_id, first_name, last_name, pronouns, team_memberships ( team_id, teams ( name ) )",
+    )
+    .in("user_id", [...userToMyTeamIds.keys()])
+    .eq("org_id", ORG_ID);
+
+  if (profilesError || !profilesData) return [];
+
+  const profileMap = new Map<string, ProfileSearchResult>();
+  for (const p of profilesData as unknown as RawProfile[]) {
+    profileMap.set(p.user_id, mapRawProfile(p));
+  }
+
+  const groups = new Map<
+    string,
+    { team_name: string; profiles: ProfileSearchResult[] }
+  >();
+
+  for (const [userId, sharedTeamIds] of userToMyTeamIds) {
+    const profile = profileMap.get(userId);
+    if (!profile) continue;
+    for (const teamId of sharedTeamIds) {
+      if (!groups.has(teamId)) {
+        groups.set(teamId, {
+          team_name: teamNames.get(teamId) ?? "Unknown",
+          profiles: [],
+        });
+      }
+      groups.get(teamId)!.profiles.push(profile);
+    }
+  }
+
+  return [...groups.entries()].map(([team_id, { team_name, profiles }]) => ({
+    team_id,
+    team_name,
+    profiles,
   }));
 }
 
@@ -403,6 +507,18 @@ export async function removeDelegationMember(
   if (error) throw error;
 }
 
+export async function updateDelegationMemberRole(
+  supabase: SupabaseBrowserClient,
+  delegationMemberId: string,
+  role: DelegationRole,
+): Promise<void> {
+  const { error } = await supabase
+    .from("meeting_delegation_members")
+    .update({ role })
+    .eq("id", delegationMemberId);
+  if (error) throw error;
+}
+
 export async function syncDelegationMembers(
   supabase: SupabaseBrowserClient,
   meetingId: string,
@@ -415,28 +531,19 @@ export async function syncDelegationMembers(
 
   const toRemove = originalMembers.filter((m) => !currentDbIds.has(m.id));
   const toAdd = currentMembers.filter((m) => !m.dbId);
+  const origById = new Map(originalMembers.map((o) => [o.id, o]));
   const roleChanged = currentMembers.filter((m) => {
     if (!m.dbId) return false;
-    const orig = originalMembers.find((o) => o.id === m.dbId);
+    const orig = origById.get(m.dbId);
     return orig && orig.role !== m.role;
   });
 
-  await Promise.all(
-    toRemove.map((m) => removeDelegationMember(supabase, m.id)),
-  );
-
-  for (const m of roleChanged) {
-    await removeDelegationMember(supabase, m.dbId!);
-    await addDelegationMember(
-      supabase,
-      meetingId,
-      { user_id: m.user_id, role: m.role, team_id: m.team_id },
-      m.team_name_snapshot,
-    );
-  }
-
-  await Promise.all(
-    toAdd.map((m) =>
+  await Promise.all([
+    ...toRemove.map((m) => removeDelegationMember(supabase, m.id)),
+    ...roleChanged.map((m) =>
+      updateDelegationMemberRole(supabase, m.dbId!, m.role),
+    ),
+    ...toAdd.map((m) =>
       addDelegationMember(
         supabase,
         meetingId,
@@ -444,5 +551,5 @@ export async function syncDelegationMembers(
         m.team_name_snapshot,
       ),
     ),
-  );
+  ]);
 }

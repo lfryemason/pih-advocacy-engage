@@ -21,6 +21,7 @@ import {
 } from "@/lib/meetings/meeting-roles";
 import { MemberAvatar } from "@/components/meetings/member-avatar";
 import { AvatarInitialsCircle } from "@/components/ui/avatar-initials-circle";
+import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
 
 function DelegationMemberRow({ member }: { member: DelegationMember }) {
   return (
@@ -35,7 +36,12 @@ function DelegationMemberRow({ member }: { member: DelegationMember }) {
           aria-hidden="true"
         />
         <span className="min-w-0 flex-1">
-          <span className="text-sm font-medium">{member.display_name}</span>
+          <span className="text-sm font-medium">
+            <NameWithPronouns
+              name={member.display_name}
+              pronouns={member.pronouns}
+            />
+          </span>
           {member.email && (
             <a
               href={`mailto:${member.email}`}
@@ -150,9 +156,7 @@ export function MeetingDetailView({
               <p className="mt-1 text-sm text-muted-foreground">None</p>
             ) : (
               <div className="mt-2 flex flex-col gap-3">
-                {(
-                  ["scheduling_lead", "pih_team_member"] as DelegationRole[]
-                ).flatMap((role) =>
+                {(["scheduling_lead"] as DelegationRole[]).flatMap((role) =>
                   meeting.delegation_members
                     .filter((m) => m.role === role)
                     .map((m) => <DelegationMemberRow key={m.id} member={m} />),

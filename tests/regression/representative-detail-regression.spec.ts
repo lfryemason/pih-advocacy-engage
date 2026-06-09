@@ -45,8 +45,10 @@ async function seedStaffer() {
     last_name: "Jones",
     title: "Chief of Staff",
     pronouns: "they/them",
-    email: "sam@example.com",
-    notes: "Primary contact for **healthcare** policy.",
+    email: "a@email.com",
+    phone: "(123) 456-7890",
+    location: "Washington, D.C.",
+    notes: "Generally pro-healthcare.",
   });
   if (error) throw new Error(`Failed to seed staffer: ${error.message}`);
 }

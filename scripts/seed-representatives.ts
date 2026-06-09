@@ -6,6 +6,12 @@ const LEGISLATORS_URL =
 
 const BATCH_SIZE = 100;
 
+interface LegislatorId {
+  bioguide: string;
+  govtrack?: number;
+  opensecrets?: string;
+}
+
 interface LegislatorTerm {
   type: "sen" | "rep";
   start: string;
@@ -19,7 +25,7 @@ interface LegislatorTerm {
 }
 
 interface Legislator {
-  id: { bioguide: string };
+  id: LegislatorId;
   name: { first: string; last: string; official_full?: string };
   bio: { birthday?: string; gender?: string };
   terms: LegislatorTerm[];
@@ -27,6 +33,40 @@ interface Legislator {
 
 type RepresentativeInsert =
   Database["public"]["Tables"]["representatives"]["Insert"];
+
+type GeneralLink = { label: string; url: string; category: string };
+
+function buildGeneralLinks(leg: Legislator): GeneralLink[] {
+  const { bioguide, govtrack, opensecrets } = leg.id;
+  const first = leg.name.first.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+  const last = leg.name.last.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+  const links: GeneralLink[] = [
+    {
+      label: "Congress.gov Profile",
+      url: `https://www.congress.gov/member/${first}-${last}/${bioguide}`,
+      category: "profile",
+    },
+  ];
+
+  if (govtrack) {
+    links.push({
+      label: "GovTrack Voting Record",
+      url: `https://www.govtrack.us/congress/members/person/${govtrack}`,
+      category: "voting_record",
+    });
+  }
+
+  if (opensecrets) {
+    links.push({
+      label: "OpenSecrets — Campaign Finance",
+      url: `https://www.opensecrets.org/members-of-congress/summary?cid=${opensecrets}`,
+      category: "campaign_finance",
+    });
+  }
+
+  return links;
+}
 
 export async function seedRepresentatives(
   supabaseUrl: string,
@@ -63,6 +103,7 @@ export async function seedRepresentatives(
         state_rank: latestTerm.state_rank ?? null,
         birthday: leg.bio.birthday ?? null,
         in_office: true,
+        general_links: buildGeneralLinks(leg),
       };
     });
 

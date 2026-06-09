@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Tables } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/client";
-import { TYPE_BADGE_CLASS, TYPE_LABELS } from "@/lib/teams";
+import { displayName, TYPE_BADGE_CLASS, TYPE_LABELS } from "@/lib/teams";
 import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
 import {
   TeamMemberList,
@@ -124,7 +124,10 @@ export function TeamPageClient({
               {coaches.map((c, i) => (
                 <span key={c.user_id}>
                   {i > 0 && " & "}
-                  <NameWithPronouns profiles={c.profiles} />
+                  <NameWithPronouns
+                    name={displayName(c.profiles)}
+                    pronouns={c.profiles?.pronouns}
+                  />
                   {c.profiles?.email && (
                     <>
                       {" • "}
