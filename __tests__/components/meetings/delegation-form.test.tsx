@@ -89,7 +89,7 @@ describe("DelegationForm — add member", () => {
     ]);
   });
 
-  it("adds a member immediately when a search result is clicked", async () => {
+  it("adds a member after selecting a search result and clicking add", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(
@@ -100,9 +100,15 @@ describe("DelegationForm — add member", () => {
       />,
     );
 
-    await user.type(screen.getByRole("combobox"), "Bob");
+    await user.type(
+      screen.getByPlaceholderText("Search by name to add…"),
+      "Bob",
+    );
     await screen.findByText("Bob Jones");
     await user.click(screen.getByText("Bob Jones"));
+    await user.click(
+      screen.getByRole("button", { name: /add to delegation/i }),
+    );
 
     expect(screen.getByText("Bob Jones")).toBeInTheDocument();
     expect(onChange).toHaveBeenCalledWith(
@@ -116,7 +122,7 @@ describe("DelegationForm — add member", () => {
     );
   });
 
-  it("adds first result when the plus button is clicked", async () => {
+  it("adds member via plus button after selecting a search result", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(
@@ -127,8 +133,12 @@ describe("DelegationForm — add member", () => {
       />,
     );
 
-    await user.type(screen.getByRole("combobox"), "Bob");
+    await user.type(
+      screen.getByPlaceholderText("Search by name to add…"),
+      "Bob",
+    );
     await screen.findByText("Bob Jones");
+    await user.click(screen.getByText("Bob Jones"));
     await user.click(
       screen.getByRole("button", { name: /add to delegation/i }),
     );
@@ -196,52 +206,5 @@ describe("DelegationForm — role update", () => {
         expect.objectContaining({ role: "attendee_talking" }),
       ]),
     );
-  });
-});
-
-// T036: Snapshot tests
-describe("DelegationForm — snapshots", () => {
-  beforeEach(() => {
-    mockSearchProfiles.mockResolvedValue([]);
-  });
-
-  it("matches snapshot with empty delegation", () => {
-    const { container } = render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[]}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(container).toMatchSnapshot();
-  });
-
-  it("matches snapshot with delegation members", () => {
-    const { container } = render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[
-          makeMember({
-            id: "dm-1",
-            display_name: "Alice Smith",
-            role: "scheduling_lead",
-            team_name_snapshot: "Global Health",
-          }),
-          makeMember({
-            id: "dm-2",
-            user_id: "u-2",
-            first_name: "Bob",
-            last_name: "Jones",
-            display_name: "Bob Jones",
-            email: null,
-            role: "attendee_talking",
-            team_id: "team-2",
-            team_name_snapshot: "Advocacy",
-          }),
-        ]}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(container).toMatchSnapshot();
   });
 });

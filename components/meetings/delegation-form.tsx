@@ -58,6 +58,13 @@ export function DelegationForm({
     left: number;
     width: number;
   } | null>(null);
+  const [pendingProfile, setPendingProfile] =
+    useState<ProfileSearchResult | null>(null);
+  const [pendingTeam, setPendingTeam] = useState<ProfileTeam | undefined>(
+    undefined,
+  );
+  const [pendingRole, setPendingRole] =
+    useState<DelegationRole>("attendee_listening");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -169,34 +176,45 @@ export function DelegationForm({
     updateMembers(members.map((m) => (m.key === key ? { ...m, role } : m)));
   }
 
-  function addProfile(
+  function selectProfile(
     profile: ProfileSearchResult,
     teamOverride?: ProfileTeam,
   ) {
-    const team = teamOverride ?? profile.teams[0] ?? null;
+    setPendingProfile(profile);
+    setPendingTeam(teamOverride);
+    setSearchQuery("");
+    setSearchResults([]);
+  }
+
+  function addProfile() {
+    if (!pendingProfile) return;
+    const team = pendingTeam ?? pendingProfile.teams[0] ?? null;
     updateMembers([
       ...members,
       {
         key: crypto.randomUUID(),
         dbId: null,
-        user_id: profile.user_id,
-        display_name: profile.display_name,
-        first_name: profile.first_name ?? "",
-        last_name: profile.last_name ?? "",
-        pronouns: profile.pronouns,
+        user_id: pendingProfile.user_id,
+        display_name: pendingProfile.display_name,
+        first_name: pendingProfile.first_name ?? "",
+        last_name: pendingProfile.last_name ?? "",
+        pronouns: pendingProfile.pronouns,
         email: null,
-        role: "attendee_listening",
+        role: pendingRole,
         team_id: team?.team_id ?? null,
         team_name_snapshot: team?.team_name ?? null,
-        display_teams: profile.teams,
+        display_teams: pendingProfile.teams,
       },
     ]);
+    setPendingProfile(null);
+    setPendingTeam(undefined);
     setSearchQuery("");
     setSearchResults([]);
   }
 
   const showDropdown =
     inputFocused &&
+    !pendingProfile &&
     (!!searchQuery.trim() ||
       isLoadingInitial ||
       filteredInitialGroups.length > 0);
@@ -235,8 +253,14 @@ export function DelegationForm({
               <CommandInput
                 id={`search-${meetingId}`}
                 placeholder="Search by name to add…"
-                value={searchQuery}
-                onValueChange={setSearchQuery}
+                value={pendingProfile?.display_name ?? searchQuery}
+                onValueChange={(val) => {
+                  if (pendingProfile) {
+                    setPendingProfile(null);
+                    setPendingTeam(undefined);
+                  }
+                  setSearchQuery(val);
+                }}
                 onFocus={() => setInputFocused(true)}
                 onBlur={() => {
                   blurTimerRef.current = setTimeout(
@@ -279,7 +303,7 @@ export function DelegationForm({
                                     key={`${r.user_id}-${group.team_id}`}
                                     value={`${r.user_id}::${group.team_id}`}
                                     onSelect={() =>
-                                      addProfile(
+                                      selectProfile(
                                         r,
                                         group.team_id !== "__none__"
                                           ? {
@@ -289,7 +313,7 @@ export function DelegationForm({
                                           : undefined,
                                       )
                                     }
-                                    className="flex-col items-start"
+                                    className="cursor-pointer flex-col items-start"
                                   >
                                     <span className="font-medium">
                                       {r.display_name}
@@ -312,12 +336,12 @@ export function DelegationForm({
                                 key={`${r.user_id}-${group.team_id}`}
                                 value={`${r.user_id}::${group.team_id}`}
                                 onSelect={() =>
-                                  addProfile(r, {
+                                  selectProfile(r, {
                                     team_id: group.team_id,
                                     team_name: group.team_name,
                                   })
                                 }
-                                className="flex-col items-start"
+                                className="cursor-pointer flex-col items-start"
                               >
                                 <span className="font-medium">
                                   {r.display_name}
@@ -334,23 +358,27 @@ export function DelegationForm({
             </Command>
           </div>
 
+          <Label htmlFor={`pending-role-${meetingId}`} className="sr-only">
+            Role for new member
+          </Label>
+          <Select
+            id={`pending-role-${meetingId}`}
+            value={pendingRole}
+            onChange={(e) => setPendingRole(e.target.value as DelegationRole)}
+            className="shrink-0 cursor-pointer text-xs"
+          >
+            {DELEGATION_ROLES.map((r) => (
+              <option key={r} value={r}>
+                {ROLE_LABELS[r]}
+              </option>
+            ))}
+          </Select>
           <Button
             type="button"
             size="sm"
             aria-label="Add to delegation"
-            disabled={!searchQuery.trim() || groupedResults.length === 0}
-            onClick={() => {
-              const group = groupedResults[0];
-              const profile = group?.profiles[0];
-              if (group && profile) {
-                addProfile(
-                  profile,
-                  group.team_id !== "__none__"
-                    ? { team_id: group.team_id, team_name: group.team_name }
-                    : undefined,
-                );
-              }
-            }}
+            disabled={!pendingProfile}
+            onClick={addProfile}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
           </Button>
