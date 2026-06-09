@@ -73,6 +73,11 @@ export function DelegationForm({
     [members],
   );
 
+  const existingUserIdsRef = useRef(existingUserIds);
+  useEffect(() => {
+    existingUserIdsRef.current = existingUserIds;
+  }, [existingUserIds]);
+
   useEffect(() => {
     const supabase = createClient();
     fetchMyTeamMembers(supabase)
@@ -123,31 +128,28 @@ export function DelegationForm({
     return groups;
   }, [searchResults, searchQuery]);
 
-  const runSearch = useCallback(
-    (q: string) => {
-      if (!q.trim()) {
-        setSearchResults([]);
-        setSearchError(null);
-        return;
-      }
-      setIsSearching(true);
+  const runSearch = useCallback((q: string) => {
+    if (!q.trim()) {
+      setSearchResults([]);
       setSearchError(null);
-      const supabase = createClient();
-      searchProfiles(supabase, q)
-        .then((results) => {
-          setSearchResults(
-            results.filter((r) => !existingUserIds.has(r.user_id)),
-          );
-        })
-        .catch((err: unknown) => {
-          setSearchError(
-            err instanceof Error ? err.message : "Search failed. Try again.",
-          );
-        })
-        .finally(() => setIsSearching(false));
-    },
-    [existingUserIds],
-  );
+      return;
+    }
+    setIsSearching(true);
+    setSearchError(null);
+    const supabase = createClient();
+    searchProfiles(supabase, q)
+      .then((results) => {
+        setSearchResults(
+          results.filter((r) => !existingUserIdsRef.current.has(r.user_id)),
+        );
+      })
+      .catch((err: unknown) => {
+        setSearchError(
+          err instanceof Error ? err.message : "Search failed. Try again.",
+        );
+      })
+      .finally(() => setIsSearching(false));
+  }, []);
 
   const debouncedSearch = useMemo(() => debounce(runSearch, 300), [runSearch]);
 
@@ -188,6 +190,7 @@ export function DelegationForm({
 
   function addProfile() {
     if (!pendingProfile) return;
+    if (members.some((m) => m.user_id === pendingProfile.user_id)) return;
     const team = pendingTeam ?? pendingProfile.teams[0] ?? null;
     updateMembers([
       ...members,
