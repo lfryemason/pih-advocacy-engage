@@ -1,16 +1,16 @@
-import { displayName, type MembershipWithProfile } from "@/lib/teams";
-
 export function NameWithPronouns({
-  profiles,
+  name,
+  pronouns,
 }: {
-  profiles: MembershipWithProfile["profiles"];
+  name: string;
+  pronouns: string | null | undefined;
 }) {
   return (
     <>
-      {displayName(profiles)}
-      {profiles?.pronouns && (
+      {name}
+      {pronouns && (
         <span className="ml-1 text-sm italic text-muted-foreground">
-          {profiles.pronouns}
+          {pronouns}
         </span>
       )}
     </>
