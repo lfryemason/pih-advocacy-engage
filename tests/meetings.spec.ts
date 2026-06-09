@@ -336,7 +336,7 @@ test.describe("US4 — Delegation members", () => {
       page.getByRole("button", { name: "Save changes" }),
     ).toBeVisible();
 
-    const searchInput = page.getByRole("textbox", { name: /search members/i });
+    const searchInput = page.getByRole("combobox", { name: /search members/i });
 
     await searchInput.fill("Alice");
     const aliceResult = page.getByText("Alice Smith");
@@ -380,7 +380,7 @@ test.describe("US4 — Delegation members", () => {
       page.getByRole("button", { name: "Save changes" }),
     ).toBeVisible();
 
-    const searchInput = page.getByRole("textbox", { name: /search members/i });
+    const searchInput = page.getByRole("combobox", { name: /search members/i });
     await searchInput.fill("Carol");
     const carolResult = page.getByText("Carol Solo");
     await expect(carolResult).toBeVisible();

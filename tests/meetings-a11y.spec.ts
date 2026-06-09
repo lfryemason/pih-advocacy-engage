@@ -78,7 +78,7 @@ for (const theme of themes) {
       .click();
     await page.getByRole("button", { name: /Edit Meeting/i }).click();
     await expect(
-      page.getByRole("textbox", { name: /search members/i }),
+      page.getByRole("combobox", { name: /search members/i }),
     ).toBeVisible();
 
     const results = await new AxeBuilder({ page }).analyze();

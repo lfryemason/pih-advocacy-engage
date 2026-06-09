@@ -71,7 +71,7 @@ for (const theme of themes) {
       await expect(
         page.getByRole("button", { name: "Save changes" }),
       ).toBeVisible();
-      const searchInput = page.getByRole("textbox", {
+      const searchInput = page.getByRole("combobox", {
         name: /search members/i,
       });
       await searchInput.scrollIntoViewIfNeeded();
