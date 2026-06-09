@@ -67,6 +67,7 @@ export function DelegationForm({
   const [pendingRole, setPendingRole] =
     useState<DelegationRole>("attendee_listening");
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const supabaseRef = useRef(createClient());
 
   const existingUserIds = useMemo(
     () => new Set(members.map((m) => m.user_id)),
@@ -79,8 +80,7 @@ export function DelegationForm({
   }, [existingUserIds]);
 
   useEffect(() => {
-    const supabase = createClient();
-    fetchMyTeamMembers(supabase)
+    fetchMyTeamMembers(supabaseRef.current)
       .then(setMyTeamGroups)
       .catch(() => {})
       .finally(() => setIsLoadingInitial(false));
@@ -136,8 +136,7 @@ export function DelegationForm({
     }
     setIsSearching(true);
     setSearchError(null);
-    const supabase = createClient();
-    searchProfiles(supabase, q)
+    searchProfiles(supabaseRef.current, q)
       .then((results) => {
         setSearchResults(
           results.filter((r) => !existingUserIdsRef.current.has(r.user_id)),
@@ -206,7 +205,9 @@ export function DelegationForm({
         role: pendingRole,
         team_id: team?.team_id ?? null,
         team_name_snapshot: team?.team_name ?? null,
-        display_teams: pendingProfile.teams,
+        display_teams: team
+          ? [{ team_id: team.team_id, team_name: team.team_name }]
+          : [],
       },
     ]);
     setPendingProfile(null);
