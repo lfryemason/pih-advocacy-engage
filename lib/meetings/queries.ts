@@ -285,9 +285,7 @@ export async function fetchMeetingDetail(
       last_name: m.profiles?.last_name ?? "",
       pronouns: m.profiles?.pronouns ?? null,
       display_name: m.profiles
-        ? [m.profiles.first_name, m.profiles.last_name]
-            .filter(Boolean)
-            .join(" ") || "Anonymous"
+        ? buildDisplayName(m.profiles.first_name, m.profiles.last_name)
         : "Anonymous",
       email: m.profiles?.email ?? null,
       role: m.role as DelegationRole,
@@ -298,7 +296,6 @@ export async function fetchMeetingDetail(
   const represented_teams = [
     ...new Set(
       delegation_members
-        .filter((m) => m.role !== "scheduling_lead")
         .map((m) => m.team_name_snapshot)
         .filter((t): t is string => !!t && t.trim() !== ""),
     ),
@@ -353,11 +350,17 @@ type RawProfile = {
   }>;
 };
 
+function buildDisplayName(
+  firstName: string | null,
+  lastName: string | null,
+): string {
+  return [firstName, lastName].filter(Boolean).join(" ") || "Anonymous";
+}
+
 function mapRawProfile(p: RawProfile): ProfileSearchResult {
   return {
     user_id: p.user_id,
-    display_name:
-      [p.first_name, p.last_name].filter(Boolean).join(" ") || "Anonymous",
+    display_name: buildDisplayName(p.first_name, p.last_name),
     first_name: p.first_name,
     last_name: p.last_name,
     pronouns: p.pronouns,
@@ -373,9 +376,9 @@ export async function searchProfiles(
 ): Promise<ProfileSearchResult[]> {
   if (!query.trim()) return [];
 
-  // Strip characters that are structural in PostgREST filter strings to
-  // prevent malformed predicates or unexpected filter injection.
-  const safeQuery = query.replace(/[,()]/g, "");
+  // Strip characters that are structural in PostgREST filter strings or
+  // act as LIKE wildcards to prevent injection and unintended wildcard matches.
+  const safeQuery = query.replace(/[,()\%_]/g, "");
   if (!safeQuery.trim()) return [];
 
   const { data, error } = await supabase
@@ -537,10 +540,7 @@ export async function syncDelegationMembers(
     ...roleChanged.map((m) =>
       updateDelegationMemberRole(supabase, m.dbId!, m.role),
     ),
-  ]);
-
-  await Promise.all(
-    toAdd.map((m) =>
+    ...toAdd.map((m) =>
       addDelegationMember(
         supabase,
         meetingId,
@@ -548,5 +548,5 @@ export async function syncDelegationMembers(
         m.team_name_snapshot,
       ),
     ),
-  );
+  ]);
 }

@@ -80,6 +80,11 @@ export function MeetingDetail({
     };
   }, []);
 
+  const modeRef = useRef(mode);
+  useEffect(() => {
+    modeRef.current = mode;
+  }, [mode]);
+
   const loadDetails = useCallback(() => {
     let cancelled = false;
     const supabase = createClient();
@@ -92,7 +97,10 @@ export function MeetingDetail({
         setDetail(d);
         setForm(formStateFromDetail(d));
         setLinks(d.links);
-        setPendingDelegation(d.delegation_members.map(memberFromDelegation));
+        // Don't overwrite in-progress delegation edits while the user is in edit mode.
+        if (modeRef.current !== "edit") {
+          setPendingDelegation(d.delegation_members.map(memberFromDelegation));
+        }
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -172,6 +180,8 @@ export function MeetingDetail({
             pendingDelegation,
           );
         } catch (err: unknown) {
+          // Refresh detail so that clicking Cancel reflects the already-saved meeting fields.
+          loadDetails();
           throw new Error(
             "Meeting saved, but delegation changes could not be applied: " +
               (err instanceof Error ? err.message : "Unknown error"),

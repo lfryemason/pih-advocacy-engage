@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
+import { debounce } from "es-toolkit";
 import { createClient } from "@/lib/supabase/client";
 import { searchProfiles, fetchMyTeamMembers } from "@/lib/meetings/queries";
 import { ROLE_LABELS } from "@/lib/meetings/meeting-roles";
@@ -48,6 +49,7 @@ export function DelegationForm({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ProfileSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [inputFocused, setInputFocused] = useState(false);
   const [myTeamGroups, setMyTeamGroups] = useState<TeamGroup[]>([]);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
@@ -65,7 +67,6 @@ export function DelegationForm({
   );
   const [pendingRole, setPendingRole] =
     useState<DelegationRole>("attendee_listening");
-  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const existingUserIds = useMemo(
@@ -89,10 +90,13 @@ export function DelegationForm({
       myTeamGroups
         .map((g) => ({
           ...g,
-          profiles: g.profiles.filter((p) => !existingUserIds.has(p.user_id)),
+          profiles: g.profiles.filter(
+            (p) =>
+              !existingUserIds.has(p.user_id) && p.user_id !== currentUserId,
+          ),
         }))
         .filter((g) => g.profiles.length > 0),
-    [myTeamGroups, existingUserIds],
+    [myTeamGroups, existingUserIds, currentUserId],
   );
 
   const groupedResults = useMemo((): TeamGroup[] => {
@@ -130,29 +134,38 @@ export function DelegationForm({
     (q: string) => {
       if (!q.trim()) {
         setSearchResults([]);
+        setSearchError(null);
         return;
       }
       setIsSearching(true);
+      setSearchError(null);
       const supabase = createClient();
       searchProfiles(supabase, q)
         .then((results) => {
           setSearchResults(
-            results.filter((r) => !existingUserIds.has(r.user_id)),
+            results.filter(
+              (r) =>
+                !existingUserIds.has(r.user_id) && r.user_id !== currentUserId,
+            ),
           );
         })
-        .catch(() => {})
+        .catch((err: unknown) => {
+          setSearchError(
+            err instanceof Error ? err.message : "Search failed. Try again.",
+          );
+        })
         .finally(() => setIsSearching(false));
     },
-    [existingUserIds],
+    [existingUserIds, currentUserId],
   );
 
+  const debouncedSearch = useMemo(() => debounce(runSearch, 300), [runSearch]);
+
+  useEffect(() => () => debouncedSearch.cancel(), [debouncedSearch]);
+
   useEffect(() => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => runSearch(searchQuery), 300);
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [searchQuery, runSearch]);
+    debouncedSearch(searchQuery);
+  }, [searchQuery, debouncedSearch]);
 
   useEffect(() => {
     return () => {
@@ -271,92 +284,103 @@ export function DelegationForm({
                 }}
                 autoComplete="off"
               />
-              {showDropdown &&
-                dropdownPos &&
-                createPortal(
-                  <div
-                    className="rounded-md border bg-background shadow-md"
-                    style={{
-                      position: "fixed",
-                      zIndex: 50,
-                      top: dropdownPos.top,
-                      left: dropdownPos.left,
-                      width: dropdownPos.width,
-                    }}
-                  >
-                    <CommandList>
-                      {searchQuery.trim() ? (
-                        <>
-                          {isSearching && (
-                            <CommandLoading>Searching…</CommandLoading>
-                          )}
-                          {!isSearching && groupedResults.length === 0 && (
+              {createPortal(
+                <div
+                  className={
+                    showDropdown && dropdownPos
+                      ? "rounded-md border bg-background shadow-md"
+                      : undefined
+                  }
+                  style={
+                    showDropdown && dropdownPos
+                      ? {
+                          position: "fixed",
+                          zIndex: 50,
+                          top: dropdownPos.top,
+                          left: dropdownPos.left,
+                          width: dropdownPos.width,
+                        }
+                      : { display: "none" }
+                  }
+                >
+                  <CommandList>
+                    {searchQuery.trim() ? (
+                      <>
+                        {isSearching && (
+                          <CommandLoading>Searching…</CommandLoading>
+                        )}
+                        {!isSearching && searchError && (
+                          <CommandEmpty>{searchError}</CommandEmpty>
+                        )}
+                        {!isSearching &&
+                          !searchError &&
+                          groupedResults.length === 0 && (
                             <CommandEmpty>No results</CommandEmpty>
                           )}
-                          {!isSearching &&
-                            groupedResults.map((group) => (
-                              <CommandGroup
-                                key={group.team_id}
-                                heading={group.team_name}
-                              >
-                                {group.profiles.map((r) => (
-                                  <CommandItem
-                                    key={`${r.user_id}-${group.team_id}`}
-                                    value={`${r.user_id}::${group.team_id}`}
-                                    onSelect={() =>
-                                      selectProfile(
-                                        r,
-                                        group.team_id !== "__none__"
-                                          ? {
-                                              team_id: group.team_id,
-                                              team_name: group.team_name,
-                                            }
-                                          : undefined,
-                                      )
-                                    }
-                                    className="cursor-pointer flex-col items-start"
-                                  >
-                                    <span className="font-medium">
-                                      {r.display_name}
-                                    </span>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            ))}
-                        </>
-                      ) : isLoadingInitial ? (
-                        <CommandLoading>Loading…</CommandLoading>
-                      ) : (
-                        filteredInitialGroups.map((group) => (
-                          <CommandGroup
-                            key={group.team_id}
-                            heading={group.team_name}
-                          >
-                            {group.profiles.map((r) => (
-                              <CommandItem
-                                key={`${r.user_id}-${group.team_id}`}
-                                value={`${r.user_id}::${group.team_id}`}
-                                onSelect={() =>
-                                  selectProfile(r, {
-                                    team_id: group.team_id,
-                                    team_name: group.team_name,
-                                  })
-                                }
-                                className="cursor-pointer flex-col items-start"
-                              >
-                                <span className="font-medium">
-                                  {r.display_name}
-                                  {r.user_id === currentUserId && " (me)"}
-                                </span>
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        ))
-                      )}
-                    </CommandList>
-                  </div>,
-                  document.body,
-                )}
+                        {!isSearching &&
+                          !searchError &&
+                          groupedResults.map((group) => (
+                            <CommandGroup
+                              key={group.team_id}
+                              heading={group.team_name}
+                            >
+                              {group.profiles.map((r) => (
+                                <CommandItem
+                                  key={`${r.user_id}-${group.team_id}`}
+                                  value={`${r.user_id}::${group.team_id}`}
+                                  onSelect={() =>
+                                    selectProfile(
+                                      r,
+                                      group.team_id !== "__none__"
+                                        ? {
+                                            team_id: group.team_id,
+                                            team_name: group.team_name,
+                                          }
+                                        : undefined,
+                                    )
+                                  }
+                                  className="cursor-pointer flex-col items-start"
+                                >
+                                  <span className="font-medium">
+                                    {r.display_name}
+                                  </span>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          ))}
+                      </>
+                    ) : isLoadingInitial ? (
+                      <CommandLoading>Loading…</CommandLoading>
+                    ) : (
+                      filteredInitialGroups.map((group) => (
+                        <CommandGroup
+                          key={group.team_id}
+                          heading={group.team_name}
+                        >
+                          {group.profiles.map((r) => (
+                            <CommandItem
+                              key={`${r.user_id}-${group.team_id}`}
+                              value={`${r.user_id}::${group.team_id}`}
+                              onSelect={() =>
+                                selectProfile(r, {
+                                  team_id: group.team_id,
+                                  team_name: group.team_name,
+                                })
+                              }
+                              className="cursor-pointer flex-col items-start"
+                            >
+                              <span className="font-medium">
+                                {r.display_name}
+                              </span>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      ))
+                    )}
+                  </CommandList>
+                </div>,
+                document.body,
+              )}
             </Command>
           </div>
 

@@ -156,14 +156,20 @@ export function MeetingDetailView({
               <p className="mt-1 text-sm text-muted-foreground">None</p>
             ) : (
               <div className="mt-2 flex flex-col gap-3">
-                {(["scheduling_lead"] as DelegationRole[]).flatMap((role) =>
+                {(
+                  ["scheduling_lead", "pih_team_member"] as DelegationRole[]
+                ).flatMap((role) =>
                   meeting.delegation_members
                     .filter((m) => m.role === role)
                     .map((m) => <DelegationMemberRow key={m.id} member={m} />),
                 )}
                 {(() => {
                   const attendees = meeting.delegation_members
-                    .filter((m) => MEMBER_ROLES.includes(m.role))
+                    .filter(
+                      (m) =>
+                        MEMBER_ROLES.includes(m.role) &&
+                        m.role !== "pih_team_member",
+                    )
                     .sort(
                       (a, b) =>
                         MEMBER_ROLES.indexOf(a.role) -
