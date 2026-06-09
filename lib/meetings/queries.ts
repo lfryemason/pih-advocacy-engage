@@ -12,6 +12,7 @@ import {
   DelegationFormEntry,
   LocalDelegationMember,
   ProfileSearchResult,
+  TeamGroup,
 } from "@/lib/meetings/types";
 import { localDateString } from "@/lib/utils";
 import { ORG_ID } from "@/lib/org";
@@ -382,6 +383,108 @@ export async function searchProfiles(
     teams: (p.team_memberships ?? [])
       .filter((tm) => tm.teams?.name)
       .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
+  }));
+}
+
+export async function fetchMyTeamMembers(
+  supabase: SupabaseBrowserClient,
+): Promise<TeamGroup[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data: myMemberships, error: myError } = await supabase
+    .from("team_memberships")
+    .select("team_id, teams ( name )")
+    .eq("user_id", user.id);
+
+  if (myError || !myMemberships || myMemberships.length === 0) return [];
+
+  type RawMyMembership = { team_id: string; teams: { name: string } | null };
+  const typed = myMemberships as unknown as RawMyMembership[];
+
+  const myTeamIds = typed.map((m) => m.team_id);
+  const teamNames = new Map(
+    typed.map((m) => [m.team_id, m.teams?.name ?? "Unknown"]),
+  );
+
+  // Get all user_ids in my teams, mapped to which of my teams they share
+  const { data: memberships, error: membershipsError } = await supabase
+    .from("team_memberships")
+    .select("team_id, user_id")
+    .in("team_id", myTeamIds);
+
+  if (membershipsError || !memberships || memberships.length === 0) return [];
+
+  const userToMyTeamIds = new Map<string, Set<string>>();
+  for (const m of memberships as { team_id: string; user_id: string }[]) {
+    if (!userToMyTeamIds.has(m.user_id))
+      userToMyTeamIds.set(m.user_id, new Set());
+    userToMyTeamIds.get(m.user_id)!.add(m.team_id);
+  }
+
+  // Fetch full profiles with ALL their team memberships (not filtered to my teams)
+  const { data: profilesData, error: profilesError } = await supabase
+    .from("profiles")
+    .select(
+      "user_id, first_name, last_name, pronouns, team_memberships ( team_id, teams ( name ) )",
+    )
+    .in("user_id", [...userToMyTeamIds.keys()])
+    .eq("org_id", ORG_ID);
+
+  if (profilesError || !profilesData) return [];
+
+  type RawProfile = {
+    user_id: string;
+    first_name: string | null;
+    last_name: string | null;
+    pronouns: string | null;
+    team_memberships: Array<{
+      team_id: string;
+      teams: { name: string } | null;
+    }>;
+  };
+
+  const profileMap = new Map<string, ProfileSearchResult>();
+  for (const p of profilesData as unknown as RawProfile[]) {
+    profileMap.set(p.user_id, {
+      user_id: p.user_id,
+      display_name:
+        [p.first_name, p.last_name].filter(Boolean).join(" ") || "Anonymous",
+      first_name: p.first_name,
+      last_name: p.last_name,
+      pronouns: p.pronouns,
+      teams: (p.team_memberships ?? [])
+        .filter((tm) => tm.teams?.name)
+        .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
+    });
+  }
+
+  // Group profiles by which of my teams they're in
+  const groups = new Map<
+    string,
+    { team_name: string; profiles: ProfileSearchResult[] }
+  >();
+
+  for (const [userId, sharedTeamIds] of userToMyTeamIds) {
+    const profile = profileMap.get(userId);
+    if (!profile) continue;
+    for (const teamId of sharedTeamIds) {
+      if (!groups.has(teamId)) {
+        groups.set(teamId, {
+          team_name: teamNames.get(teamId) ?? "Unknown",
+          profiles: [],
+        });
+      }
+      groups.get(teamId)!.profiles.push(profile);
+    }
+  }
+
+  return [...groups.entries()].map(([team_id, { team_name, profiles }]) => ({
+    team_id,
+    team_name,
+    profiles,
   }));
 }
 

@@ -1,8 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import {
+  useState,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useCallback,
+  useMemo,
+} from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
-import { searchProfiles } from "@/lib/meetings/queries";
+import { searchProfiles, fetchMyTeamMembers } from "@/lib/meetings/queries";
 import { ROLE_LABELS } from "@/lib/meetings/meeting-roles";
 import { SECTION_LABEL_CLASSNAME } from "@/lib/meetings/format";
 import { AvatarInitialsCircle } from "@/components/ui/avatar-initials-circle";
@@ -24,6 +32,8 @@ import type {
   DelegationRole,
   LocalDelegationMember,
   ProfileSearchResult,
+  ProfileTeam,
+  TeamGroup,
 } from "@/lib/meetings/types";
 import { memberFromDelegation } from "@/lib/meetings/types";
 
@@ -46,12 +56,77 @@ export function DelegationForm({
   const [searchResults, setSearchResults] = useState<ProfileSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [inputFocused, setInputFocused] = useState(false);
+  const [myTeamGroups, setMyTeamGroups] = useState<TeamGroup[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [isLoadingInitial, setIsLoadingInitial] = useState(true);
+  const commandRef = useRef<HTMLDivElement>(null);
+  const [dropdownPos, setDropdownPos] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const existingUserIds = useMemo(
     () => new Set(members.map((m) => m.user_id)),
     [members],
   );
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setCurrentUserId(user.id);
+    });
+    fetchMyTeamMembers(supabase)
+      .then(setMyTeamGroups)
+      .catch(() => {})
+      .finally(() => setIsLoadingInitial(false));
+  }, []);
+
+  const filteredInitialGroups = useMemo(
+    () =>
+      myTeamGroups
+        .map((g) => ({
+          ...g,
+          profiles: g.profiles.filter(
+            (p) =>
+              !existingUserIds.has(p.user_id) && p.user_id !== currentUserId,
+          ),
+        }))
+        .filter((g) => g.profiles.length > 0),
+    [myTeamGroups, existingUserIds, currentUserId],
+  );
+
+  const groupedResults = useMemo((): TeamGroup[] => {
+    if (!searchQuery.trim()) return [];
+    const map = new Map<string, TeamGroup>();
+    const noTeam: ProfileSearchResult[] = [];
+    for (const r of searchResults) {
+      if (r.teams.length === 0) {
+        noTeam.push(r);
+      } else {
+        for (const t of r.teams) {
+          if (!map.has(t.team_id)) {
+            map.set(t.team_id, {
+              team_id: t.team_id,
+              team_name: t.team_name,
+              profiles: [],
+            });
+          }
+          map.get(t.team_id)!.profiles.push(r);
+        }
+      }
+    }
+    const groups: TeamGroup[] = [...map.values()];
+    if (noTeam.length > 0) {
+      groups.push({
+        team_id: "__none__",
+        team_name: "Unknown",
+        profiles: noTeam,
+      });
+    }
+    return groups;
+  }, [searchResults, searchQuery]);
 
   const runSearch = useCallback(
     (q: string) => {
@@ -94,8 +169,11 @@ export function DelegationForm({
     updateMembers(members.map((m) => (m.key === key ? { ...m, role } : m)));
   }
 
-  function addProfile(profile: ProfileSearchResult) {
-    const firstTeam = profile.teams[0] ?? null;
+  function addProfile(
+    profile: ProfileSearchResult,
+    teamOverride?: ProfileTeam,
+  ) {
+    const team = teamOverride ?? profile.teams[0] ?? null;
     updateMembers([
       ...members,
       {
@@ -108,15 +186,28 @@ export function DelegationForm({
         pronouns: profile.pronouns,
         email: null,
         role: "attendee_listening",
-        team_id: firstTeam?.team_id ?? null,
-        team_name_snapshot: firstTeam?.team_name ?? null,
+        team_id: team?.team_id ?? null,
+        team_name_snapshot: team?.team_name ?? null,
+        display_teams: profile.teams,
       },
     ]);
     setSearchQuery("");
     setSearchResults([]);
   }
 
-  const showDropdown = inputFocused && !!searchQuery.trim();
+  const showDropdown =
+    inputFocused &&
+    (!!searchQuery.trim() ||
+      isLoadingInitial ||
+      filteredInitialGroups.length > 0);
+
+  useLayoutEffect(() => {
+    if (showDropdown && commandRef.current) {
+      const { bottom, left, width } =
+        commandRef.current.getBoundingClientRect();
+      setDropdownPos({ top: bottom + 4, left, width });
+    }
+  }, [showDropdown]);
 
   return (
     <div className="flex flex-col gap-3">
@@ -124,57 +215,124 @@ export function DelegationForm({
         <p className={SECTION_LABEL_CLASSNAME}>Delegation</p>
 
         <div className="mt-2 flex items-center gap-2">
-          <Command shouldFilter={false} className="relative min-w-0 flex-1">
-            <Label htmlFor={`search-${meetingId}`} className="sr-only">
-              Search members by name
-            </Label>
-            <CommandInput
-              id={`search-${meetingId}`}
-              placeholder="Search by name to add…"
-              value={searchQuery}
-              onValueChange={setSearchQuery}
-              onFocus={() => setInputFocused(true)}
-              onBlur={() => setTimeout(() => setInputFocused(false), 100)}
-              autoComplete="off"
-            />
-            {showDropdown && (
-              <div className="absolute top-full z-50 mt-1 w-full rounded-md border bg-background shadow-md">
-                <CommandList>
-                  {isSearching && <CommandLoading>Searching…</CommandLoading>}
-                  {!isSearching && searchResults.length === 0 && (
-                    <CommandEmpty>No results</CommandEmpty>
-                  )}
-                  {searchResults.length > 0 && (
-                    <CommandGroup>
-                      {searchResults.map((r) => (
-                        <CommandItem
-                          key={r.user_id}
-                          value={r.user_id}
-                          onSelect={() => addProfile(r)}
-                          className="flex-col items-start"
-                        >
-                          <span className="font-medium">{r.display_name}</span>
-                          {r.teams.length > 0 && (
-                            <span className="text-xs text-muted-foreground">
-                              {r.teams.map((t) => t.team_name).join(", ")}
-                            </span>
+          <div ref={commandRef} className="min-w-0 flex-1">
+            <Command shouldFilter={false} className="w-full">
+              <Label htmlFor={`search-${meetingId}`} className="sr-only">
+                Search members by name
+              </Label>
+              <CommandInput
+                id={`search-${meetingId}`}
+                placeholder="Search by name to add…"
+                value={searchQuery}
+                onValueChange={setSearchQuery}
+                onFocus={() => setInputFocused(true)}
+                onBlur={() => setTimeout(() => setInputFocused(false), 100)}
+                autoComplete="off"
+              />
+              {showDropdown &&
+                dropdownPos &&
+                createPortal(
+                  <div
+                    className="rounded-md border bg-background shadow-md"
+                    style={{
+                      position: "fixed",
+                      zIndex: 50,
+                      top: dropdownPos.top,
+                      left: dropdownPos.left,
+                      width: dropdownPos.width,
+                    }}
+                  >
+                    <CommandList>
+                      {searchQuery.trim() ? (
+                        <>
+                          {isSearching && (
+                            <CommandLoading>Searching…</CommandLoading>
                           )}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  )}
-                </CommandList>
-              </div>
-            )}
-          </Command>
+                          {!isSearching && groupedResults.length === 0 && (
+                            <CommandEmpty>No results</CommandEmpty>
+                          )}
+                          {!isSearching &&
+                            groupedResults.map((group) => (
+                              <CommandGroup
+                                key={group.team_id}
+                                heading={group.team_name}
+                              >
+                                {group.profiles.map((r) => (
+                                  <CommandItem
+                                    key={`${r.user_id}-${group.team_id}`}
+                                    value={`${r.user_id}::${group.team_id}`}
+                                    onSelect={() =>
+                                      addProfile(
+                                        r,
+                                        group.team_id !== "__none__"
+                                          ? {
+                                              team_id: group.team_id,
+                                              team_name: group.team_name,
+                                            }
+                                          : undefined,
+                                      )
+                                    }
+                                    className="flex-col items-start"
+                                  >
+                                    <span className="font-medium">
+                                      {r.display_name}
+                                    </span>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            ))}
+                        </>
+                      ) : isLoadingInitial ? (
+                        <CommandLoading>Loading…</CommandLoading>
+                      ) : (
+                        filteredInitialGroups.map((group) => (
+                          <CommandGroup
+                            key={group.team_id}
+                            heading={group.team_name}
+                          >
+                            {group.profiles.map((r) => (
+                              <CommandItem
+                                key={`${r.user_id}-${group.team_id}`}
+                                value={`${r.user_id}::${group.team_id}`}
+                                onSelect={() =>
+                                  addProfile(r, {
+                                    team_id: group.team_id,
+                                    team_name: group.team_name,
+                                  })
+                                }
+                                className="flex-col items-start"
+                              >
+                                <span className="font-medium">
+                                  {r.display_name}
+                                </span>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        ))
+                      )}
+                    </CommandList>
+                  </div>,
+                  document.body,
+                )}
+            </Command>
+          </div>
 
           <Button
             type="button"
             size="sm"
             aria-label="Add to delegation"
-            disabled={searchResults.length === 0}
+            disabled={!searchQuery.trim() || groupedResults.length === 0}
             onClick={() => {
-              if (searchResults[0]) addProfile(searchResults[0]);
+              const group = groupedResults[0];
+              const profile = group?.profiles[0];
+              if (group && profile) {
+                addProfile(
+                  profile,
+                  group.team_id !== "__none__"
+                    ? { team_id: group.team_id, team_name: group.team_name }
+                    : undefined,
+                );
+              }
             }}
           >
             <Plus className="h-4 w-4" aria-hidden="true" />
@@ -196,9 +354,9 @@ export function DelegationForm({
               />
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium">{m.display_name}</p>
-                {m.team_name_snapshot && (
+                {m.display_teams.length > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    {m.team_name_snapshot}
+                    {m.display_teams.map((t) => t.team_name).join(", ")}
                   </p>
                 )}
               </div>

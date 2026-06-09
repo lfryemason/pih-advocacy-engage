@@ -102,6 +102,12 @@ export type ProfileTeam = {
   team_name: string;
 };
 
+export type TeamGroup = {
+  team_id: string;
+  team_name: string;
+  profiles: ProfileSearchResult[];
+};
+
 export type ProfileSearchResult = {
   user_id: string;
   display_name: string;
@@ -125,6 +131,7 @@ export type LocalDelegationMember = {
   role: DelegationRole;
   team_id: string | null;
   team_name_snapshot: string | null;
+  display_teams: ProfileTeam[];
 };
 
 export function memberFromDelegation(
@@ -142,5 +149,9 @@ export function memberFromDelegation(
     role: m.role,
     team_id: m.team_id,
     team_name_snapshot: m.team_name_snapshot,
+    display_teams:
+      m.team_id && m.team_name_snapshot
+        ? [{ team_id: m.team_id, team_name: m.team_name_snapshot }]
+        : [],
   };
 }

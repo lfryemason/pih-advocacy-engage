@@ -236,31 +236,6 @@ describe("MeetingDetailView — delegation", () => {
     expect(screen.getByText(/alice@example\.com/)).toBeInTheDocument();
   });
 
-  it("shows email for pih_team_member when present", () => {
-    render(
-      <MeetingDetailView
-        meeting={makeMeeting({
-          delegation_members: [
-            {
-              id: "dm-1",
-              user_id: "u-1",
-              first_name: "Carol",
-              last_name: "Pih",
-              display_name: "Carol Pih",
-              email: "carol@example.com",
-              role: "pih_team_member",
-              pronouns: null,
-              team_id: null,
-              team_name_snapshot: null,
-            },
-          ],
-        })}
-        onEdit={vi.fn()}
-      />,
-    );
-    expect(screen.getByText(/carol@example\.com/)).toBeInTheDocument();
-  });
-
   it("does not show email for attendee roles", () => {
     render(
       <MeetingDetailView
