@@ -52,7 +52,6 @@ export function DelegationForm({
   const [searchError, setSearchError] = useState<string | null>(null);
   const [inputFocused, setInputFocused] = useState(false);
   const [myTeamGroups, setMyTeamGroups] = useState<TeamGroup[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const commandRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{
@@ -76,9 +75,6 @@ export function DelegationForm({
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setCurrentUserId(user.id);
-    });
     fetchMyTeamMembers(supabase)
       .then(setMyTeamGroups)
       .catch(() => {})
@@ -90,13 +86,10 @@ export function DelegationForm({
       myTeamGroups
         .map((g) => ({
           ...g,
-          profiles: g.profiles.filter(
-            (p) =>
-              !existingUserIds.has(p.user_id) && p.user_id !== currentUserId,
-          ),
+          profiles: g.profiles.filter((p) => !existingUserIds.has(p.user_id)),
         }))
         .filter((g) => g.profiles.length > 0),
-    [myTeamGroups, existingUserIds, currentUserId],
+    [myTeamGroups, existingUserIds],
   );
 
   const groupedResults = useMemo((): TeamGroup[] => {
@@ -143,10 +136,7 @@ export function DelegationForm({
       searchProfiles(supabase, q)
         .then((results) => {
           setSearchResults(
-            results.filter(
-              (r) =>
-                !existingUserIds.has(r.user_id) && r.user_id !== currentUserId,
-            ),
+            results.filter((r) => !existingUserIds.has(r.user_id)),
           );
         })
         .catch((err: unknown) => {
@@ -156,7 +146,7 @@ export function DelegationForm({
         })
         .finally(() => setIsSearching(false));
     },
-    [existingUserIds, currentUserId],
+    [existingUserIds],
   );
 
   const debouncedSearch = useMemo(() => debounce(runSearch, 300), [runSearch]);
