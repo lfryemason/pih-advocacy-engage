@@ -80,7 +80,7 @@ export function MeetingDetail({
     };
   }, []);
 
-  useEffect(() => {
+  const loadDetails = useCallback(() => {
     let cancelled = false;
     const supabase = createClient();
     setIsLoading(true);
@@ -108,6 +108,8 @@ export function MeetingDetail({
       cancelled = true;
     };
   }, [meeting.id]);
+
+  useEffect(loadDetails, [meeting.id, loadDetails]);
 
   const updateForm = useCallback((partial: Partial<FormState>) => {
     setForm((prev) => ({ ...prev, ...partial }));
@@ -177,21 +179,18 @@ export function MeetingDetail({
         }
       }
 
-      // Transition to view mode before notifying the parent — the parent's
-      // onSaved triggers a list refresh that can unmount this component
-      // (e.g. when the meeting's date moves it to a different section).
+      // fetchMeetingDetail(supabase, meeting.id)
+      //   .then((d) => {
+      //     if (!isMountedRef.current) return;
+      //     setDetail(d);
+      //     setLinks(d.links);
+      //     setPendingDelegation(d.delegation_members.map(memberFromDelegation));
+      //   })
+      //   .catch(() => {});
+
       setMode("view");
 
-      // Refresh detail in the background so the view panel is up-to-date
-      // if the component stays mounted. Guard against post-unmount setState.
-      fetchMeetingDetail(supabase, meeting.id)
-        .then((d) => {
-          if (!isMountedRef.current) return;
-          setDetail(d);
-          setLinks(d.links);
-          setPendingDelegation(d.delegation_members.map(memberFromDelegation));
-        })
-        .catch(() => {});
+      loadDetails();
 
       onSaved();
     } catch (err: unknown) {
@@ -199,7 +198,7 @@ export function MeetingDetail({
         err instanceof Error ? err.message : "Failed to save meeting",
       );
     } finally {
-      if (isMountedRef.current) setIsSaving(false);
+      setIsSaving(false);
     }
   }
 

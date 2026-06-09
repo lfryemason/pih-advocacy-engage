@@ -89,13 +89,10 @@ export function DelegationForm({
       myTeamGroups
         .map((g) => ({
           ...g,
-          profiles: g.profiles.filter(
-            (p) =>
-              !existingUserIds.has(p.user_id) && p.user_id !== currentUserId,
-          ),
+          profiles: g.profiles.filter((p) => !existingUserIds.has(p.user_id)),
         }))
         .filter((g) => g.profiles.length > 0),
-    [myTeamGroups, existingUserIds, currentUserId],
+    [myTeamGroups, existingUserIds],
   );
 
   const groupedResults = useMemo((): TeamGroup[] => {
@@ -261,8 +258,12 @@ export function DelegationForm({
                   }
                   setSearchQuery(val);
                 }}
-                onFocus={() => setInputFocused(true)}
+                onFocus={() => {
+                  if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
+                  setInputFocused(true);
+                }}
                 onBlur={() => {
+                  if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
                   blurTimerRef.current = setTimeout(
                     () => setInputFocused(false),
                     100,
@@ -345,6 +346,7 @@ export function DelegationForm({
                               >
                                 <span className="font-medium">
                                   {r.display_name}
+                                  {r.user_id === currentUserId && " (me)"}
                                 </span>
                               </CommandItem>
                             ))}
