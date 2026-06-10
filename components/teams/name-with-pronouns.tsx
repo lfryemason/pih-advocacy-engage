@@ -1,3 +1,5 @@
+import { Pronouns } from "@/components/pronouns";
+
 export function NameWithPronouns({
   name,
   pronouns,
@@ -9,8 +11,8 @@ export function NameWithPronouns({
     <>
       {name}
       {pronouns && (
-        <span className="ml-1 text-sm italic text-muted-foreground">
-          {pronouns}
+        <span className="ml-1">
+          <Pronouns pronouns={pronouns} />
         </span>
       )}
     </>

@@ -67,15 +67,20 @@ export function DelegationForm({
   const [pendingRole, setPendingRole] =
     useState<DelegationRole>("attendee_listening");
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const supabaseRef = useRef(createClient());
 
   const existingUserIds = useMemo(
     () => new Set(members.map((m) => m.user_id)),
     [members],
   );
 
+  const existingUserIdsRef = useRef(existingUserIds);
   useEffect(() => {
-    const supabase = createClient();
-    fetchMyTeamMembers(supabase)
+    existingUserIdsRef.current = existingUserIds;
+  }, [existingUserIds]);
+
+  useEffect(() => {
+    fetchMyTeamMembers(supabaseRef.current)
       .then(setMyTeamGroups)
       .catch(() => {})
       .finally(() => setIsLoadingInitial(false));
@@ -92,11 +97,26 @@ export function DelegationForm({
     [myTeamGroups, existingUserIds],
   );
 
+  const representedTeams = useMemo(() => {
+    const seen = new Set<string>();
+    const teams: string[] = [];
+    for (const m of members) {
+      const name = m.team_name_snapshot;
+      if (name && !seen.has(name)) {
+        seen.add(name);
+        teams.push(name);
+      }
+    }
+    return teams;
+  }, [members]);
+
   const groupedResults = useMemo((): TeamGroup[] => {
     if (!searchQuery.trim()) return [];
     const map = new Map<string, TeamGroup>();
     const noTeam: ProfileSearchResult[] = [];
-    for (const r of searchResults) {
+    for (const r of searchResults.filter(
+      (r) => !existingUserIds.has(r.user_id),
+    )) {
       if (r.teams.length === 0) {
         noTeam.push(r);
       } else {
@@ -121,33 +141,29 @@ export function DelegationForm({
       });
     }
     return groups;
-  }, [searchResults, searchQuery]);
+  }, [searchResults, searchQuery, existingUserIds]);
 
-  const runSearch = useCallback(
-    (q: string) => {
-      if (!q.trim()) {
-        setSearchResults([]);
-        setSearchError(null);
-        return;
-      }
-      setIsSearching(true);
+  const runSearch = useCallback((q: string) => {
+    if (!q.trim()) {
+      setSearchResults([]);
       setSearchError(null);
-      const supabase = createClient();
-      searchProfiles(supabase, q)
-        .then((results) => {
-          setSearchResults(
-            results.filter((r) => !existingUserIds.has(r.user_id)),
-          );
-        })
-        .catch((err: unknown) => {
-          setSearchError(
-            err instanceof Error ? err.message : "Search failed. Try again.",
-          );
-        })
-        .finally(() => setIsSearching(false));
-    },
-    [existingUserIds],
-  );
+      return;
+    }
+    setIsSearching(true);
+    setSearchError(null);
+    searchProfiles(supabaseRef.current, q)
+      .then((results) => {
+        setSearchResults(
+          results.filter((r) => !existingUserIdsRef.current.has(r.user_id)),
+        );
+      })
+      .catch((err: unknown) => {
+        setSearchError(
+          err instanceof Error ? err.message : "Search failed. Try again.",
+        );
+      })
+      .finally(() => setIsSearching(false));
+  }, []);
 
   const debouncedSearch = useMemo(() => debounce(runSearch, 300), [runSearch]);
 
@@ -188,6 +204,7 @@ export function DelegationForm({
 
   function addProfile() {
     if (!pendingProfile) return;
+    if (members.some((m) => m.user_id === pendingProfile.user_id)) return;
     const team = pendingTeam ?? pendingProfile.teams[0] ?? null;
     updateMembers([
       ...members,
@@ -203,7 +220,9 @@ export function DelegationForm({
         role: pendingRole,
         team_id: team?.team_id ?? null,
         team_name_snapshot: team?.team_name ?? null,
-        display_teams: pendingProfile.teams,
+        display_teams: team
+          ? [{ team_id: team.team_id, team_name: team.team_name }]
+          : [],
       },
     ]);
     setPendingProfile(null);
@@ -246,12 +265,12 @@ export function DelegationForm({
 
         <div className="mt-2 flex items-center gap-2">
           <div ref={commandRef} className="min-w-0 flex-1">
-            <Command shouldFilter={false} className="w-full">
-              <Label htmlFor={`search-${meetingId}`} className="sr-only">
-                Search members by name
-              </Label>
+            <Command
+              shouldFilter={false}
+              label="Search members by name"
+              className="w-full"
+            >
               <CommandInput
-                id={`search-${meetingId}`}
                 placeholder="Search by name to add…"
                 value={pendingProfile?.display_name ?? searchQuery}
                 onValueChange={(val) => {
@@ -400,6 +419,22 @@ export function DelegationForm({
           </Button>
         </div>
       </div>
+
+      {representedTeams.length > 0 && (
+        <div>
+          <p className={SECTION_LABEL_CLASSNAME}>Represented teams</p>
+          <ul
+            aria-label="Represented teams"
+            className="mt-1 flex flex-wrap gap-1"
+          >
+            {representedTeams.map((name) => (
+              <li key={name} className="text-xs text-muted-foreground">
+                {name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {members.length > 0 && (
         <div className="flex flex-col gap-2">

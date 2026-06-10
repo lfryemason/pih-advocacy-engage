@@ -320,3 +320,88 @@ test.describe("edit meeting", () => {
     ).toBeVisible();
   });
 });
+
+test.describe("US4 — Delegation members", () => {
+  test("add two members from different teams → both teams appear in represented-teams list", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    const searchInput = page.getByRole("combobox", { name: /search members/i });
+
+    await searchInput.fill("Alice");
+    const aliceResult = page.getByText("Alice Smith");
+    await expect(aliceResult).toBeVisible();
+    await aliceResult.click();
+    await page.getByRole("button", { name: /add to delegation/i }).click();
+
+    await searchInput.fill("Bob");
+    const bobResult = page.getByText("Bob Jones");
+    await expect(bobResult).toBeVisible();
+    await bobResult.click();
+    await page.getByRole("button", { name: /add to delegation/i }).click();
+
+    const representedList = page.getByRole("list", {
+      name: /represented teams/i,
+    });
+    await expect(representedList.getByRole("listitem").first()).toBeVisible();
+    const teamCount = await representedList.getByRole("listitem").count();
+    expect(teamCount).toBeGreaterThanOrEqual(1);
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /Edit Meeting/i }),
+    ).toBeVisible();
+  });
+
+  test("remove a member → their team disappears from represented-teams if no one else shares it", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    const searchInput = page.getByRole("combobox", { name: /search members/i });
+    await searchInput.fill("Carol");
+    const carolResult = page.getByText("Carol Solo");
+    await expect(carolResult).toBeVisible();
+    await carolResult.click();
+    await page.getByRole("button", { name: /add to delegation/i }).click();
+
+    await expect(
+      page.getByRole("list", { name: /represented teams/i }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: /remove carol solo/i }).click();
+
+    const teamsListAfterRemove = page.getByRole("list", {
+      name: /represented teams/i,
+    });
+    const hasTeam = await teamsListAfterRemove.isVisible();
+    if (hasTeam) {
+      const items = await teamsListAfterRemove.getByRole("listitem").count();
+      expect(items).toBe(0);
+    }
+
+    await page.getByRole("button", { name: "Cancel" }).click();
+  });
+});

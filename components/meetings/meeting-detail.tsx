@@ -85,37 +85,47 @@ export function MeetingDetail({
     modeRef.current = mode;
   }, [mode]);
 
-  const loadDetails = useCallback(() => {
-    let cancelled = false;
-    const supabase = createClient();
-    setIsLoading(true);
-    setLoadError(null);
+  const loadDetails = useCallback(
+    (opts?: { silent?: boolean }) => {
+      let cancelled = false;
+      const supabase = createClient();
+      if (!opts?.silent) setIsLoading(true);
+      setLoadError(null);
 
-    fetchMeetingDetail(supabase, meeting.id)
-      .then((d) => {
-        if (cancelled) return;
-        setDetail(d);
-        setForm(formStateFromDetail(d));
-        setLinks(d.links);
-        // Don't overwrite in-progress delegation edits while the user is in edit mode.
-        if (modeRef.current !== "edit") {
-          setPendingDelegation(d.delegation_members.map(memberFromDelegation));
-        }
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setLoadError(
-          err instanceof Error ? err.message : "Failed to load meeting details",
-        );
-      })
-      .finally(() => {
-        if (!cancelled) setIsLoading(false);
-      });
+      fetchMeetingDetail(supabase, meeting.id)
+        .then((d) => {
+          if (cancelled) return;
+          // Don't overwrite in-progress edits while the user is in edit mode.
+          // setDetail is also guarded: detail.delegation_members is the original
+          // baseline for syncDelegationMembers, so it must stay in sync with
+          // pendingDelegation (which is not reset in edit mode).
+          if (modeRef.current !== "edit") {
+            setDetail(d);
+            setForm(formStateFromDetail(d));
+            setLinks(d.links);
+            setPendingDelegation(
+              d.delegation_members.map(memberFromDelegation),
+            );
+          }
+        })
+        .catch((err: unknown) => {
+          if (cancelled) return;
+          setLoadError(
+            err instanceof Error
+              ? err.message
+              : "Failed to load meeting details",
+          );
+        })
+        .finally(() => {
+          if (!cancelled) setIsLoading(false);
+        });
 
-    return () => {
-      cancelled = true;
-    };
-  }, [meeting.id]);
+      return () => {
+        cancelled = true;
+      };
+    },
+    [meeting.id],
+  );
 
   useEffect(loadDetails, [meeting.id, loadDetails]);
 
@@ -180,8 +190,6 @@ export function MeetingDetail({
             pendingDelegation,
           );
         } catch (err: unknown) {
-          // Refresh detail so that clicking Cancel reflects the already-saved meeting fields.
-          loadDetails();
           throw new Error(
             "Meeting saved, but delegation changes could not be applied: " +
               (err instanceof Error ? err.message : "Unknown error"),
@@ -189,18 +197,9 @@ export function MeetingDetail({
         }
       }
 
-      // fetchMeetingDetail(supabase, meeting.id)
-      //   .then((d) => {
-      //     if (!isMountedRef.current) return;
-      //     setDetail(d);
-      //     setLinks(d.links);
-      //     setPendingDelegation(d.delegation_members.map(memberFromDelegation));
-      //   })
-      //   .catch(() => {});
-
       setMode("view");
 
-      loadDetails();
+      loadDetails({ silent: true });
 
       onSaved();
     } catch (err: unknown) {

@@ -56,4 +56,33 @@ for (const theme of themes) {
 
     expect(results.violations).toEqual([]);
   });
+
+  test(`delegation panel (${theme}) has no accessibility violations`, async ({
+    page,
+  }) => {
+    await page.addInitScript((t) => {
+      window.localStorage.setItem("theme", t);
+    }, theme);
+    await page.goto("/meetings");
+    await page.waitForLoadState("networkidle");
+    await page.evaluate((t) => {
+      document.documentElement.classList.remove("light", "dark");
+      document.documentElement.classList.add(t);
+      document.documentElement.style.colorScheme = t;
+    }, theme);
+
+    // Expand a meeting row, enter edit mode so the delegation form is in DOM.
+    await page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first()
+      .click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+    await expect(
+      page.getByRole("combobox", { name: /search members/i }),
+    ).toBeVisible();
+
+    const results = await new AxeBuilder({ page }).analyze();
+
+    expect(results.violations).toEqual([]);
+  });
 }

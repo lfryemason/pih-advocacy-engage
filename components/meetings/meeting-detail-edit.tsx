@@ -253,15 +253,16 @@ function RightColumn({
 }
 
 export function MeetingDetailEdit(props: Props) {
-  const staffers = useStaffers(props.form.representativeId);
+  const { form, onFormChange } = props;
+  const staffers = useStaffers(form.representativeId);
 
   useEffect(() => {
     if (staffers.length === 0) return;
-    if (props.form.congressionalContactId === "") return;
-    if (!staffers.some((s) => s.id === props.form.congressionalContactId)) {
-      props.onFormChange({ congressionalContactId: "" });
+    if (form.congressionalContactId === "") return;
+    if (!staffers.some((s) => s.id === form.congressionalContactId)) {
+      onFormChange({ congressionalContactId: "" });
     }
-  }, [staffers, props.form.congressionalContactId, props.onFormChange]);
+  }, [staffers, form.congressionalContactId, onFormChange]);
 
   const columnProps: ColumnProps = { ...props, staffers };
 

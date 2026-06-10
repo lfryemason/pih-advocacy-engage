@@ -11,6 +11,7 @@ import {
   SEED_TEAM_ID,
   SEED_TEAM_NO_MEMBER_ID,
   SEED_TEAM_HMC_ID,
+  SEED_TEAM_BOB_ID,
   SEED_MEETING_UPCOMING_ID,
   SEED_MEETING_PAST_ID,
   SEED_REP_WA_BIOGUIDE,
@@ -18,6 +19,9 @@ import {
   SEED_USER_3_ID,
   SEED_USER_4_ID,
   SEED_USER_5_ID,
+  SEED_USER_ALICE_ID,
+  SEED_USER_BOB_ID,
+  SEED_USER_CAROL_ID,
 } from "./seed";
 
 const SUPABASE_URL =
@@ -42,6 +46,9 @@ const EXTRA_USERS = [
   { id: SEED_USER_3_ID, email: "user3@example.com" },
   { id: SEED_USER_4_ID, email: "user4@example.com" },
   { id: SEED_USER_5_ID, email: "user5@example.com" },
+  { id: SEED_USER_ALICE_ID, email: "alice@example.com" },
+  { id: SEED_USER_BOB_ID, email: "bob@example.com" },
+  { id: SEED_USER_CAROL_ID, email: "carol@example.com" },
 ];
 
 /** Ensure the test user and extra seed users exist, creating them if needed. */
@@ -137,7 +144,12 @@ export async function resetDatabase() {
   }
 
   // Reset team_memberships: wipe all non-seed memberships, then restore seed.
-  const seedTeamIds = [SEED_TEAM_ID, SEED_TEAM_NO_MEMBER_ID, SEED_TEAM_HMC_ID];
+  const seedTeamIds = [
+    SEED_TEAM_ID,
+    SEED_TEAM_NO_MEMBER_ID,
+    SEED_TEAM_HMC_ID,
+    SEED_TEAM_BOB_ID,
+  ];
   const { error: membershipDeleteError } = await supabase
     .from("team_memberships")
     .delete()
