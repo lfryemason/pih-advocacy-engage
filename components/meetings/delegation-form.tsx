@@ -252,12 +252,12 @@ export function DelegationForm({
 
         <div className="mt-2 flex items-center gap-2">
           <div ref={commandRef} className="min-w-0 flex-1">
-            <Command shouldFilter={false} className="w-full">
-              <Label htmlFor={`search-${meetingId}`} className="sr-only">
-                Search members by name
-              </Label>
+            <Command
+              shouldFilter={false}
+              label="Search members by name"
+              className="w-full"
+            >
               <CommandInput
-                id={`search-${meetingId}`}
                 placeholder="Search by name to add…"
                 value={pendingProfile?.display_name ?? searchQuery}
                 onValueChange={(val) => {
