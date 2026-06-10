@@ -18,6 +18,9 @@ import {
   SEED_USER_3_ID,
   SEED_USER_4_ID,
   SEED_USER_5_ID,
+  SEED_USER_ALICE_ID,
+  SEED_USER_BOB_ID,
+  SEED_USER_CAROL_ID,
 } from "./seed";
 
 const SUPABASE_URL =
@@ -42,6 +45,9 @@ const EXTRA_USERS = [
   { id: SEED_USER_3_ID, email: "user3@example.com" },
   { id: SEED_USER_4_ID, email: "user4@example.com" },
   { id: SEED_USER_5_ID, email: "user5@example.com" },
+  { id: SEED_USER_ALICE_ID, email: "alice@example.com" },
+  { id: SEED_USER_BOB_ID, email: "bob@example.com" },
+  { id: SEED_USER_CAROL_ID, email: "carol@example.com" },
 ];
 
 /** Ensure the test user and extra seed users exist, creating them if needed. */

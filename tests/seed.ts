@@ -15,6 +15,11 @@ export const SEED_USER_3_ID = "cccccccc-bbbb-cccc-dddd-eeeeeeeeeeee";
 export const SEED_USER_4_ID = "dddddddd-bbbb-cccc-dddd-eeeeeeeeeeee";
 export const SEED_USER_5_ID = "eeeeeeee-bbbb-cccc-dddd-eeeeeeeeeeee";
 
+// Delegation-search test users (used by US4 tests)
+export const SEED_USER_ALICE_ID = "a1a1a1a1-bbbb-cccc-dddd-eeeeeeeeeeee";
+export const SEED_USER_BOB_ID = "b2b2b2b2-bbbb-cccc-dddd-eeeeeeeeeeee";
+export const SEED_USER_CAROL_ID = "c3c3c3c3-bbbb-cccc-dddd-eeeeeeeeeeee";
+
 export const SEED_PROFILE = {
   user_id: TEST_USER_ID,
   org_id: "pihe",
@@ -64,6 +69,36 @@ export const SEED_EXTRA_PROFILES = [
     first_name: "Sam",
     last_name: "Patel",
     pronouns: "they/them",
+    state: "PA",
+    congressional_district: "5",
+  },
+  {
+    user_id: SEED_USER_ALICE_ID,
+    org_id: "pihe",
+    email: "alice@example.com",
+    first_name: "Alice",
+    last_name: "Smith",
+    pronouns: null,
+    state: "WA",
+    congressional_district: "9",
+  },
+  {
+    user_id: SEED_USER_BOB_ID,
+    org_id: "pihe",
+    email: "bob@example.com",
+    first_name: "Bob",
+    last_name: "Jones",
+    pronouns: null,
+    state: "OR",
+    congressional_district: "1",
+  },
+  {
+    user_id: SEED_USER_CAROL_ID,
+    org_id: "pihe",
+    email: "carol@example.com",
+    first_name: "Carol",
+    last_name: "Solo",
+    pronouns: null,
     state: "PA",
     congressional_district: "5",
   },
@@ -143,6 +178,25 @@ export const SEED_TEAM_MEMBERSHIPS = [
     user_id: TEST_USER_ID,
     org_id: "pihe",
     role: "team_coordinator",
+  },
+  // Delegation-search test users
+  {
+    team_id: SEED_TEAM_ID,
+    user_id: SEED_USER_ALICE_ID,
+    org_id: "pihe",
+    role: "member",
+  },
+  {
+    team_id: SEED_TEAM_NO_MEMBER_ID,
+    user_id: SEED_USER_BOB_ID,
+    org_id: "pihe",
+    role: "member",
+  },
+  {
+    team_id: SEED_TEAM_HMC_ID,
+    user_id: SEED_USER_CAROL_ID,
+    org_id: "pihe",
+    role: "member",
   },
 ];
 
