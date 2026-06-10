@@ -2,6 +2,7 @@ export const TEST_USER_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
 export const SEED_TEAM_ID = "22222222-2222-2222-2222-222222222222";
 export const SEED_TEAM_NO_MEMBER_ID = "33333333-3333-3333-3333-333333333333";
 export const SEED_TEAM_HMC_ID = "66666666-6666-6666-6666-666666666666";
+export const SEED_TEAM_BOB_ID = "77777777-7777-7777-7777-777777777777";
 export const SEED_MEETING_UPCOMING_ID = "44444444-4444-4444-4444-444444444444";
 export const SEED_MEETING_PAST_ID = "55555555-5555-5555-5555-555555555555";
 // Adam Smith (WA-09) — used in seed meetings. Must match SEED_REPRESENTATIVES.
@@ -138,6 +139,17 @@ export const SEED_TEAMS = [
     founded_date: null,
     congressional_districts: ["4", "5"],
   },
+  {
+    id: SEED_TEAM_BOB_ID,
+    org_id: "pihe",
+    name: "Boston University",
+    slug: "boston-university",
+    state: "MA",
+    type: "university",
+    description: null,
+    founded_date: null,
+    congressional_districts: [],
+  },
 ];
 
 export const SEED_TEAM_MEMBERSHIPS = [
@@ -187,7 +199,7 @@ export const SEED_TEAM_MEMBERSHIPS = [
     role: "member",
   },
   {
-    team_id: SEED_TEAM_NO_MEMBER_ID,
+    team_id: SEED_TEAM_BOB_ID,
     user_id: SEED_USER_BOB_ID,
     org_id: "pihe",
     role: "member",

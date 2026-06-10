@@ -11,6 +11,7 @@ import {
   SEED_TEAM_ID,
   SEED_TEAM_NO_MEMBER_ID,
   SEED_TEAM_HMC_ID,
+  SEED_TEAM_BOB_ID,
   SEED_MEETING_UPCOMING_ID,
   SEED_MEETING_PAST_ID,
   SEED_REP_WA_BIOGUIDE,
@@ -143,7 +144,12 @@ export async function resetDatabase() {
   }
 
   // Reset team_memberships: wipe all non-seed memberships, then restore seed.
-  const seedTeamIds = [SEED_TEAM_ID, SEED_TEAM_NO_MEMBER_ID, SEED_TEAM_HMC_ID];
+  const seedTeamIds = [
+    SEED_TEAM_ID,
+    SEED_TEAM_NO_MEMBER_ID,
+    SEED_TEAM_HMC_ID,
+    SEED_TEAM_BOB_ID,
+  ];
   const { error: membershipDeleteError } = await supabase
     .from("team_memberships")
     .delete()

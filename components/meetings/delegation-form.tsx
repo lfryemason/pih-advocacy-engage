@@ -97,6 +97,19 @@ export function DelegationForm({
     [myTeamGroups, existingUserIds],
   );
 
+  const representedTeams = useMemo(() => {
+    const seen = new Set<string>();
+    const teams: string[] = [];
+    for (const m of members) {
+      const name = m.team_name_snapshot;
+      if (name && !seen.has(name)) {
+        seen.add(name);
+        teams.push(name);
+      }
+    }
+    return teams;
+  }, [members]);
+
   const groupedResults = useMemo((): TeamGroup[] => {
     if (!searchQuery.trim()) return [];
     const map = new Map<string, TeamGroup>();
@@ -406,6 +419,22 @@ export function DelegationForm({
           </Button>
         </div>
       </div>
+
+      {representedTeams.length > 0 && (
+        <div>
+          <p className={SECTION_LABEL_CLASSNAME}>Represented teams</p>
+          <ul
+            aria-label="Represented teams"
+            className="mt-1 flex flex-wrap gap-1"
+          >
+            {representedTeams.map((name) => (
+              <li key={name} className="text-xs text-muted-foreground">
+                {name}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {members.length > 0 && (
         <div className="flex flex-col gap-2">
