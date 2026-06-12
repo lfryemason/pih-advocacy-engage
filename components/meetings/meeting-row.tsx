@@ -8,6 +8,7 @@ import { TableCell, TableRow } from "@/components/ui/table";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
 import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
+import { Pronouns } from "@/components/pronouns";
 
 export function MeetingRow({
   meeting,
@@ -72,7 +73,8 @@ export function MeetingRow({
                 {meeting.representative_district === null ? "Sen. " : "Rep. "}
                 {meeting.representative_name}
               </Link>{" "}
-              — {meeting.representative_state} (
+              <Pronouns pronouns={meeting.representative_pronouns} /> —{" "}
+              {meeting.representative_state} (
               {meeting.representative_party[0] ?? "?"})
             </div>
           </TableCell>

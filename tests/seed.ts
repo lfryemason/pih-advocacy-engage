@@ -263,6 +263,7 @@ export const SEED_REPRESENTATIVES = [
     party: "Democrat",
     state_rank: "junior",
     birthday: "1977-08-24",
+    pronouns: "he/him",
     in_office: true,
   },
   {
@@ -276,6 +277,7 @@ export const SEED_REPRESENTATIVES = [
     party: "Democrat",
     state_rank: null,
     birthday: "1980-04-01",
+    pronouns: "she/her",
     in_office: true,
   },
   {

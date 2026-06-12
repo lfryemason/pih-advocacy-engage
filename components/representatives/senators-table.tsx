@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
 import { Button } from "@/components/ui/button";
 import { PartyBadge } from "@/components/representatives/party-badge";
+import { Pronouns } from "@/components/pronouns";
 import { Filters } from "@/components/representatives/representatives-filters";
 import {
   Table,
@@ -103,14 +104,17 @@ export function SenatorsTable({ filters }: { filters: Filters }) {
             <TableBody>
               {senators.map((senator) => (
                 <TableRow key={senator.id}>
-                  <TableCell className="w-full max-w-0 truncate font-medium">
-                    <Link
-                      href={`/representatives/${senator.bioguide_id}`}
-                      className="block truncate underline-offset-4 hover:underline"
-                    >
-                      {senator.official_full_name ??
-                        `${senator.first_name} ${senator.last_name}`}
-                    </Link>
+                  <TableCell className="w-full max-w-0 font-medium">
+                    <div className="flex min-w-0 items-baseline gap-x-1.5">
+                      <Link
+                        href={`/representatives/${senator.bioguide_id}`}
+                        className="min-w-0 truncate underline-offset-4 hover:underline"
+                      >
+                        {senator.official_full_name ??
+                          `${senator.first_name} ${senator.last_name}`}
+                      </Link>
+                      <Pronouns pronouns={senator.pronouns} />
+                    </div>
                   </TableCell>
                   <TableCell className="text-center">{senator.state}</TableCell>
                   <TableCell>
