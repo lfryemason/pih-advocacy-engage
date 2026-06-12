@@ -2,7 +2,7 @@ name: Daily database backup
 
 on:
   schedule:
-    - cron: '0 2 * * *'
+    - cron: '0 6 * * *'  # 2am EDT (UTC-4) = 6am UTC
   workflow_dispatch:
 
 concurrency:
@@ -11,6 +11,63 @@ concurrency:
 
 jobs:
   backup:
+    # HOW TO RESTORE THIS BACKUP
+    #
+    # 1. Find the artifact
+    #    Go to Actions → select the workflow run → download the artifact named
+    #    "db-backup-<run-id>". Alternatively, use the GitHub CLI:
+    #
+    #      gh run download <run-id> --name db-backup-<run-id>
+    #
+    # 2. Decrypt the backup
+    #    You will need the BACKUP_ENCRYPTION_PASSPHRASE secret (retrieve it from
+    #    the repo secrets or your password manager):
+    #
+    #      gpg --batch --passphrase "YOUR_PASSPHRASE" \
+    #        --pinentry-mode loopback \
+    #        --decrypt backup_YYYYMMDD_HHMMSS.dump.gpg > backup.dump
+    #
+    # 3. Spin up a target database
+    #    For a local test restore, a throwaway Docker container works well:
+    #
+    #      docker run -d --name pg-restore-test \
+    #        -e POSTGRES_PASSWORD=test \
+    #        -p 5433:5432 \
+    #        postgres:16
+    #
+    #    For a real disaster-recovery restore, target your new Supabase project's
+    #    direct connection string (found in Supabase dashboard → Settings → Database).
+    #
+    # 4. Restore
+    #    --no-owner and --no-acl are required when restoring into a vanilla Postgres
+    #    instance or a fresh Supabase project, because Supabase-specific roles from
+    #    the source project do not exist in the target:
+    #
+    #      PGPASSWORD=test pg_restore \
+    #        --host=localhost --port=5433 \
+    #        --username=postgres --dbname=postgres \
+    #        --no-owner --no-acl \
+    #        --format=custom \
+    #        backup.dump
+    #
+    #    Expect some "role does not exist" warnings for Supabase internal roles — these
+    #    are safe to ignore as long as the restore exits 0 or with only warnings.
+    #
+    # 5. Verify
+    #    Spot-check that key data arrived:
+    #
+    #      psql -h localhost -p 5433 -U postgres \
+    #        -c "\dn"                                          # should show auth, public, storage
+    #      psql -h localhost -p 5433 -U postgres \
+    #        -c "SELECT count(*) FROM auth.users;"
+    #      psql -h localhost -p 5433 -U postgres \
+    #        -c "SELECT count(*) FROM public.<your_main_table>;"
+    #
+    # 6. Cleanup (local test only)
+    #
+    #      docker rm -f pg-restore-test
+    #      rm backup.dump
+    #
     name: Backup production database
     runs-on: ubuntu-24.04
     steps:
@@ -44,7 +101,12 @@ jobs:
         env:
           PASSPHRASE: ${{ secrets.BACKUP_ENCRYPTION_PASSPHRASE }}
         run: |
+          if [ -z "${PASSPHRASE}" ]; then
+            echo "BACKUP_ENCRYPTION_PASSPHRASE secret is not set or empty" >&2
+            exit 1
+          fi
           echo "${PASSPHRASE}" | gpg --batch --yes --passphrase-fd 0 \
+            --pinentry-mode loopback \
             --symmetric --cipher-algo AES256 \
             "${BACKUP_FILE}"
           rm "${BACKUP_FILE}"
@@ -66,7 +128,7 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "Database backup failed — ${{ github.repository }}"
-          to: lfryemason@gmail.com
+          to: ${{ vars.MAIL_TO }}
           from: ${{ secrets.MAIL_USERNAME }}
           body: |
             The daily database backup workflow failed.
