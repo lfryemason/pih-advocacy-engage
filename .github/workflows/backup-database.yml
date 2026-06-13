@@ -82,8 +82,10 @@ jobs:
           SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
           FILENAME="backup_$(date +%Y%m%d_%H%M%S).dump"
+          # GitHub Actions runners can't reach Supabase over IPv6 — resolve to IPv4 first
+          DB_HOST=$(getent ahostsv4 "db.${SUPABASE_PROJECT_ID}.supabase.co" | awk 'NR==1{print $1}')
           pg_dump \
-            --host="db.${SUPABASE_PROJECT_ID}.supabase.co" \
+            --host="${DB_HOST}" \
             --port=5432 \
             --username=postgres \
             --dbname=postgres \
