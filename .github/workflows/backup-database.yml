@@ -2,7 +2,7 @@ name: Daily database backup
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # 2am EDT (UTC-4) = 6am UTC
+    - cron: "0 6 * * *" # 2am EDT (UTC-4) = 6am UTC
   workflow_dispatch:
 
 concurrency:
@@ -75,6 +75,8 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client-16
+          # GitHub Actions runners can't reach Supabase over IPv6
+          echo 'precedence ::ffff:0:0/96 100' | sudo tee -a /etc/gai.conf
 
       - name: Dump database
         env:
@@ -82,10 +84,8 @@ jobs:
           SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
           FILENAME="backup_$(date +%Y%m%d_%H%M%S).dump"
-          # GitHub Actions runners can't reach Supabase over IPv6 — resolve to IPv4 first
-          DB_HOST=$(getent ahostsv4 "db.${SUPABASE_PROJECT_ID}.supabase.co" | awk 'NR==1{print $1}')
           pg_dump \
-            --host="${DB_HOST}" \
+            --host="db.${SUPABASE_PROJECT_ID}.supabase.co" \
             --port=5432 \
             --username=postgres \
             --dbname=postgres \
@@ -130,7 +130,7 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "Database backup failed — ${{ github.repository }}"
-          to: ${{ vars.MAIL_TO }}
+          to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_USERNAME }}
           body: |
             The daily database backup workflow failed.
