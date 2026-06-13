@@ -5,6 +5,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
 import { PartyBadge } from "@/components/representatives/party-badge";
+import { Pronouns } from "@/components/pronouns";
 import {
   Table,
   TableBody,
@@ -120,13 +121,17 @@ export function MyRepresentativesTable() {
       <TableBody>
         {reps.map((rep) => (
           <TableRow key={rep.id}>
-            <TableCell className="w-full max-w-0 truncate font-medium">
-              <Link
-                href={`/representatives/${rep.bioguide_id}`}
-                className="block truncate underline-offset-4 hover:underline"
-              >
-                {rep.official_full_name ?? `${rep.first_name} ${rep.last_name}`}
-              </Link>
+            <TableCell className="w-full max-w-0 font-medium">
+              <div className="flex min-w-0 items-baseline gap-x-1.5">
+                <Link
+                  href={`/representatives/${rep.bioguide_id}`}
+                  className="min-w-0 truncate underline-offset-4 hover:underline"
+                >
+                  {rep.official_full_name ??
+                    `${rep.first_name} ${rep.last_name}`}
+                </Link>
+                <Pronouns pronouns={rep.pronouns} />
+              </div>
             </TableCell>
             <TableCell>
               {rep.chamber === "sen" ? "Senator" : "Representative"}

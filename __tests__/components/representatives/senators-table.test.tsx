@@ -86,6 +86,40 @@ describe("SenatorsTable", () => {
     expect(screen.getByText("D")).toBeInTheDocument();
   });
 
+  it("renders the senator's pronouns when present", async () => {
+    server.use(
+      ...representativesHandlers([
+        makeRepresentative({
+          official_full_name: "Tammy Baldwin",
+          pronouns: "she/her",
+        }),
+      ]),
+    );
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Tammy Baldwin")).toBeInTheDocument();
+    });
+    expect(screen.getByText("she/her")).toBeInTheDocument();
+  });
+
+  it("omits pronouns when the senator has none", async () => {
+    server.use(
+      ...representativesHandlers([
+        makeRepresentative({
+          official_full_name: "Tammy Baldwin",
+          pronouns: null,
+        }),
+      ]),
+    );
+    render(<SenatorsTable filters={EMPTY_FILTERS} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Tammy Baldwin")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("she/her")).not.toBeInTheDocument();
+  });
+
   it("falls back to first_name + last_name when official_full_name is null", async () => {
     server.use(
       ...representativesHandlers([

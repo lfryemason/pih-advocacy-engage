@@ -13,6 +13,7 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
     representative_id: "rep-1",
     representative_bioguide_id: "R000001",
     representative_name: "Jane Rep",
+    representative_pronouns: null,
     representative_state: "WA",
     representative_district: 9,
     representative_party: "Democrat",

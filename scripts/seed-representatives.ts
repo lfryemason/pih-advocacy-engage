@@ -68,6 +68,16 @@ function buildGeneralLinks(leg: Legislator): GeneralLink[] {
   return links;
 }
 
+// The congress-legislators dataset has no pronoun field, but it does carry a
+// binary gender indicator ("M"/"F"). We use it as a best-effort estimate.
+// Anything unrecognized (including a future non-binary/unspecified value) is
+// left null so we never guess — the UI simply omits pronouns when null.
+function pronounsFromGender(gender: string | undefined): string | null {
+  if (gender === "M") return "he/him";
+  if (gender === "F") return "she/her";
+  return null;
+}
+
 export async function seedRepresentatives(
   supabaseUrl: string,
   serviceRoleKey: string,
@@ -102,6 +112,7 @@ export async function seedRepresentatives(
         party: latestTerm.party,
         state_rank: latestTerm.state_rank ?? null,
         birthday: leg.bio.birthday ?? null,
+        pronouns: pronounsFromGender(leg.bio.gender),
         in_office: true,
         general_links: buildGeneralLinks(leg),
       };
