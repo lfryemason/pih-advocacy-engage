@@ -75,19 +75,16 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y postgresql-client-16
-          # GitHub Actions runners can't reach Supabase over IPv6
-          echo 'precedence ::ffff:0:0/96 100' | sudo tee -a /etc/gai.conf
 
       - name: Dump database
         env:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
           FILENAME="backup_$(date +%Y%m%d_%H%M%S).dump"
           pg_dump \
-            --host="db.${SUPABASE_PROJECT_ID}.supabase.co" \
+            --host="${{ secrets.SUPABASE_DB_HOST }}" \
             --port=5432 \
-            --username=postgres \
+            --username="${{ secrets.SUPABASE_DB_USER }}" \
             --dbname=postgres \
             --format=custom \
             --file="${FILENAME}"
