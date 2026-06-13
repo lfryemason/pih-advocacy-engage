@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { signUpOrClaim } from "@/lib/auth/sign-up-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,7 +41,6 @@ export function SignUpForm({
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
@@ -51,28 +50,23 @@ export function SignUpForm({
       return;
     }
 
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            pronouns,
-            state,
-            congressional_district: district || null,
-          },
-        },
-      });
-      if (error) throw error;
+    // Server action: also claims a placeholder teammate account if this email
+    // matches one. Detection happens server-side so nothing leaks here.
+    const result = await signUpOrClaim({
+      email,
+      password,
+      firstName,
+      lastName,
+      pronouns,
+      state,
+      district,
+    });
+    if (result.ok) {
       router.push("/auth/sign-up-success");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
-      setIsLoading(false);
+    } else {
+      setError(result.error);
     }
+    setIsLoading(false);
   };
 
   const districtOptions = getDistrictOptions(state);
@@ -164,9 +158,7 @@ export function SignUpForm({
                 </Select>
               </div>
               <div className="grid gap-2">
-                <Label htmlFor="district">
-                  Congressional District
-                </Label>
+                <Label htmlFor="district">Congressional District</Label>
                 <Select
                   id="district"
                   value={district}

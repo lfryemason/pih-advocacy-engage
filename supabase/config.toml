@@ -203,7 +203,10 @@ enable_signup = true
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
 # If enabled, users need to confirm their email address before signing in.
-enable_confirmations = false
+# Required for the placeholder-teammate claim flow: email verification is the
+# security boundary for claiming a placeholder account. Enable this in the
+# hosted project's dashboard too, along with production SMTP.
+enable_confirmations = true
 # If enabled, users will need to reauthenticate or have logged in recently to change their password.
 secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
@@ -227,6 +230,14 @@ otp_expiry = 3600
 # [auth.email.template.invite]
 # subject = "You have been invited"
 # content_path = "./supabase/templates/invite.html"
+
+# Confirmation links go through our /auth/confirm route (token_hash +
+# verifyOtp) instead of the default {{ .ConfirmationURL }}, which doesn't fit
+# the SSR cookie-based auth this app uses. Mirror this template in the hosted
+# project's dashboard.
+[auth.email.template.confirmation]
+subject = "Confirm your email"
+content_path = "./supabase/templates/confirmation.html"
 
 # Uncomment to customize notification email template
 # [auth.email.notification.password_changed]

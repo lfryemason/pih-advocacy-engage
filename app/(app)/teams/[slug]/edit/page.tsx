@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentRole } from "@/lib/auth/role";
 import { ORG_ID } from "@/lib/org";
 import {
   Breadcrumb,
@@ -63,12 +64,25 @@ async function EditTeamContent({
 
   if (!team) redirect("/teams");
 
-  const { data: rawMemberships } = await supabase
-    .from("team_memberships")
-    .select(
-      "role, user_id, profiles(user_id, first_name, last_name, pronouns, email)",
-    )
-    .eq("team_id", team.id);
+  const [{ data: rawMemberships }, currentRole] = await Promise.all([
+    supabase
+      .from("team_memberships")
+      .select(
+        "role, user_id, profiles(user_id, first_name, last_name, pronouns, email, is_placeholder)",
+      )
+      .eq("team_id", team.id),
+    getCurrentRole(),
+  ]);
+
+  const canDeletePlaceholders =
+    currentRole?.role === "super_admin" ||
+    (currentRole?.role === "org_admin" && currentRole.org_id === ORG_ID);
+
+  // Only teammates can add a placeholder to this team (enforced server-side
+  // in createPlaceholderTeammate too).
+  const isTeamMember =
+    currentRole !== null &&
+    (rawMemberships ?? []).some((m) => m.user_id === currentRole.user_id);
 
   const memberships: MembershipWithProfile[] = (rawMemberships ?? []).map(
     (m) => ({
@@ -98,7 +112,13 @@ async function EditTeamContent({
       <h1 className="mt-4 text-2xl font-bold">{team.name}</h1>
       <div className="mt-6 grid grid-cols-1 items-start gap-x-8 gap-y-8 lg:grid-cols-[3fr_5fr]">
         <TeamForm orgId={ORG_ID} team={team} />
-        <MemberEditTable memberships={memberships} teamId={team.id} />
+        <MemberEditTable
+          memberships={memberships}
+          teamId={team.id}
+          teamSlug={team.slug}
+          canAddTeammate={isTeamMember}
+          canDeletePlaceholders={canDeletePlaceholders}
+        />
       </div>
     </>
   );

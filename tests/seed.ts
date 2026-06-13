@@ -21,6 +21,11 @@ export const SEED_USER_ALICE_ID = "a1a1a1a1-bbbb-cccc-dddd-eeeeeeeeeeee";
 export const SEED_USER_BOB_ID = "b2b2b2b2-bbbb-cccc-dddd-eeeeeeeeeeee";
 export const SEED_USER_CAROL_ID = "c3c3c3c3-bbbb-cccc-dddd-eeeeeeeeeeee";
 
+// Placeholder teammate: a login-less account (no password, unconfirmed
+// email) that can be claimed by signing up with its email.
+export const SEED_USER_PLACEHOLDER_ID = "d4d4d4d4-bbbb-cccc-dddd-eeeeeeeeeeee";
+export const SEED_PLACEHOLDER_EMAIL = "placeholder@example.com";
+
 export const SEED_PROFILE = {
   user_id: TEST_USER_ID,
   org_id: "pihe",
@@ -104,6 +109,20 @@ export const SEED_EXTRA_PROFILES = [
     congressional_district: "5",
   },
 ];
+
+// Upserted separately from SEED_EXTRA_PROFILES because it carries the
+// is_placeholder column (bulk upsert rows must share the same keys).
+export const SEED_PLACEHOLDER_PROFILE = {
+  user_id: SEED_USER_PLACEHOLDER_ID,
+  org_id: "pihe",
+  email: SEED_PLACEHOLDER_EMAIL,
+  first_name: "Penny",
+  last_name: "Placeholder",
+  pronouns: "she/her",
+  state: "PA",
+  congressional_district: "5",
+  is_placeholder: true,
+};
 
 export const SEED_TEAMS = [
   {
@@ -207,6 +226,13 @@ export const SEED_TEAM_MEMBERSHIPS = [
   {
     team_id: SEED_TEAM_HMC_ID,
     user_id: SEED_USER_CAROL_ID,
+    org_id: "pihe",
+    role: "member",
+  },
+  // Placeholder teammate on the Haverford team
+  {
+    team_id: SEED_TEAM_HMC_ID,
+    user_id: SEED_USER_PLACEHOLDER_ID,
     org_id: "pihe",
     role: "member",
   },

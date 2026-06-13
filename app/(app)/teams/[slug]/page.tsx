@@ -55,7 +55,7 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
   const { data: rawMemberships, error: membershipsError } = await supabase
     .from("team_memberships")
     .select(
-      "role, user_id, profiles(user_id, first_name, last_name, pronouns, email)",
+      "role, user_id, profiles(user_id, first_name, last_name, pronouns, email, is_placeholder)",
     )
     .eq("team_id", team.id);
   if (membershipsError) console.error(membershipsError);

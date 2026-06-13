@@ -40,6 +40,7 @@ export type MembershipWithProfile = {
     last_name: string | null;
     pronouns: string | null;
     email: string;
+    is_placeholder: boolean;
   } | null;
 };
 

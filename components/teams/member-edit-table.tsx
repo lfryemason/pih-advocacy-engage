@@ -19,18 +19,28 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ROLE_OPTIONS, type MembershipWithProfile } from "@/lib/teams";
-import { Info, X } from "lucide-react";
+import { AddTeammateDialog } from "@/components/teams/add-teammate-dialog";
+import { PendingBadge } from "@/components/teams/pending-badge";
+import { deletePlaceholderTeammate } from "@/lib/teams/placeholder-actions";
+import { Info, Trash2, X } from "lucide-react";
 
 export function MemberEditTable({
   memberships,
   teamId,
+  teamSlug,
+  canAddTeammate = false,
+  canDeletePlaceholders = false,
 }: {
   memberships: MembershipWithProfile[];
   teamId: string;
+  teamSlug: string;
+  canAddTeammate?: boolean;
+  canDeletePlaceholders?: boolean;
 }) {
   const router = useRouter();
   const [changing, setChanging] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const handleRoleChange = async (
@@ -89,9 +99,40 @@ export function MemberEditTable({
     }
   };
 
+  // Irreversible: deletes the placeholder's auth user, profile, memberships,
+  // and delegation history. Requires typing DELETE; org admins only.
+  const handleHardDelete = async (membership: MembershipWithProfile) => {
+    const name =
+      [membership.profiles?.first_name, membership.profiles?.last_name]
+        .filter(Boolean)
+        .join(" ") || "this placeholder";
+    const typed = window.prompt(
+      `Permanently delete ${name}'s placeholder account, including all team memberships and delegation history? This cannot be undone.\n\nType DELETE to confirm.`,
+    );
+    if (typed !== "DELETE") return;
+    const key = `${membership.user_id}-${membership.role}`;
+    setDeleting(key);
+    setActionError(null);
+    const result = await deletePlaceholderTeammate({
+      userId: membership.user_id,
+      teamSlug,
+    });
+    if (result.ok) {
+      router.refresh();
+    } else {
+      setActionError(result.error);
+    }
+    setDeleting(null);
+  };
+
   return (
     <div>
-      <h2 className="text-lg font-semibold">Members</h2>
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Members</h2>
+        {canAddTeammate && (
+          <AddTeammateDialog teamId={teamId} teamSlug={teamSlug} />
+        )}
+      </div>
       {actionError && (
         <p role="alert" className="mt-2 text-sm text-destructive">
           {actionError}
@@ -117,12 +158,14 @@ export function MemberEditTable({
               {memberships.map((m) => {
                 const key = `${m.user_id}-${m.role}`;
                 const isCoach = m.role === "coach";
+                const isPlaceholder = m.profiles?.is_placeholder ?? false;
                 return (
                   <TableRow key={key}>
                     <TableCell>
                       {[m.profiles?.first_name, m.profiles?.last_name]
                         .filter(Boolean)
                         .join(" ") || "—"}
+                      {isPlaceholder && <PendingBadge />}
                     </TableCell>
                     <TableCell>{m.profiles?.email ?? "—"}</TableCell>
                     <TableCell>
@@ -161,16 +204,37 @@ export function MemberEditTable({
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="px-1 text-muted-foreground hover:text-destructive"
-                        disabled={removing === key || changing === key}
-                        aria-label={`Remove ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"} from team`}
-                        onClick={() => handleRemove(m)}
-                      >
-                        <X size={14} aria-hidden="true" />
-                      </Button>
+                      <div className="flex items-center">
+                        {isPlaceholder && (
+                          <AddTeammateDialog
+                            teamId={teamId}
+                            teamSlug={teamSlug}
+                            editUserId={m.user_id}
+                          />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="px-1 text-muted-foreground hover:text-destructive"
+                          disabled={removing === key || changing === key}
+                          aria-label={`Remove ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"} from team`}
+                          onClick={() => handleRemove(m)}
+                        >
+                          <X size={14} aria-hidden="true" />
+                        </Button>
+                        {isPlaceholder && canDeletePlaceholders && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="px-1 text-muted-foreground hover:text-destructive"
+                            disabled={deleting === key}
+                            aria-label={`Permanently delete ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "placeholder"}'s placeholder account`}
+                            onClick={() => handleHardDelete(m)}
+                          >
+                            <Trash2 size={14} aria-hidden="true" />
+                          </Button>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 );
