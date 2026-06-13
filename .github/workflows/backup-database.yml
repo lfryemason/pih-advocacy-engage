@@ -2,7 +2,7 @@ name: Daily database backup
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # 2am EDT (UTC-4) = 6am UTC
+    - cron: "0 6 * * *" # 2am EDT (UTC-4) = 6am UTC
   workflow_dispatch:
 
 concurrency:
@@ -33,7 +33,7 @@ jobs:
     #      docker run -d --name pg-restore-test \
     #        -e POSTGRES_PASSWORD=test \
     #        -p 5433:5432 \
-    #        postgres:16
+    #        postgres:17
     #
     #    For a real disaster-recovery restore, target your new Supabase project's
     #    direct connection string (found in Supabase dashboard → Settings → Database).
@@ -73,21 +73,21 @@ jobs:
     steps:
       - name: Install PostgreSQL client
         run: |
+          sudo sh -c 'echo "deb https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
+          curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg
           sudo apt-get update -qq
-          sudo apt-get install -y postgresql-client-16
+          sudo apt-get install -y postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> $GITHUB_PATH
 
       - name: Dump database
         env:
           PGPASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-          SUPABASE_PROJECT_ID: ${{ secrets.SUPABASE_PROJECT_ID }}
         run: |
           FILENAME="backup_$(date +%Y%m%d_%H%M%S).dump"
-          # GitHub Actions runners can't reach Supabase over IPv6 — resolve to IPv4 first
-          DB_HOST=$(getent ahostsv4 "db.${SUPABASE_PROJECT_ID}.supabase.co" | awk 'NR==1{print $1}')
           pg_dump \
-            --host="${DB_HOST}" \
+            --host="${{ secrets.SUPABASE_DB_HOST }}" \
             --port=5432 \
-            --username=postgres \
+            --username="${{ secrets.SUPABASE_DB_USER }}" \
             --dbname=postgres \
             --format=custom \
             --file="${FILENAME}"
@@ -130,7 +130,7 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           subject: "Database backup failed — ${{ github.repository }}"
-          to: ${{ vars.MAIL_TO }}
+          to: ${{ secrets.MAIL_TO }}
           from: ${{ secrets.MAIL_USERNAME }}
           body: |
             The daily database backup workflow failed.
