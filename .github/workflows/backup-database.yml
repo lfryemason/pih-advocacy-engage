@@ -33,7 +33,7 @@ jobs:
     #      docker run -d --name pg-restore-test \
     #        -e POSTGRES_PASSWORD=test \
     #        -p 5433:5432 \
-    #        postgres:16
+    #        postgres:17
     #
     #    For a real disaster-recovery restore, target your new Supabase project's
     #    direct connection string (found in Supabase dashboard → Settings → Database).
@@ -74,7 +74,7 @@ jobs:
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y postgresql-client-16
+          sudo apt-get install -y postgresql-client-17
 
       - name: Dump database
         env:
