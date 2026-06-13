@@ -9,6 +9,9 @@ concurrency:
   group: db-backup
   cancel-in-progress: true
 
+permissions:
+  actions: write
+
 jobs:
   backup:
     # HOW TO RESTORE THIS BACKUP
