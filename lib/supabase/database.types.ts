@@ -171,6 +171,7 @@ export type Database = {
           created_at: string;
           email: string;
           first_name: string | null;
+          is_placeholder: boolean;
           last_name: string | null;
           org_id: string;
           pronouns: string | null;
@@ -183,6 +184,7 @@ export type Database = {
           created_at?: string;
           email: string;
           first_name?: string | null;
+          is_placeholder?: boolean;
           last_name?: string | null;
           org_id: string;
           pronouns?: string | null;
@@ -195,6 +197,7 @@ export type Database = {
           created_at?: string;
           email?: string;
           first_name?: string | null;
+          is_placeholder?: boolean;
           last_name?: string | null;
           org_id?: string;
           pronouns?: string | null;
