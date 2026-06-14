@@ -55,7 +55,7 @@ test.describe("sign up page", () => {
     await expect(page.getByLabel("Last Name")).toBeVisible();
     await expect(page.getByLabel("Pronouns")).toBeVisible();
     await expect(page.getByLabel("Email")).toBeVisible();
-    await expect(page.getByLabel("Password", { exact: true })).toBeVisible();
+    await expect(page.getByLabel(/^Password/)).toBeVisible();
     await expect(page.getByLabel("Repeat Password")).toBeVisible();
     await expect(page.getByLabel("State")).toBeVisible();
     await expect(page.getByLabel("Congressional District")).toBeVisible();
@@ -81,7 +81,7 @@ test.describe("sign up page", () => {
     await page.getByLabel("First Name").fill("Test");
     await page.getByLabel("Last Name").fill("User");
     await page.getByLabel("Email").fill("test@example.com");
-    await page.getByLabel("Password", { exact: true }).fill("password123");
+    await page.getByLabel(/^Password/).fill("password123");
     await page.getByLabel("Repeat Password").fill("different123");
     await page.getByRole("button", { name: "Sign up" }).click();
     await expect(page.getByText("Passwords do not match")).toBeVisible({
