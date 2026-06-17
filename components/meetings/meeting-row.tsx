@@ -53,7 +53,7 @@ export function MeetingRow({
           </Button>
         </TableCell>
         <TableCell>{formatDate(meeting.meeting_date)}</TableCell>
-        <TableCell>
+        <TableCell className="hidden md:table-cell">
           {meeting.meeting_time
             ? formatTime(
                 meeting.meeting_date,
@@ -79,7 +79,7 @@ export function MeetingRow({
             </div>
           </TableCell>
         )}
-        <TableCell className="max-w-0 truncate">
+        <TableCell className="hidden max-w-0 truncate md:table-cell">
           {meeting.congressional_contact_id === null ? (
             <em>
               {meeting.representative_district === null
@@ -90,7 +90,7 @@ export function MeetingRow({
             meeting.congressional_contact_name
           )}
         </TableCell>
-        <TableCell className="max-w-0">
+        <TableCell className="hidden max-w-0 md:table-cell">
           {meeting.primary_team_slug ? (
             <Link
               href={`/teams/${meeting.primary_team_slug}`}
@@ -103,7 +103,7 @@ export function MeetingRow({
             "—"
           )}
         </TableCell>
-        <TableCell className="max-w-0 truncate">
+        <TableCell className="hidden max-w-0 truncate md:table-cell">
           {meeting.scheduling_lead_name ?? "—"}
         </TableCell>
         {isPast && (

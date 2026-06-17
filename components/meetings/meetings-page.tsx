@@ -143,7 +143,7 @@ export function MeetingsPage() {
   };
 
   return (
-    <div className="flex flex-col p-8">
+    <div className="flex flex-col p-4 md:p-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Meetings</h1>
         <AddMeetingDialog onCreated={() => loadInitial(filtersRef.current)} />

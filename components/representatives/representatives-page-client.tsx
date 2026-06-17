@@ -14,7 +14,7 @@ export function RepresentativesPageClient() {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
 
   return (
-    <div className="flex flex-col p-8">
+    <div className="flex flex-col p-4 md:p-8">
       <h1 className="mb-6 text-3xl font-bold">Members of Congress</h1>
       <div className="mb-8">
         <h2 className="mb-3 text-2xl font-bold">My Members of Congress</h2>

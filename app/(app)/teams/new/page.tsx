@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Create a new team" };
 
 export default function NewTeamPage() {
   return (
-    <div className="p-8">
+    <div className="p-4 md:p-8">
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>

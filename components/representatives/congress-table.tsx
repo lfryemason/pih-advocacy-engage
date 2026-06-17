@@ -105,17 +105,15 @@ export function CongressTable({ filters }: { filters: Filters }) {
             <TableBody>
               {representatives.map((rep) => (
                 <TableRow key={rep.id}>
-                  <TableCell className="w-full max-w-0 font-medium">
-                    <div className="flex min-w-0 items-baseline gap-x-1.5">
-                      <Link
-                        href={`/representatives/${rep.bioguide_id}`}
-                        className="min-w-0 truncate underline-offset-4 hover:underline"
-                      >
-                        {rep.official_full_name ??
-                          `${rep.first_name} ${rep.last_name}`}
-                      </Link>
-                      <Pronouns pronouns={rep.pronouns} />
-                    </div>
+                  <TableCell className="w-full whitespace-normal font-medium">
+                    <Link
+                      href={`/representatives/${rep.bioguide_id}`}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {rep.official_full_name ??
+                        `${rep.first_name} ${rep.last_name}`}
+                    </Link>{" "}
+                    <Pronouns pronouns={rep.pronouns} />
                   </TableCell>
                   <TableCell className="text-center">{rep.state}</TableCell>
                   <TableCell className="text-center">{rep.district}</TableCell>

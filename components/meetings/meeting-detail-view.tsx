@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -149,6 +150,27 @@ export function MeetingDetailView({
             <div>
               <p className={SECTION_LABEL_CLASSNAME}>Location</p>
               <p className="mt-1 text-sm">{meeting.location}</p>
+            </div>
+          )}
+          {meeting.congressional_contact_id !== null && (
+            <div>
+              <p className={SECTION_LABEL_CLASSNAME}>Staff Contact</p>
+              <p className="mt-1 text-sm">
+                {meeting.congressional_contact_name}
+              </p>
+            </div>
+          )}
+          {meeting.primary_team_slug && (
+            <div>
+              <p className={SECTION_LABEL_CLASSNAME}>PIH Team</p>
+              <p className="mt-1 text-sm">
+                <Link
+                  href={`/teams/${meeting.primary_team_slug}`}
+                  className={LINK_CN}
+                >
+                  {meeting.primary_team_name}
+                </Link>
+              </p>
             </div>
           )}
           <div>

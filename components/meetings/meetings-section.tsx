@@ -52,13 +52,21 @@ export function MeetingsSection({
                   <span className="sr-only">Actions</span>
                 </TableHead>
                 <TableHead className="w-28">Date</TableHead>
-                <TableHead className="w-24">Time</TableHead>
+                <TableHead className="hidden w-24 md:table-cell">
+                  Time
+                </TableHead>
                 {showRepColumn && (
                   <TableHead className="w-56">Member of Congress</TableHead>
                 )}
-                <TableHead className="w-36">Staff Contact</TableHead>
-                <TableHead className="w-52">PIH Team</TableHead>
-                <TableHead className="w-36">Scheduling Lead</TableHead>
+                <TableHead className="hidden w-36 md:table-cell">
+                  Staff Contact
+                </TableHead>
+                <TableHead className="hidden w-52 md:table-cell">
+                  PIH Team
+                </TableHead>
+                <TableHead className="hidden w-36 md:table-cell">
+                  Scheduling Lead
+                </TableHead>
                 {isPast && (
                   <TableHead className="text-center">Follow-up</TableHead>
                 )}

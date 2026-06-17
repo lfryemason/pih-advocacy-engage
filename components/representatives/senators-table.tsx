@@ -104,17 +104,15 @@ export function SenatorsTable({ filters }: { filters: Filters }) {
             <TableBody>
               {senators.map((senator) => (
                 <TableRow key={senator.id}>
-                  <TableCell className="w-full max-w-0 font-medium">
-                    <div className="flex min-w-0 items-baseline gap-x-1.5">
-                      <Link
-                        href={`/representatives/${senator.bioguide_id}`}
-                        className="min-w-0 truncate underline-offset-4 hover:underline"
-                      >
-                        {senator.official_full_name ??
-                          `${senator.first_name} ${senator.last_name}`}
-                      </Link>
-                      <Pronouns pronouns={senator.pronouns} />
-                    </div>
+                  <TableCell className="w-full whitespace-normal font-medium">
+                    <Link
+                      href={`/representatives/${senator.bioguide_id}`}
+                      className="underline-offset-4 hover:underline"
+                    >
+                      {senator.official_full_name ??
+                        `${senator.first_name} ${senator.last_name}`}
+                    </Link>{" "}
+                    <Pronouns pronouns={senator.pronouns} />
                   </TableCell>
                   <TableCell className="text-center">{senator.state}</TableCell>
                   <TableCell>
