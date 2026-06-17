@@ -78,8 +78,6 @@ async function EditTeamContent({
     currentRole?.role === "super_admin" ||
     (currentRole?.role === "org_admin" && currentRole.org_id === ORG_ID);
 
-  // Only teammates can add a placeholder to this team (enforced server-side
-  // in createPlaceholderTeammate too).
   const isTeamMember =
     currentRole !== null &&
     (rawMemberships ?? []).some((m) => m.user_id === currentRole.user_id);
