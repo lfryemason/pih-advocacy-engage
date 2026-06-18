@@ -25,43 +25,43 @@ function PihLogoIcon({ className }: { className?: string }) {
   );
 }
 
-const RESOURCES: Array<{
-  label: string;
-  href: string;
-  description: string;
-  Icon: ComponentType<{ className?: string }>;
-}> = [
-  {
-    label: "Partners in Health",
-    href: "https://www.pih.org",
-    description:
-      "Our parent organization's main website full of information, stories of current work and the mission statement.",
-    Icon: PihLogoIcon,
-  },
-  {
-    label: "Community Discord",
-    href: process.env.DISCORD_INVITE_URL ?? "",
-    description:
-      "Connect with other PIH advocates, hear about the PIHE news and get real-time support",
-    Icon: DiscordIcon,
-  },
-  {
-    label: "PIH Engage Resources",
-    href: "https://sites.google.com/view/pihengage/home",
-    description:
-      "All the resources you could want as a PIHE member including the fundraising dashboard, advocacy resources and community building guides.",
-    Icon: BookOpen,
-  },
-  {
-    label: "TB Fighter MOC Scoresheet",
-    href: "https://tbfightertofu.github.io/hill_day/moc_list.html",
-    description:
-      "Track how your members of Congress have voted on PIHE priorities - made for TBFighters but still extremely useful for PIHE.",
-    Icon: ListChecks,
-  },
-];
-
 export function ResourceLinks() {
+  const resources: Array<{
+    label: string;
+    href: string;
+    description: string;
+    Icon: ComponentType<{ className?: string }>;
+  }> = [
+    {
+      label: "Partners in Health",
+      href: "https://www.pih.org",
+      description:
+        "Our parent organization's main website full of information, stories of current work and the mission statement.",
+      Icon: PihLogoIcon,
+    },
+    {
+      label: "Community Discord",
+      href: process.env.DISCORD_INVITE_URL ?? "",
+      description:
+        "Connect with other PIH advocates, hear about the PIHE news and get real-time support",
+      Icon: DiscordIcon,
+    },
+    {
+      label: "PIH Engage Resources",
+      href: "https://sites.google.com/view/pihengage/home",
+      description:
+        "All the resources you could want as a PIHE member including the fundraising dashboard, advocacy resources and community building guides.",
+      Icon: BookOpen,
+    },
+    {
+      label: "TB Fighter MOC Scoresheet",
+      href: "https://tbfightertofu.github.io/hill_day/moc_list.html",
+      description:
+        "Track how your members of Congress have voted on PIHE priorities - made for TBFighters but still extremely useful for PIHE.",
+      Icon: ListChecks,
+    },
+  ];
+
   return (
     <section
       aria-labelledby="resources-heading"
@@ -71,7 +71,7 @@ export function ResourceLinks() {
         Resources
       </h2>
       <ul className="grid gap-4 sm:grid-cols-2" role="list">
-        {RESOURCES.map(({ label, href, description, Icon }) => (
+        {resources.map(({ label, href, description, Icon }) => (
           <li key={href}>
             <a
               href={href}

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeAll } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ResourceLinks } from "@/components/homepage/resource-links";
 
@@ -10,6 +10,9 @@ vi.mock("next/image", () => ({
 }));
 
 describe("ResourceLinks", () => {
+  beforeAll(() => {
+    vi.stubEnv("DISCORD_INVITE_URL", "https://discord.gg/pih-advocacy");
+  });
   it("renders the Resources section heading", () => {
     render(<ResourceLinks />);
     expect(
