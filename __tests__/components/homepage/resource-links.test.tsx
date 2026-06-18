@@ -1,6 +1,18 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { ResourceLinks } from "@/components/homepage/resource-links";
+
+vi.mock("next/image", () => ({
+  default: ({
+    src,
+    alt,
+    ...props
+  }: {
+    src: string;
+    alt: string;
+    [key: string]: unknown;
+  }) => <img src={typeof src === "object" ? "" : src} alt={alt} {...props} />,
+}));
 
 describe("ResourceLinks", () => {
   it("renders the Resources section heading", () => {
