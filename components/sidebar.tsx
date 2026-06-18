@@ -149,8 +149,16 @@ export function Sidebar() {
         />
       </nav>
       <div className="mt-auto flex flex-col">
-        <div className="flex justify-center pb-2">
-          <span className="rounded border border-red-800 bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-950">
+        <div
+          className="flex justify-center pb-2"
+          style={{
+            paddingLeft: isCollapsed ? "8px" : "24px",
+            paddingRight: isCollapsed ? "8px" : "24px",
+          }}
+        >
+          <span
+            className={`rounded border border-red-800 bg-red-100 py-0.5 text-sm font-semibold text-red-950 ${isCollapsed ? "px-1.5" : "w-full text-center"}`}
+          >
             Beta
           </span>
         </div>
