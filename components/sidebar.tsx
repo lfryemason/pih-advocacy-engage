@@ -157,7 +157,7 @@ export function Sidebar() {
           }}
         >
           <span
-            className={`rounded border border-red-800 bg-red-100 py-0.5 text-sm font-semibold text-red-950 ${isCollapsed ? "px-1.5" : "w-full text-center"}`}
+            className={`rounded border border-red-800 bg-red-100 py-0.5 text-sm font-semibold text-red-950 dark:border-red-500 dark:bg-red-950 dark:text-red-100 ${isCollapsed ? "px-1.5" : "w-full text-center"}`}
           >
             Beta
           </span>

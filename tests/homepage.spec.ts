@@ -9,13 +9,11 @@ test.beforeEach(resetDatabase);
 test.describe("homepage", () => {
   test("shows beta banner", async ({ page }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
     await expect(page.locator('[aria-label="Beta notice"]')).toBeVisible();
   });
 
   test("shows resources section with all four links", async ({ page }) => {
     await page.goto("/");
-    await page.waitForLoadState("networkidle");
     await expect(
       page.getByRole("heading", { name: /resources/i }),
     ).toBeVisible();
@@ -41,7 +39,7 @@ test.describe("homepage a11y", () => {
         window.localStorage.setItem("theme", t);
       }, theme);
       await page.goto("/");
-      await page.waitForLoadState("networkidle");
+      await expect(page.locator('[aria-label="Beta notice"]')).toBeVisible();
       await page.evaluate((t) => {
         document.documentElement.classList.remove("light", "dark");
         document.documentElement.classList.add(t);

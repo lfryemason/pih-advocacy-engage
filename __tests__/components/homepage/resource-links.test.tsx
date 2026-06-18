@@ -3,15 +3,10 @@ import { render, screen } from "@testing-library/react";
 import { ResourceLinks } from "@/components/homepage/resource-links";
 
 vi.mock("next/image", () => ({
-  default: ({
-    src,
-    alt,
-    ...props
-  }: {
-    src: string;
-    alt: string;
-    [key: string]: unknown;
-  }) => <img src={typeof src === "object" ? "" : src} alt={alt} {...props} />,
+  default: ({ src, alt }: { src: unknown; alt: string }) => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={typeof src === "object" ? "" : (src as string)} alt={alt} />
+  ),
 }));
 
 describe("ResourceLinks", () => {
