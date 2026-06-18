@@ -94,14 +94,14 @@ export function Sidebar() {
     >
       <nav aria-label="Main navigation">
         <div
-          className="flex max-h-[125px] flex-row items-center justify-between gap-6 border-b border-border py-6"
+          className="flex flex-row items-center justify-between gap-6 border-b border-border py-6"
           style={{
             paddingLeft: isCollapsed ? "8px" : "24px",
             paddingRight: isCollapsed ? "8px" : "24px",
           }}
         >
           {!isCollapsed && (
-            <Link href="/" className="">
+            <Link href="/">
               <Image
                 src={logo}
                 alt="PIH Advocacy Engage"
@@ -148,22 +148,29 @@ export function Sidebar() {
           isCollapsed={isCollapsed}
         />
       </nav>
-      <div
-        className={`mt-auto flex gap-2 pb-4 ${isCollapsed ? "flex-col items-center" : "flex-row items-center"}`}
-        style={{
-          paddingLeft: isCollapsed ? "8px" : "24px",
-          paddingRight: isCollapsed ? "8px" : "24px",
-        }}
-      >
-        <button
-          onClick={handleLogout}
-          type="button"
-          className={`flex items-center justify-center gap-2 rounded-md border border-border text-sm transition-colors hover:bg-accent ${isCollapsed ? "w-full p-2" : "flex-1 py-2"}`}
+      <div className="mt-auto flex flex-col">
+        <div className="flex justify-center pb-2">
+          <span className="rounded border border-red-800 bg-red-100 px-1.5 py-0.5 text-sm font-semibold text-red-950">
+            Beta
+          </span>
+        </div>
+        <div
+          className={`flex gap-2 pb-4 ${isCollapsed ? "flex-col items-center" : "flex-row items-center"}`}
+          style={{
+            paddingLeft: isCollapsed ? "8px" : "24px",
+            paddingRight: isCollapsed ? "8px" : "24px",
+          }}
         >
-          <LogOut size={20} />
-          {!isCollapsed && <>Logout</>}
-        </button>
-        <ThemeToggle isCollapsed={isCollapsed} />
+          <button
+            onClick={handleLogout}
+            type="button"
+            className={`flex items-center justify-center gap-2 rounded-md border border-border text-sm transition-colors hover:bg-accent ${isCollapsed ? "w-full p-2" : "flex-1 py-2"}`}
+          >
+            <LogOut size={20} />
+            {!isCollapsed && <>Logout</>}
+          </button>
+          <ThemeToggle isCollapsed={isCollapsed} />
+        </div>
       </div>
     </aside>
   );
