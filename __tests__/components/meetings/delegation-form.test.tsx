@@ -116,7 +116,7 @@ describe("DelegationForm — add member", () => {
         expect.objectContaining({
           user_id: "user-2",
           display_name: "Bob Jones",
-          role: "attendee_listening",
+          role: "attendee",
         }),
       ]),
     );
@@ -147,7 +147,7 @@ describe("DelegationForm — add member", () => {
       expect.arrayContaining([
         expect.objectContaining({
           user_id: "user-2",
-          role: "attendee_listening",
+          role: "attendee",
         }),
       ]),
     );
@@ -199,12 +199,10 @@ describe("DelegationForm — role update", () => {
     const roleSelect = screen.getByRole("combobox", {
       name: /role for alice smith/i,
     });
-    await user.selectOptions(roleSelect, "attendee_talking");
+    await user.selectOptions(roleSelect, "note_taker");
 
     expect(onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({ role: "attendee_talking" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ role: "note_taker" })]),
     );
   });
 });
