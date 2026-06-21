@@ -43,6 +43,34 @@ describe("CongressTable", () => {
     expect(screen.getByText("Loading…")).toBeInTheDocument();
   });
 
+  it("renders the representative's pronouns when present", async () => {
+    server.use(
+      ...representativesHandlers([
+        makeRep({ official_full_name: "Mark Pocan", pronouns: "he/him" }),
+      ]),
+    );
+    render(<CongressTable filters={EMPTY_FILTERS} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mark Pocan")).toBeInTheDocument();
+    });
+    expect(screen.getByText("he/him")).toBeInTheDocument();
+  });
+
+  it("omits pronouns when the representative has none", async () => {
+    server.use(
+      ...representativesHandlers([
+        makeRep({ official_full_name: "Mark Pocan", pronouns: null }),
+      ]),
+    );
+    render(<CongressTable filters={EMPTY_FILTERS} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Mark Pocan")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("he/him")).not.toBeInTheDocument();
+  });
+
   it("renders representatives when data is returned", async () => {
     const reps = [
       makeRep({ official_full_name: "April May" }),

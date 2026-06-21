@@ -20,6 +20,17 @@ test.describe("congress table (e2e)", () => {
     await expect(table.getByText("Miranda Beckwith")).toBeVisible();
   });
 
+  test("shows a representative's pronouns next to their name", async ({
+    page,
+  }) => {
+    const table = page.getByRole("table", {
+      name: "Representatives",
+      exact: true,
+    });
+    await expect(table.getByRole("link", { name: "April May" })).toBeVisible();
+    await expect(table.getByText("she/her")).toBeVisible();
+  });
+
   test("shows State, District and Party columns", async ({ page }) => {
     const table = page.getByRole("table", {
       name: "Representatives",

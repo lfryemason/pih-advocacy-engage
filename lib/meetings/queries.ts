@@ -32,6 +32,7 @@ type RawRow = {
   representatives: {
     bioguide_id: string;
     official_full_name: string | null;
+    pronouns: string | null;
     state: string;
     district: number | null;
     party: string;
@@ -59,6 +60,7 @@ function mapRow(row: RawRow): MeetingRow {
     representative_id: row.representative_id,
     representative_bioguide_id: rep.bioguide_id,
     representative_name: rep.official_full_name ?? "",
+    representative_pronouns: rep.pronouns ?? null,
     representative_state: rep.state,
     representative_district: rep.district,
     representative_party: rep.party,
@@ -89,7 +91,7 @@ const SELECT = `
   primary_team_id,
   follow_up_date,
   champion_score,
-  representatives!inner ( bioguide_id, official_full_name, state, district, party ),
+  representatives!inner ( bioguide_id, official_full_name, pronouns, state, district, party ),
   staffers ( first_name, last_name ),
   teams ( name, slug ),
   meeting_delegation_members ( role, profiles ( first_name, last_name ) )
@@ -272,7 +274,7 @@ const SELECT_DETAIL = `
   notes,
   location,
   links,
-  representatives!inner ( bioguide_id, official_full_name, state, district, party ),
+  representatives!inner ( bioguide_id, official_full_name, pronouns, state, district, party ),
   staffers ( first_name, last_name ),
   teams ( name, slug ),
   meeting_delegation_members ( id, user_id, role, team_id, team_name_snapshot, profiles ( first_name, last_name, pronouns, email ) )

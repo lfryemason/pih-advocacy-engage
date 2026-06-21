@@ -19,14 +19,11 @@ vi.mock("next/navigation", () => ({
 const mockSignUp = vi.mocked(signUpOrClaim);
 
 async function fillRequiredFields() {
-  await userEvent.type(screen.getByLabelText("First Name"), "Alice");
-  await userEvent.type(screen.getByLabelText("Last Name"), "Smith");
-  await userEvent.type(screen.getByLabelText("Email"), "alice@example.com");
-  await userEvent.type(
-    screen.getByLabelText("Password", { exact: true }),
-    "password123",
-  );
-  await userEvent.type(screen.getByLabelText("Repeat Password"), "password123");
+  await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
+  await userEvent.type(screen.getByLabelText(/Last Name/), "Smith");
+  await userEvent.type(screen.getByLabelText(/Email/), "alice@example.com");
+  await userEvent.type(screen.getByLabelText(/^Password/), "password123");
+  await userEvent.type(screen.getByLabelText(/Repeat Password/), "password123");
 }
 
 describe("SignUpForm", () => {
@@ -38,23 +35,30 @@ describe("SignUpForm", () => {
 
   it("renders all profile, credential, and location fields", () => {
     render(<SignUpForm />);
-    expect(screen.getByLabelText("First Name")).toBeInTheDocument();
-    expect(screen.getByLabelText("Last Name")).toBeInTheDocument();
+    expect(screen.getByLabelText(/First Name/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Last Name/)).toBeInTheDocument();
     expect(screen.getByLabelText("Pronouns")).toBeInTheDocument();
-    expect(screen.getByLabelText("Email")).toBeInTheDocument();
-    expect(
-      screen.getByLabelText("Password", { exact: true }),
-    ).toBeInTheDocument();
-    expect(screen.getByLabelText("Repeat Password")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Email/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Password/)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Repeat Password/)).toBeInTheDocument();
     expect(screen.getByLabelText("State")).toBeInTheDocument();
     expect(screen.getByLabelText("Congressional District")).toBeInTheDocument();
   });
 
   it("requires first and last name but not pronouns", () => {
     render(<SignUpForm />);
-    expect(screen.getByLabelText("First Name")).toBeRequired();
-    expect(screen.getByLabelText("Last Name")).toBeRequired();
+    expect(screen.getByLabelText(/First Name/)).toBeRequired();
+    expect(screen.getByLabelText(/Last Name/)).toBeRequired();
     expect(screen.getByLabelText("Pronouns")).not.toBeRequired();
+  });
+
+  it("renders asterisks on the required field labels only", () => {
+    const { container } = render(<SignUpForm />);
+    const markers = container.querySelectorAll(".text-destructive");
+    expect(markers).toHaveLength(5);
+    expect(screen.getByLabelText("Pronouns")).toBeInTheDocument();
+    expect(screen.getByLabelText("State")).toBeInTheDocument();
+    expect(screen.getByLabelText("Congressional District")).toBeInTheDocument();
   });
 
   it("district dropdown is disabled until a state is selected", async () => {
@@ -78,15 +82,12 @@ describe("SignUpForm", () => {
 
   it("shows an error when passwords do not match", async () => {
     render(<SignUpForm />);
-    await userEvent.type(screen.getByLabelText("First Name"), "Alice");
-    await userEvent.type(screen.getByLabelText("Last Name"), "Smith");
-    await userEvent.type(screen.getByLabelText("Email"), "alice@example.com");
+    await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
+    await userEvent.type(screen.getByLabelText(/Last Name/), "Smith");
+    await userEvent.type(screen.getByLabelText(/Email/), "alice@example.com");
+    await userEvent.type(screen.getByLabelText(/^Password/), "password123");
     await userEvent.type(
-      screen.getByLabelText("Password", { exact: true }),
-      "password123",
-    );
-    await userEvent.type(
-      screen.getByLabelText("Repeat Password"),
+      screen.getByLabelText(/Repeat Password/),
       "different123",
     );
     await userEvent.click(screen.getByRole("button", { name: "Sign up" }));

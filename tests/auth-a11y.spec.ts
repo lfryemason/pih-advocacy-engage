@@ -28,7 +28,7 @@ for (const { name, path } of authPages) {
       }, theme);
 
       const results = await new AxeBuilder({ page })
-        .exclude("h1") // primary color (#ff8c00) on white fails contrast — known issue, tracked separately
+        .exclude("h1") // primary color (#F4A42E) on white fails contrast — known issue, tracked separately
         .analyze();
 
       expect(results.violations).toEqual([]);

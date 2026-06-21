@@ -23,6 +23,12 @@ test.describe("senators table (e2e)", () => {
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
+  test("shows a senator's pronouns next to their name", async ({ page }) => {
+    const table = page.getByRole("table", { name: "Senators" });
+    await expect(table.getByRole("link", { name: "John Green" })).toBeVisible();
+    await expect(table.getByText("he/him")).toBeVisible();
+  });
+
   test("state filter shows only senators from that state", async ({ page }) => {
     const table = page.getByRole("table", { name: "Senators" });
     await expect(table.getByRole("link", { name: "Hank Green" })).toBeVisible();
