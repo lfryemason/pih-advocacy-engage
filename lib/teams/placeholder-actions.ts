@@ -6,6 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentRole } from "@/lib/auth/role";
 import { ORG_ID } from "@/lib/org";
 import { validatePlaceholderFields } from "@/lib/teams/placeholder-validate";
+import type { TeamRole } from "@/lib/teams";
 
 export type PlaceholderActionResult =
   | { ok: true; userId: string }
@@ -27,20 +28,20 @@ export async function createPlaceholderTeammate(input: {
   pronouns?: string;
   state?: string;
   district?: string;
-  role?: string;
+  role?: TeamRole;
 }): Promise<PlaceholderActionResult> {
   const callerRole = await getCurrentRole();
   if (!callerRole || callerRole.org_id !== ORG_ID) {
     return { ok: false, error: "You must be an organization member." };
   }
 
-  const email = input.email.trim();
+  const email = input.email.trim().toLowerCase();
   const firstName = input.firstName?.trim() ?? "";
   const lastName = input.lastName?.trim() ?? "";
   const pronouns = input.pronouns?.trim() ?? "";
   const state = input.state?.trim() ?? "";
   const district = input.district?.trim() ?? "";
-  const role = input.role ?? "member";
+  const role: TeamRole = input.role ?? "member";
 
   const validationError = validatePlaceholderFields(
     email,
@@ -50,26 +51,30 @@ export async function createPlaceholderTeammate(input: {
   );
   if (validationError) return { ok: false, error: validationError };
 
-  // Verify the team belongs to this org via the caller's RLS-scoped client —
-  // blocks arbitrary/cross-org teamIds before any admin operation.
-  const supabase = await createClient();
-  const { data: team } = await supabase
-    .from("teams")
-    .select("id, slug")
-    .eq("id", input.teamId)
-    .eq("org_id", ORG_ID)
-    .maybeSingle();
-  if (!team) return { ok: false, error: "Team not found." };
+  const isAdmin =
+    callerRole.role === "org_admin" || callerRole.role === "super_admin";
 
-  // Only teammates can add a placeholder to their team.
-  const { data: callerMembership } = await supabase
-    .from("team_memberships")
-    .select("team_id")
-    .eq("team_id", team.id)
-    .eq("user_id", callerRole.user_id)
-    .limit(1)
-    .maybeSingle();
-  if (!callerMembership) {
+  // Both checks run through the caller's RLS-scoped client (which blocks
+  // cross-org teamIds) and are independent, so issue them together.
+  const supabase = await createClient();
+  const [{ data: team }, { data: callerMembership }] = await Promise.all([
+    supabase
+      .from("teams")
+      .select("id, slug")
+      .eq("id", input.teamId)
+      .eq("org_id", ORG_ID)
+      .maybeSingle(),
+    supabase
+      .from("team_memberships")
+      .select("team_id")
+      .eq("team_id", input.teamId)
+      .eq("user_id", callerRole.user_id)
+      .limit(1)
+      .maybeSingle(),
+  ]);
+  if (!team) return { ok: false, error: "Team not found." };
+  // Org admins can add to any team; everyone else must be on it.
+  if (!isAdmin && !callerMembership) {
     return {
       ok: false,
       error: "Only members of this team can add a teammate.",
@@ -144,6 +149,34 @@ export async function updatePlaceholderTeammate(input: {
   const lastName = input.lastName?.trim() ?? "";
   if (!firstName && !lastName) {
     return { ok: false, error: "A first or last name is required." };
+  }
+
+  // Same gate as creating a placeholder: org admins may edit any team's
+  // placeholders; everyone else must be a member of the team.
+  const isAdmin =
+    callerRole.role === "org_admin" || callerRole.role === "super_admin";
+  if (!isAdmin) {
+    const supabase = await createClient();
+    const { data: team } = await supabase
+      .from("teams")
+      .select("id")
+      .eq("slug", input.teamSlug)
+      .eq("org_id", ORG_ID)
+      .maybeSingle();
+    if (!team) return { ok: false, error: "Team not found." };
+    const { data: membership } = await supabase
+      .from("team_memberships")
+      .select("team_id")
+      .eq("team_id", team.id)
+      .eq("user_id", callerRole.user_id)
+      .limit(1)
+      .maybeSingle();
+    if (!membership) {
+      return {
+        ok: false,
+        error: "Only members of this team can edit a teammate.",
+      };
+    }
   }
 
   const admin = createAdminClient();

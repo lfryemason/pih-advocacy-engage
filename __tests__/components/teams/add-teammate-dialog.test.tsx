@@ -53,7 +53,7 @@ describe("AddTeammateDialog (create)", () => {
     expect(
       screen.getByRole("dialog", { name: "Add teammate" }),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("Email")).toBeInTheDocument();
+    expect(screen.getByLabelText(/Email/)).toBeInTheDocument();
     expect(screen.getByLabelText("Team Role")).toBeInTheDocument();
   });
 
@@ -62,7 +62,7 @@ describe("AddTeammateDialog (create)", () => {
     render(<AddTeammateDialog teamId="team-1" teamSlug="my-team" />);
 
     await user.click(screen.getByRole("button", { name: /add teammate/i }));
-    await user.type(screen.getByLabelText("Email"), "new@example.com");
+    await user.type(screen.getByLabelText(/Email/), "new@example.com");
     await user.click(screen.getByRole("button", { name: "Add teammate" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
@@ -77,7 +77,7 @@ describe("AddTeammateDialog (create)", () => {
     render(<AddTeammateDialog teamId="team-1" teamSlug="my-team" />);
 
     await user.click(screen.getByRole("button", { name: /add teammate/i }));
-    await user.type(screen.getByLabelText("Email"), "new@example.com");
+    await user.type(screen.getByLabelText(/Email/), "new@example.com");
     await user.type(screen.getByLabelText("First Name"), "Jordan");
     await user.type(screen.getByLabelText("Last Name"), "Rivera");
     await user.selectOptions(screen.getByLabelText("State"), "WA");
@@ -114,7 +114,7 @@ describe("AddTeammateDialog (create)", () => {
     render(<AddTeammateDialog teamId="team-1" teamSlug="my-team" />);
 
     await user.click(screen.getByRole("button", { name: /add teammate/i }));
-    await user.type(screen.getByLabelText("Email"), "taken@example.com");
+    await user.type(screen.getByLabelText(/Email/), "taken@example.com");
     await user.type(screen.getByLabelText("First Name"), "Jordan");
     await user.click(screen.getByRole("button", { name: "Add teammate" }));
 
@@ -157,7 +157,7 @@ describe("AddTeammateDialog (edit)", () => {
       screen.getByRole("dialog", { name: "Edit teammate" }),
     ).toBeInTheDocument();
 
-    const emailInput = await screen.findByLabelText("Email");
+    const emailInput = await screen.findByLabelText(/Email/);
     await waitFor(() => expect(emailInput).toHaveValue("pending@example.com"));
     expect(emailInput).toBeDisabled();
     expect(screen.getByLabelText("First Name")).toHaveValue("Sam");

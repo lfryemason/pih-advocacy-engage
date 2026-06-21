@@ -7,7 +7,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-/** Marks a placeholder teammate who hasn't claimed their account yet. */
 export function PendingBadge() {
   return (
     <Tooltip>

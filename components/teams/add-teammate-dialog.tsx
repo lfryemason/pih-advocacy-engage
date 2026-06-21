@@ -9,7 +9,7 @@ import {
   updatePlaceholderTeammate,
 } from "@/lib/teams/placeholder-actions";
 import { validatePlaceholderFields } from "@/lib/teams/placeholder-validate";
-import { ROLE_OPTIONS } from "@/lib/teams";
+import { ROLE_OPTIONS, type TeamRole } from "@/lib/teams";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -49,7 +49,7 @@ export function AddTeammateDialog({
   const [pronouns, setPronouns] = useState("");
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
-  const [role, setRole] = useState("member");
+  const [role, setRole] = useState<TeamRole>("member");
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
@@ -99,8 +99,10 @@ export function AddTeammateDialog({
   };
 
   const handleOpenChange = (next: boolean) => {
-    setOpen(next);
+    // Reset before closing so the form doesn't flash stale values during the
+    // dialog's exit transition.
     if (!next) resetForm();
+    setOpen(next);
   };
 
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -187,7 +189,12 @@ export function AddTeammateDialog({
         <form onSubmit={handleSubmit}>
           <div className="flex flex-col gap-4">
             <div className="grid gap-2">
-              <Label htmlFor={`${idPrefix}-email`}>Email</Label>
+              <Label htmlFor={`${idPrefix}-email`}>
+                Email
+                <span aria-hidden="true" className="text-destructive">
+                  *
+                </span>
+              </Label>
               <Input
                 id={`${idPrefix}-email`}
                 type="email"
@@ -271,7 +278,7 @@ export function AddTeammateDialog({
                 <Select
                   id={`${idPrefix}-role`}
                   value={role}
-                  onChange={(e) => setRole(e.target.value)}
+                  onChange={(e) => setRole(e.target.value as TeamRole)}
                 >
                   {ROLE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>

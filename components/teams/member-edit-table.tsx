@@ -22,22 +22,31 @@ import { ROLE_OPTIONS, type MembershipWithProfile } from "@/lib/teams";
 import { AddTeammateDialog } from "@/components/teams/add-teammate-dialog";
 import { PendingBadge } from "@/components/teams/pending-badge";
 import { deletePlaceholderTeammate } from "@/lib/teams/placeholder-actions";
+import { ORG_ID } from "@/lib/org";
+import type { CurrentRole } from "@/lib/auth/role";
 import { Info, Trash2, X } from "lucide-react";
 
 export function MemberEditTable({
   memberships,
   teamId,
   teamSlug,
-  canAddTeammate = false,
-  canDeletePlaceholders = false,
+  currentRole,
 }: {
   memberships: MembershipWithProfile[];
   teamId: string;
   teamSlug: string;
-  canAddTeammate?: boolean;
-  canDeletePlaceholders?: boolean;
+  currentRole: CurrentRole | null;
 }) {
   const router = useRouter();
+  const isAdmin =
+    currentRole?.role === "super_admin" ||
+    (currentRole?.role === "org_admin" && currentRole.org_id === ORG_ID);
+  const isTeamMember =
+    currentRole !== null &&
+    memberships.some((m) => m.user_id === currentRole.user_id);
+  // Org admins can manage any team; everyone else only their own.
+  const canAddTeammate = isTeamMember || isAdmin;
+  const canDeletePlaceholders = isAdmin;
   const [changing, setChanging] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);

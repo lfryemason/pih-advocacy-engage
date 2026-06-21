@@ -10,16 +10,18 @@ export const TYPE_BADGE_CLASS: Record<string, string> = {
   university: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
 };
 
-export const ROLE_LABELS: Record<string, string> = {
+export const ROLE_LABELS = {
   member: "Member",
   team_coordinator: "Team Coordinator",
   advocacy_lead: "Advocacy Lead",
   community_building_lead: "Community Building Lead",
   fundraising_lead: "Fundraising Lead",
   coach: "Coach",
-};
+} as const;
 
-const ALL_ROLE_KEYS = Object.keys(ROLE_LABELS);
+export type TeamRole = keyof typeof ROLE_LABELS;
+
+const ALL_ROLE_KEYS = Object.keys(ROLE_LABELS) as TeamRole[];
 
 export const LEAD_ROLES = ALL_ROLE_KEYS.filter((r) => r !== "member");
 

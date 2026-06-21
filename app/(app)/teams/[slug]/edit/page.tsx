@@ -74,14 +74,6 @@ async function EditTeamContent({
     getCurrentRole(),
   ]);
 
-  const canDeletePlaceholders =
-    currentRole?.role === "super_admin" ||
-    (currentRole?.role === "org_admin" && currentRole.org_id === ORG_ID);
-
-  const isTeamMember =
-    currentRole !== null &&
-    (rawMemberships ?? []).some((m) => m.user_id === currentRole.user_id);
-
   const memberships: MembershipWithProfile[] = (rawMemberships ?? []).map(
     (m) => ({
       role: m.role,
@@ -114,8 +106,7 @@ async function EditTeamContent({
           memberships={memberships}
           teamId={team.id}
           teamSlug={team.slug}
-          canAddTeammate={isTeamMember}
-          canDeletePlaceholders={canDeletePlaceholders}
+          currentRole={currentRole}
         />
       </div>
     </>

@@ -45,6 +45,12 @@ export async function signUpOrClaim(input: {
     return { ok: false, error: "Something went wrong. Please try again." };
   }
 
+  // Real/claimed account (not a placeholder): neutral no-op so the response
+  // never reveals the account exists.
+  if (profile && !profile.is_placeholder) {
+    return { ok: true };
+  }
+
   const supabase = await createClient();
 
   if (profile?.is_placeholder) {
@@ -86,11 +92,6 @@ export async function signUpOrClaim(input: {
       await supabase.auth.resend({ type: "signup", email });
       return { ok: true };
     }
-    return { ok: true };
-  }
-
-  if (profile) {
-    // Already-claimed/real account: do nothing, same neutral response.
     return { ok: true };
   }
 
