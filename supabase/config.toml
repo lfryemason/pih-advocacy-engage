@@ -216,15 +216,16 @@ otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
 
-# Use a production-ready SMTP server
+# SMTP is configured in the hosted Supabase dashboard (Authentication → SMTP Settings),
+# not here. Local dev uses the Inbucket catcher at port 54324.
 # [auth.email.smtp]
 # enabled = true
-# host = "smtp.sendgrid.net"
+# host = "email-smtp.us-east-1.amazonaws.com"
 # port = 587
-# user = "apikey"
-# pass = "env(SENDGRID_API_KEY)"
-# admin_email = "admin@email.com"
-# sender_name = "Admin"
+# user = "env(SES_SMTP_USER)"
+# pass = "env(SES_SMTP_PASSWORD)"
+# admin_email = "no-reply@pihengage.org"
+# sender_name = "PIH Engage"
 
 # Uncomment to customize email template
 # [auth.email.template.invite]
