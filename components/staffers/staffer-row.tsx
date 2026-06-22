@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Phone, MapPin, Settings } from "lucide-react";
+import { Mail, Phone, MapPin, Pencil } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkBreaks from "remark-breaks";
 import remarkGfm from "remark-gfm";
@@ -128,7 +128,7 @@ export function StafferRow({
             disabled={isDeleting}
             aria-label="Edit staffer"
           >
-            <Settings />
+            <Pencil />
           </Button>
           {canDelete && (
             <Button
