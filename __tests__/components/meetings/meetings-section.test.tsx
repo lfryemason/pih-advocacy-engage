@@ -23,6 +23,7 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
     primary_team_name: null,
     primary_team_slug: null,
     scheduling_lead_name: null,
+    location: null,
     follow_up_date: null,
     champion_score: null,
     ...overrides,
@@ -143,7 +144,8 @@ describe("MeetingsSection", () => {
         {...sectionProps(meetings)}
       />,
     );
-    expect(screen.getByText("Jun 1, 2099")).toBeInTheDocument();
+    // Rendered in the desktop Date column and again in the mobile meta stack.
+    expect(screen.getAllByText("Jun 1, 2099").length).toBeGreaterThan(0);
   });
 
   it("displays time text in the time column when set", () => {
@@ -157,7 +159,8 @@ describe("MeetingsSection", () => {
         {...sectionProps(meetings)}
       />,
     );
-    expect(screen.getByText(/2:00 PM/)).toBeInTheDocument();
+    // Rendered in the desktop Time column and again in the mobile meta stack.
+    expect(screen.getAllByText(/2:00 PM/).length).toBeGreaterThan(0);
   });
 
   it("renders a Time column header", () => {

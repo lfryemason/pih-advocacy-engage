@@ -47,7 +47,7 @@ export function MeetingsSection({
           <Table>
             <caption className="sr-only">{title}</caption>
             <TableHeader>
-              <TableRow>
+              <TableRow className="hidden md:table-row">
                 <TableHead className="w-10">
                   <span className="sr-only">Actions</span>
                 </TableHead>
@@ -55,14 +55,14 @@ export function MeetingsSection({
                 <TableHead className="hidden w-24 md:table-cell">
                   Time
                 </TableHead>
+                <TableHead className="hidden w-44 md:table-cell">
+                  Location
+                </TableHead>
                 {showRepColumn && (
                   <TableHead className="w-56">Member of Congress</TableHead>
                 )}
                 <TableHead className="hidden w-36 md:table-cell">
                   Staff Contact
-                </TableHead>
-                <TableHead className="hidden w-52 md:table-cell">
-                  PIH Team
                 </TableHead>
                 <TableHead className="hidden w-36 md:table-cell">
                   Scheduling Lead

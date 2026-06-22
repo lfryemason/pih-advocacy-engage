@@ -2,13 +2,55 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, CircleCheckBig } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  CircleCheckBig,
+  MapPin,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
 import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
 import { Pronouns } from "@/components/pronouns";
+
+// Below the `md` breakpoint the table columns collapse, so surface the
+// at-a-glance details (date/time/location) inline beneath the primary cell
+// instead of forcing the row open. `includeDate` is false when the date is
+// already shown in its own cell (rep detail view, where there is no rep cell).
+function MeetingMetaMobile({
+  meeting,
+  includeDate,
+}: {
+  meeting: MeetingRowType;
+  includeDate: boolean;
+}) {
+  const time = meeting.meeting_time
+    ? formatTime(
+        meeting.meeting_date,
+        meeting.meeting_time,
+        meeting.meeting_timezone,
+      )
+    : null;
+  const primary = [includeDate ? formatDate(meeting.meeting_date) : null, time]
+    .filter(Boolean)
+    .join(" · ");
+
+  if (!primary && !meeting.location) return null;
+
+  return (
+    <div className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground md:hidden">
+      {primary && <span>{primary}</span>}
+      {meeting.location && (
+        <span className="flex min-w-0 items-center gap-1">
+          <MapPin aria-hidden="true" className="h-3 w-3 shrink-0" />
+          <span className="min-w-0 truncate">{meeting.location}</span>
+        </span>
+      )}
+    </div>
+  );
+}
 
 export function MeetingRow({
   meeting,
@@ -33,7 +75,7 @@ export function MeetingRow({
         className={`cursor-pointer hover:bg-accent ${isExpanded ? "bg-accent" : ""}`}
         onClick={toggle}
       >
-        <TableCell>
+        <TableCell className="align-top md:align-middle">
           <Button
             variant="ghost"
             size="icon"
@@ -52,7 +94,16 @@ export function MeetingRow({
             )}
           </Button>
         </TableCell>
-        <TableCell>{formatDate(meeting.meeting_date)}</TableCell>
+        <TableCell
+          className={
+            showRepColumn ? "hidden md:table-cell" : "align-top md:align-middle"
+          }
+        >
+          {formatDate(meeting.meeting_date)}
+          {!showRepColumn && (
+            <MeetingMetaMobile meeting={meeting} includeDate={false} />
+          )}
+        </TableCell>
         <TableCell className="hidden md:table-cell">
           {meeting.meeting_time
             ? formatTime(
@@ -62,9 +113,12 @@ export function MeetingRow({
               )
             : "—"}
         </TableCell>
+        <TableCell className="hidden max-w-0 truncate md:table-cell">
+          {meeting.location ?? "—"}
+        </TableCell>
         {showRepColumn && (
-          <TableCell className="max-w-0">
-            <div className="truncate">
+          <TableCell className="align-top md:max-w-0 md:align-middle">
+            <div className="whitespace-normal md:truncate">
               <Link
                 href={`/representatives/${meeting.representative_bioguide_id}`}
                 className={LINK_CN}
@@ -77,6 +131,7 @@ export function MeetingRow({
               {meeting.representative_state} (
               {meeting.representative_party[0] ?? "?"})
             </div>
+            <MeetingMetaMobile meeting={meeting} includeDate />
           </TableCell>
         )}
         <TableCell className="hidden max-w-0 truncate md:table-cell">
@@ -88,19 +143,6 @@ export function MeetingRow({
             </em>
           ) : (
             meeting.congressional_contact_name
-          )}
-        </TableCell>
-        <TableCell className="hidden max-w-0 md:table-cell">
-          {meeting.primary_team_slug ? (
-            <Link
-              href={`/teams/${meeting.primary_team_slug}`}
-              className={`block truncate ${LINK_CN}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {meeting.primary_team_name}
-            </Link>
-          ) : (
-            "—"
           )}
         </TableCell>
         <TableCell className="hidden max-w-0 truncate md:table-cell">

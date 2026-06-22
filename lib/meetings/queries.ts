@@ -27,6 +27,7 @@ type RawRow = {
   representative_id: string;
   congressional_contact_id: string | null;
   primary_team_id: string | null;
+  location: string | null;
   follow_up_date: string | null;
   champion_score: number | null;
   representatives: {
@@ -76,6 +77,7 @@ function mapRow(row: RawRow): MeetingRow {
           .filter(Boolean)
           .join(" ") || null
       : null,
+    location: row.location,
     follow_up_date: row.follow_up_date,
     champion_score: row.champion_score,
   };
@@ -89,6 +91,7 @@ const SELECT = `
   representative_id,
   congressional_contact_id,
   primary_team_id,
+  location,
   follow_up_date,
   champion_score,
   representatives!inner ( bioguide_id, official_full_name, pronouns, state, district, party ),
@@ -256,7 +259,6 @@ type RawDetailDelegationMember = {
 
 type RawDetailRow = Omit<RawRow, "meeting_delegation_members"> & {
   notes: string | null;
-  location: string | null;
   links: MeetingLink[] | null;
   meeting_delegation_members: RawDetailDelegationMember[];
 };
@@ -320,7 +322,6 @@ export async function fetchMeetingDetail(
   return {
     ...mapRow(row),
     notes: row.notes,
-    location: row.location,
     links: row.links ?? [],
     delegation_members,
     represented_teams,
