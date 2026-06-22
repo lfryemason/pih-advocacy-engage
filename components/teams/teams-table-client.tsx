@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { TYPE_BADGE_CLASS } from "@/lib/teams";
@@ -25,6 +26,7 @@ export type TeamTableRow = {
 };
 
 export function TeamsTableClient({ teams }: { teams: TeamTableRow[] }) {
+  const router = useRouter();
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
@@ -64,11 +66,15 @@ export function TeamsTableClient({ teams }: { teams: TeamTableRow[] }) {
               </TableRow>
             ) : (
               filtered.map((team) => (
-                <TableRow key={team.slug} className="relative">
+                <TableRow
+                  key={team.slug}
+                  className="cursor-pointer"
+                  onClick={() => router.push(`/teams/${team.slug}`)}
+                >
                   <TableCell className="font-medium">
                     <Link
                       href={`/teams/${team.slug}`}
-                      className="after:absolute after:inset-0"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       {team.name}
                     </Link>
