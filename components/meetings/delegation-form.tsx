@@ -64,8 +64,7 @@ export function DelegationForm({
   const [pendingTeam, setPendingTeam] = useState<ProfileTeam | undefined>(
     undefined,
   );
-  const [pendingRole, setPendingRole] =
-    useState<DelegationRole>("attendee_listening");
+  const [pendingRole, setPendingRole] = useState<DelegationRole>("attendee");
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const supabaseRef = useRef(createClient());
 

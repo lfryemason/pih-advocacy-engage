@@ -163,17 +163,17 @@ export function MeetingDetailView({
                     .map((m) => <DelegationMemberRow key={m.id} member={m} />),
                 )}
                 {(() => {
-                  const pihMembers = meeting.delegation_members.filter(
-                    (m) => m.role === "pih_team_member",
+                  const expertMembers = meeting.delegation_members.filter(
+                    (m) => m.role === "expert",
                   );
-                  if (pihMembers.length === 0) return null;
+                  if (expertMembers.length === 0) return null;
                   return (
                     <div className="flex flex-col gap-1">
                       <span className="text-sm text-muted-foreground">
-                        PIH Team Member
+                        Expert
                       </span>
                       <div className="flex flex-wrap gap-1.5">
-                        {pihMembers.map((m) => (
+                        {expertMembers.map((m) => (
                           <MemberAvatar key={m.id} member={m} />
                         ))}
                       </div>

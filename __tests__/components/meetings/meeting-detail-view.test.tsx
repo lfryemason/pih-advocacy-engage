@@ -194,7 +194,7 @@ describe("MeetingDetailView — delegation", () => {
               last_name: "Jones",
               display_name: "Bob Jones",
               email: null,
-              role: "attendee_talking",
+              role: "attendee",
               pronouns: null,
               team_id: null,
               team_name_snapshot: null,
@@ -205,10 +205,10 @@ describe("MeetingDetailView — delegation", () => {
       />,
     );
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
-    expect(screen.getByText(/Scheduling Lead/i)).toBeInTheDocument();
-    // attendee_talking renders as a labeled avatar button, not visible text
+    expect(screen.getByText(/Scheduler/i)).toBeInTheDocument();
+    // an attendee renders as a labeled avatar button, not visible text
     expect(
-      screen.getByRole("button", { name: /Bob Jones.*Attendee \(Talking\)/i }),
+      screen.getByRole("button", { name: /Bob Jones.*Attendee/i }),
     ).toBeInTheDocument();
   });
 
@@ -249,7 +249,7 @@ describe("MeetingDetailView — delegation", () => {
               last_name: "Jones",
               display_name: "Bob Jones",
               email: "bob@example.com",
-              role: "attendee_talking",
+              role: "attendee",
               pronouns: null,
               team_id: null,
               team_name_snapshot: null,

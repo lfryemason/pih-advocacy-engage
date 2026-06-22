@@ -58,7 +58,7 @@ export function MeetingsSection({
                 )}
                 <TableHead className="w-36">Staff Contact</TableHead>
                 <TableHead className="w-52">PIH Team</TableHead>
-                <TableHead className="w-36">Scheduling Lead</TableHead>
+                <TableHead className="w-36">Scheduler/Follow-up</TableHead>
                 {isPast && (
                   <TableHead className="text-center">Follow-up</TableHead>
                 )}

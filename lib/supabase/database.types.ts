@@ -475,11 +475,13 @@ export type Database = {
     Enums: {
       app_role: "member" | "org_admin" | "super_admin";
       delegation_role:
+        | "meeting_facilitator"
+        | "note_taker"
+        | "storyteller"
+        | "photographer"
         | "scheduling_lead"
-        | "attendee_talking"
-        | "attendee_listening"
-        | "pih_team_member"
-        | "note_taker";
+        | "expert"
+        | "attendee";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -615,11 +617,13 @@ export const Constants = {
     Enums: {
       app_role: ["member", "org_admin", "super_admin"],
       delegation_role: [
-        "scheduling_lead",
-        "attendee_talking",
-        "attendee_listening",
-        "pih_team_member",
+        "meeting_facilitator",
         "note_taker",
+        "storyteller",
+        "photographer",
+        "scheduling_lead",
+        "expert",
+        "attendee",
       ],
     },
   },
