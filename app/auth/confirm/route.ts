@@ -10,7 +10,12 @@ export async function GET(request: NextRequest) {
   const rawNext = searchParams.get("next") ?? "/";
   // Only allow relative paths to prevent open redirect.
   const next =
-    rawNext.startsWith("/") && !rawNext.startsWith("//") ? rawNext : "/";
+    rawNext.startsWith("/") &&
+    !rawNext.startsWith("//") &&
+    !rawNext.includes("\\") &&
+    !/[\r\n]/.test(rawNext)
+      ? rawNext
+      : "/";
 
   if (token_hash && type) {
     const supabase = await createClient();
