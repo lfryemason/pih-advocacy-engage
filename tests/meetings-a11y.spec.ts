@@ -77,6 +77,7 @@ for (const theme of themes) {
       .first()
       .click();
     await page.getByRole("button", { name: /Edit Meeting/i }).click();
+    await page.getByRole("button", { name: /Add member/i }).click();
     await expect(
       page.getByRole("combobox", { name: /search members/i }),
     ).toBeVisible();

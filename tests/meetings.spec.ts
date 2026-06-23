@@ -325,7 +325,7 @@ test.describe("US4 — Delegation members", () => {
   async function addMemberViaForm(page: Page, name: string) {
     await page.getByRole("button", { name: /add member/i }).click();
     const searchInputs = page.getByPlaceholder("Search by name…");
-    await searchInputs.last().fill(name);
+    await searchInputs.last().fill(name.split(" ")[0]);
     const result = page.getByText(name);
     await expect(result).toBeVisible();
     await result.click();

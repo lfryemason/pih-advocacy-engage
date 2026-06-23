@@ -19,6 +19,11 @@ async function setTheme(page: Page, theme: Theme) {
 for (const theme of themes) {
   test.describe(`sidebar (${theme})`, () => {
     test.beforeEach(async ({ page }) => {
+      // Pre-seed localStorage so next-themes applies the correct class on first
+      // mount instead of racing with our post-load classList manipulation.
+      await page.addInitScript((t) => {
+        localStorage.setItem("theme", t);
+      }, theme);
       await page.goto("/");
       await page.waitForLoadState("load");
       await setTheme(page, theme);
