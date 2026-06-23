@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import { ORG_ID } from "@/lib/org";
+import { getCurrentRole } from "@/lib/auth/role";
 import { TeamPageClient } from "@/components/teams/team-page-client";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
@@ -38,7 +39,7 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();
 
-  const [{ data: team }, { data: authData }] = await Promise.all([
+  const [{ data: team }, { data: authData }, role] = await Promise.all([
     supabase
       .from("teams")
       .select(
@@ -48,7 +49,12 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
       .eq("slug", slug)
       .single(),
     supabase.auth.getUser(),
+    getCurrentRole(),
   ]);
+
+  const isOrgAdmin =
+    role?.role === "super_admin" ||
+    (role?.role === "org_admin" && role.org_id === ORG_ID);
 
   if (!team) redirect("/teams");
 
@@ -103,6 +109,7 @@ async function TeamContent({ params }: { params: Promise<{ slug: string }> }) {
       memberships={memberships}
       orgId={ORG_ID}
       currentUserId={authData.user?.id ?? null}
+      isOrgAdmin={isOrgAdmin}
       meetingCounts={meetingCounts}
     />
   );

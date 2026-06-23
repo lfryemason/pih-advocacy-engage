@@ -130,7 +130,7 @@ function MeetingsTable({
                   <TableHead>Date</TableHead>
                   <TableHead>Member of Congress</TableHead>
                   <TableHead>Staff Member</TableHead>
-                  <TableHead>Scheduling Lead</TableHead>
+                  <TableHead>Scheduler/Follow-up</TableHead>
                   {isPast && (
                     <TableHead className="text-center">
                       Follow-up Email

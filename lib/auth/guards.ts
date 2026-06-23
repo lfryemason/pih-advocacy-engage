@@ -33,3 +33,10 @@ export async function requireOrgAdmin(orgId: string): Promise<CurrentRole> {
   }
   return current;
 }
+
+export async function getIsAdmin(orgId: string): Promise<boolean> {
+  const current = await getCurrentRole();
+  if (!current) return false;
+  if (current.role === "super_admin") return true;
+  return current.role === "org_admin" && current.org_id === orgId;
+}

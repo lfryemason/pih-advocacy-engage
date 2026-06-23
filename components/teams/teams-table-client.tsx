@@ -24,6 +24,19 @@ export type TeamTableRow = {
   members: number;
 };
 
+// An invisible, non-focusable link that fills its (relatively positioned) cell
+// so the whole row is clickable with a real anchor. Anchoring to the cell — not
+// the row — is deliberate: Safari/WebKit doesn't treat a `<tr>` as a containing
+// block for absolutely positioned children, so `inset-0` on a `<tr>` escapes the
+// row. Cells position correctly across browsers. `aria-hidden` + `tabIndex={-1}`
+// keep it out of the accessibility tree and tab order, so screen readers and
+// keyboard users see exactly one link per row (the team name in the first cell).
+function RowLinkOverlay({ href }: { href: string }) {
+  return (
+    <Link href={href} aria-hidden tabIndex={-1} className="absolute inset-0" />
+  );
+}
+
 export function TeamsTableClient({ teams }: { teams: TeamTableRow[] }) {
   const [search, setSearch] = useState("");
 
@@ -63,29 +76,42 @@ export function TeamsTableClient({ teams }: { teams: TeamTableRow[] }) {
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((team) => (
-                <TableRow key={team.slug} className="relative">
-                  <TableCell className="font-medium">
-                    <Link
-                      href={`/teams/${team.slug}`}
-                      className="after:absolute after:inset-0"
-                    >
-                      {team.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={TYPE_BADGE_CLASS[team.type] ?? ""}
-                    >
-                      {team.typeLabel}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{team.state}</TableCell>
-                  <TableCell>{team.leads}</TableCell>
-                  <TableCell>{team.members}</TableCell>
-                </TableRow>
-              ))
+              filtered.map((team) => {
+                const href = `/teams/${team.slug}`;
+                return (
+                  <TableRow key={team.slug}>
+                    <TableCell className="relative font-medium">
+                      <Link
+                        href={href}
+                        className="after:absolute after:inset-0"
+                      >
+                        {team.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell className="relative">
+                      <Badge
+                        variant="outline"
+                        className={TYPE_BADGE_CLASS[team.type] ?? ""}
+                      >
+                        {team.typeLabel}
+                      </Badge>
+                      <RowLinkOverlay href={href} />
+                    </TableCell>
+                    <TableCell className="relative">
+                      {team.state}
+                      <RowLinkOverlay href={href} />
+                    </TableCell>
+                    <TableCell className="relative">
+                      {team.leads}
+                      <RowLinkOverlay href={href} />
+                    </TableCell>
+                    <TableCell className="relative">
+                      {team.members}
+                      <RowLinkOverlay href={href} />
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>

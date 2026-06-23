@@ -51,11 +51,7 @@ describe("DelegationForm — member list display", () => {
 
   it("shows initial members in the list", () => {
     render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[makeMember()]}
-        onChange={vi.fn()}
-      />,
+      <DelegationForm initialMembers={[makeMember()]} onChange={vi.fn()} />,
     );
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
   });
@@ -63,7 +59,6 @@ describe("DelegationForm — member list display", () => {
   it("shows role label for each member", () => {
     render(
       <DelegationForm
-        meetingId="meeting-1"
         initialMembers={[makeMember({ role: "scheduling_lead" })]}
         onChange={vi.fn()}
       />,
@@ -89,68 +84,51 @@ describe("DelegationForm — add member", () => {
     ]);
   });
 
-  it("adds a member after selecting a search result and clicking add", async () => {
+  it("shows a new search row when Add member is clicked", async () => {
+    const user = userEvent.setup();
+    render(<DelegationForm initialMembers={[]} onChange={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /add member/i }));
+
+    expect(screen.getByPlaceholderText("Search by name…")).toBeInTheDocument();
+  });
+
+  it("calls onChange with the member after selecting from search results", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[]}
-        onChange={onChange}
-      />,
-    );
+    render(<DelegationForm initialMembers={[]} onChange={onChange} />);
 
-    await user.type(
-      screen.getByPlaceholderText("Search by name to add…"),
-      "Bob",
-    );
+    await user.click(screen.getByRole("button", { name: /add member/i }));
+    await user.type(screen.getByPlaceholderText("Search by name…"), "Bob");
     await screen.findByText("Bob Jones");
     await user.click(screen.getByText("Bob Jones"));
-    await user.click(
-      screen.getByRole("button", { name: /add to delegation/i }),
-    );
 
-    expect(screen.getByText("Bob Jones")).toBeInTheDocument();
     expect(onChange).toHaveBeenCalledWith(
       expect.arrayContaining([
         expect.objectContaining({
           user_id: "user-2",
           display_name: "Bob Jones",
-          role: "attendee_listening",
+          role: "attendee",
         }),
       ]),
     );
   });
 
-  it("adds member via plus button after selecting a search result", async () => {
+  it("removes a pending row when its remove button is clicked", async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
-    render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[]}
-        onChange={onChange}
-      />,
-    );
+    render(<DelegationForm initialMembers={[]} onChange={onChange} />);
 
-    await user.type(
-      screen.getByPlaceholderText("Search by name to add…"),
-      "Bob",
-    );
-    await screen.findByText("Bob Jones");
-    await user.click(screen.getByText("Bob Jones"));
+    await user.click(screen.getByRole("button", { name: /add member/i }));
+    expect(screen.getByPlaceholderText("Search by name…")).toBeInTheDocument();
+
     await user.click(
-      screen.getByRole("button", { name: /add to delegation/i }),
+      screen.getByRole("button", { name: /remove new member row/i }),
     );
 
-    expect(onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          user_id: "user-2",
-          role: "attendee_listening",
-        }),
-      ]),
-    );
+    expect(
+      screen.queryByPlaceholderText("Search by name…"),
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -163,11 +141,7 @@ describe("DelegationForm — remove member", () => {
     const user = userEvent.setup();
     const onChange = vi.fn();
     render(
-      <DelegationForm
-        meetingId="meeting-1"
-        initialMembers={[makeMember()]}
-        onChange={onChange}
-      />,
+      <DelegationForm initialMembers={[makeMember()]} onChange={onChange} />,
     );
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
 
@@ -190,7 +164,6 @@ describe("DelegationForm — role update", () => {
     const onChange = vi.fn();
     render(
       <DelegationForm
-        meetingId="meeting-1"
         initialMembers={[makeMember({ role: "scheduling_lead" })]}
         onChange={onChange}
       />,
@@ -199,12 +172,10 @@ describe("DelegationForm — role update", () => {
     const roleSelect = screen.getByRole("combobox", {
       name: /role for alice smith/i,
     });
-    await user.selectOptions(roleSelect, "attendee_talking");
+    await user.selectOptions(roleSelect, "note_taker");
 
     expect(onChange).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({ role: "attendee_talking" }),
-      ]),
+      expect.arrayContaining([expect.objectContaining({ role: "note_taker" })]),
     );
   });
 });

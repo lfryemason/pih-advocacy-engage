@@ -194,7 +194,7 @@ describe("MeetingDetailView — delegation", () => {
               last_name: "Jones",
               display_name: "Bob Jones",
               email: null,
-              role: "attendee_talking",
+              role: "attendee",
               pronouns: null,
               team_id: null,
               team_name_snapshot: null,
@@ -205,10 +205,10 @@ describe("MeetingDetailView — delegation", () => {
       />,
     );
     expect(screen.getByText("Alice Smith")).toBeInTheDocument();
-    expect(screen.getByText(/Scheduling Lead/i)).toBeInTheDocument();
-    // attendee_talking renders as a labeled avatar button, not visible text
+    expect(screen.getByText(/Scheduler/i)).toBeInTheDocument();
+    // an attendee renders as a labeled avatar button, not visible text
     expect(
-      screen.getByRole("button", { name: /Bob Jones.*Attendee \(Talking\)/i }),
+      screen.getByRole("button", { name: /Bob Jones.*Attendee/i }),
     ).toBeInTheDocument();
   });
 
@@ -249,7 +249,7 @@ describe("MeetingDetailView — delegation", () => {
               last_name: "Jones",
               display_name: "Bob Jones",
               email: "bob@example.com",
-              role: "attendee_talking",
+              role: "attendee",
               pronouns: null,
               team_id: null,
               team_name_snapshot: null,
@@ -270,6 +270,124 @@ describe("MeetingDetailView — delegation", () => {
       />,
     );
     expect(screen.getByText("None")).toBeInTheDocument();
+  });
+});
+
+describe("MeetingDetailView — represented teams", () => {
+  it("shows team names derived from delegation member snapshots", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          represented_teams: ["Global Health", "Advocacy"],
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: null,
+              role: "attendee",
+              pronouns: null,
+              team_id: "team-1",
+              team_name_snapshot: "Global Health",
+            },
+            {
+              id: "dm-2",
+              user_id: "u-2",
+              first_name: "Bob",
+              last_name: "Jones",
+              display_name: "Bob Jones",
+              email: null,
+              role: "attendee",
+              pronouns: null,
+              team_id: "team-2",
+              team_name_snapshot: "Advocacy",
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getByText(/Global Health/)).toBeInTheDocument();
+    expect(screen.getByText(/Advocacy/)).toBeInTheDocument();
+  });
+
+  it("deduplicates teams when multiple members share one", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          represented_teams: ["Global Health"],
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: null,
+              role: "attendee",
+              pronouns: null,
+              team_id: "team-1",
+              team_name_snapshot: "Global Health",
+            },
+            {
+              id: "dm-2",
+              user_id: "u-2",
+              first_name: "Bob",
+              last_name: "Jones",
+              display_name: "Bob Jones",
+              email: null,
+              role: "attendee",
+              pronouns: null,
+              team_id: "team-1",
+              team_name_snapshot: "Global Health",
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getAllByText("Global Health")).toHaveLength(1);
+  });
+
+  it("omits the section when no members have a team snapshot", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: null,
+              role: "attendee",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByText(/Represented teams/i, { selector: "p" }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("omits the section when delegation is empty", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({ delegation_members: [] })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(
+      screen.queryByText(/Represented teams/i, { selector: "p" }),
+    ).not.toBeInTheDocument();
   });
 });
 

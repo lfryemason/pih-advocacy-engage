@@ -20,7 +20,13 @@ function PihLogoIcon({ className }: { className?: string }) {
     <span
       className={`relative inline-flex rounded-sm bg-white ${className ?? ""}`}
     >
-      <Image src={pihLogo} alt="" fill className="object-contain" />
+      <Image
+        src={pihLogo}
+        alt=""
+        fill
+        sizes="28px"
+        className="object-contain"
+      />
     </span>
   );
 }

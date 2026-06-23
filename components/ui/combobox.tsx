@@ -34,10 +34,10 @@ const Option = memo(function Option({
       role="option"
       aria-selected={selected}
       onClick={onClick}
-      className={`flex w-full cursor-default select-none items-center gap-2 px-3 py-1.5 text-sm ${highlighted ? "text-popover-accent-foreground bg-popover-accent" : ""} hover:text-popover-accent-foreground hover:bg-popover-accent ${selected && !highlighted ? "bg-accent text-accent-foreground" : ""}`}
+      className={`flex w-full cursor-default select-none items-start gap-2 px-3 py-1.5 text-left text-sm ${highlighted ? "text-popover-accent-foreground bg-popover-accent" : ""} hover:text-popover-accent-foreground hover:bg-popover-accent ${selected && !highlighted ? "bg-accent text-accent-foreground" : ""}`}
     >
       <Check
-        className={`h-4 w-4 shrink-0 ${selected ? "opacity-100" : "opacity-0"}`}
+        className={`mt-px h-4 w-4 shrink-0 ${selected ? "opacity-100" : "opacity-0"}`}
       />
       <span className={muted ? "text-muted-foreground" : ""}>{label}</span>
     </button>
@@ -175,7 +175,7 @@ export function FilterCombobox({
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-8 text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-8 text-left text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
         />
         <ChevronsUpDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 shrink-0 -translate-y-1/2 opacity-50" />
       </div>

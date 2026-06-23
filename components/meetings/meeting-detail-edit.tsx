@@ -3,8 +3,14 @@
 import { useEffect } from "react";
 import { CHAMPION_LABELS } from "@/lib/meetings/meeting-roles";
 import { SECTION_LABEL_CLASSNAME } from "@/lib/meetings/format";
-import { LinkFormEntry, StafferOption } from "@/lib/meetings/types";
+import {
+  LinkFormEntry,
+  StafferOption,
+  DelegationMember,
+  LocalDelegationMember,
+} from "@/lib/meetings/types";
 import { useStaffers } from "@/lib/meetings/use-staffers";
+import { DelegationForm } from "@/components/meetings/delegation-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +44,8 @@ type Props = {
   onCancel: () => void;
   saveError: string | null;
   isSaving: boolean;
-  delegationSlot?: React.ReactNode;
+  delegationInitialMembers: DelegationMember[];
+  onDelegationChange: (members: LocalDelegationMember[]) => void;
 };
 
 type ColumnProps = Props & { staffers: StafferOption[] };
@@ -168,7 +175,8 @@ function RightColumn({
   onCancel,
   saveError,
   isSaving,
-  delegationSlot,
+  delegationInitialMembers,
+  onDelegationChange,
 }: ColumnProps) {
   return (
     <div className="flex flex-col gap-4">
@@ -226,7 +234,10 @@ function RightColumn({
         />
       </div>
 
-      {delegationSlot && <div>{delegationSlot}</div>}
+      <DelegationForm
+        initialMembers={delegationInitialMembers}
+        onChange={onDelegationChange}
+      />
 
       <div className="mt-auto pt-2">
         {saveError && (
