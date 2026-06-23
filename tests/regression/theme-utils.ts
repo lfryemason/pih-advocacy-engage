@@ -9,8 +9,14 @@ export async function setTheme(page: Page, theme: Theme) {
     document.documentElement.classList.add(t);
     document.documentElement.style.colorScheme = t;
   }, theme);
-  // Wait until all CSS transitions have finished rather than a fixed delay
+  // Wait for finite animations (CSS transitions from theme change) to settle.
+  // Infinite animations (animate-spin, etc.) are excluded — they never stop.
   await page.waitForFunction(() =>
-    document.getAnimations().every((a) => a.playState !== "running"),
+    document
+      .getAnimations()
+      .filter(
+        (a) => (a.effect?.getComputedTiming().iterations ?? 1) !== Infinity,
+      )
+      .every((a) => a.playState !== "running"),
   );
 }

@@ -309,8 +309,8 @@ describe("MeetingDetailView — represented teams", () => {
         onEdit={vi.fn()}
       />,
     );
-    expect(screen.getByText("Global Health")).toBeInTheDocument();
-    expect(screen.getByText("Advocacy")).toBeInTheDocument();
+    expect(screen.getByText(/Global Health/)).toBeInTheDocument();
+    expect(screen.getByText(/Advocacy/)).toBeInTheDocument();
   });
 
   it("deduplicates teams when multiple members share one", () => {

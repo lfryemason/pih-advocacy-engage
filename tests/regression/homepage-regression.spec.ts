@@ -10,7 +10,7 @@ for (const theme of themes) {
   test.describe(`homepage (${theme})`, () => {
     test.beforeEach(async ({ page }) => {
       await page.goto("/");
-      await page.waitForLoadState("networkidle");
+      await page.waitForLoadState("load");
       await setTheme(page, theme);
     });
 
