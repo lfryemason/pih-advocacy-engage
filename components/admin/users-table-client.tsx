@@ -116,10 +116,14 @@ export function UsersTableClient({
                   <span className="flex items-center gap-1.5">
                     {user.fullName}
                     {user.isAdmin && (
-                      <ShieldUser
-                        size={14}
-                        className="shrink-0 text-muted-foreground"
-                      />
+                      <>
+                        <ShieldUser
+                          size={14}
+                          aria-hidden="true"
+                          className="shrink-0 text-muted-foreground"
+                        />
+                        <span className="sr-only">(admin)</span>
+                      </>
                     )}
                   </span>
                 </TableCell>
