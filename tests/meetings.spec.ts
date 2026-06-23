@@ -392,13 +392,8 @@ test.describe("US4 — Delegation members", () => {
       page.getByRole("button", { name: /Edit Meeting/i }),
     ).toBeVisible();
 
-    const teamsListAfterRemove = page.getByRole("list", {
-      name: /represented teams/i,
-    });
-    const hasTeam = await teamsListAfterRemove.isVisible();
-    if (hasTeam) {
-      const items = await teamsListAfterRemove.getByRole("listitem").count();
-      expect(items).toBe(0);
-    }
+    await expect(
+      page.getByRole("list", { name: /represented teams/i }),
+    ).toBeHidden();
   });
 });
