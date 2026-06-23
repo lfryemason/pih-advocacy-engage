@@ -167,7 +167,7 @@ async function RepresentativeContent({
             </span>
             <span className="text-muted-foreground">
               {representative.chamber === "rep"
-                ? `${representative.state} ${representative.district ?? "At-Large"}`
+                ? `${representative.state} ${representative.district || "At-Large"}`
                 : representative.state}
             </span>
             {representative.email && (
