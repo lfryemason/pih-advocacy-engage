@@ -34,12 +34,14 @@ export function TeamPageClient({
   memberships,
   orgId,
   currentUserId,
+  isOrgAdmin = false,
   meetingCounts = {},
 }: {
   team: Team;
   memberships: MembershipWithProfile[];
   orgId: string;
   currentUserId: string | null;
+  isOrgAdmin?: boolean;
   meetingCounts?: Record<string, number>;
 }) {
   const router = useRouter();
@@ -155,7 +157,7 @@ export function TeamPageClient({
                 {isJoining ? "Joining…" : "Join team"}
               </Button>
             )}
-            {isMember && (
+            {(isMember || isOrgAdmin) && (
               <Button asChild variant="outline" size="sm">
                 <Link href={`/teams/${team.slug}/edit`}>Edit</Link>
               </Button>
