@@ -167,6 +167,9 @@ async function RepresentativeContent({
             </span>
             <span className="text-muted-foreground">
               {representative.state}
+              {representative.district != null
+                ? ` ${representative.district}`
+                : ""}
             </span>
             {representative.email && (
               <>
