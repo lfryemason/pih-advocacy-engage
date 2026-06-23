@@ -10,6 +10,7 @@ import {
   UserCircle,
   PanelLeftOpen,
   Landmark,
+  ShieldUser,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -51,7 +52,7 @@ function NavLink({
   );
 }
 
-export function Sidebar() {
+export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const router = useRouter();
 
   const [isCollapsed, setIsCollapsed] = React.useState(false);
@@ -147,6 +148,14 @@ export function Sidebar() {
           icon={UserCircle}
           isCollapsed={isCollapsed}
         />
+        {isAdmin && (
+          <NavLink
+            href="/admin"
+            label="Admin"
+            icon={ShieldUser}
+            isCollapsed={isCollapsed}
+          />
+        )}
       </nav>
       <div className="mt-auto flex flex-col">
         <div

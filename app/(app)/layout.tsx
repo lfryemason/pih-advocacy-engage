@@ -1,11 +1,19 @@
 import { MobileHeader } from "@/components/mobile-header";
 import { Sidebar } from "@/components/sidebar";
+import { getIsAdmin } from "@/lib/auth/guards";
+import { ORG_ID } from "@/lib/org";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+export default async function AppLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const isAdmin = await getIsAdmin(ORG_ID);
+
   return (
     <div className="flex h-svh flex-col md:flex-row">
-      <MobileHeader />
-      <Sidebar />
+      <MobileHeader isAdmin={isAdmin} />
+      <Sidebar isAdmin={isAdmin} />
       <main className="flex-1 overflow-y-auto">{children}</main>
     </div>
   );
