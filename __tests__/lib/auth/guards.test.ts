@@ -74,6 +74,49 @@ describe("requireSuperAdmin", () => {
   });
 });
 
+describe("getIsAdmin", () => {
+  it("returns false when unauthenticated", async () => {
+    getCurrentRole.mockResolvedValue(null);
+    const { getIsAdmin } = await loadGuards();
+
+    await expect(getIsAdmin("pihe")).resolves.toBe(false);
+  });
+
+  it("returns false for a member", async () => {
+    getCurrentRole.mockResolvedValue(current({ role: "member" }));
+    const { getIsAdmin } = await loadGuards();
+
+    await expect(getIsAdmin("pihe")).resolves.toBe(false);
+  });
+
+  it("returns true for an org admin of the matching org", async () => {
+    getCurrentRole.mockResolvedValue(
+      current({ role: "org_admin", org_id: "pihe" }),
+    );
+    const { getIsAdmin } = await loadGuards();
+
+    await expect(getIsAdmin("pihe")).resolves.toBe(true);
+  });
+
+  it("returns false for an org admin of a different org", async () => {
+    getCurrentRole.mockResolvedValue(
+      current({ role: "org_admin", org_id: "other" }),
+    );
+    const { getIsAdmin } = await loadGuards();
+
+    await expect(getIsAdmin("pihe")).resolves.toBe(false);
+  });
+
+  it("returns true for a super admin regardless of org", async () => {
+    getCurrentRole.mockResolvedValue(
+      current({ role: "super_admin", org_id: null }),
+    );
+    const { getIsAdmin } = await loadGuards();
+
+    await expect(getIsAdmin("pihe")).resolves.toBe(true);
+  });
+});
+
 describe("requireOrgAdmin", () => {
   it("throws ForbiddenError for members", async () => {
     getCurrentRole.mockResolvedValue(current({ role: "member" }));

@@ -13,6 +13,7 @@ import {
   Menu,
   Moon,
   Palette,
+  ShieldUser,
   Sun,
   UserCircle,
   UsersRound,
@@ -34,7 +35,7 @@ const THEMES = [
   { value: "high-contrast", label: "High Contrast", icon: Contrast },
 ] as const;
 
-export function MobileHeader() {
+export function MobileHeader({ isAdmin = false }: { isAdmin?: boolean }) {
   const router = useRouter();
   const { setTheme } = useTheme();
   const [firstName, setFirstName] = React.useState<string | null>(null);
@@ -107,6 +108,14 @@ export function MobileHeader() {
             {firstName ? `${firstName}'s profile` : "Profile"}
           </Link>
         </DropdownMenuItem>
+        {isAdmin && (
+          <DropdownMenuItem asChild>
+            <Link href="/admin" className="flex items-center gap-2">
+              <ShieldUser size={16} />
+              Admin
+            </Link>
+          </DropdownMenuItem>
+        )}
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onSelect={(e) => {
