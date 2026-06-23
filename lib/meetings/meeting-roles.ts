@@ -20,6 +20,8 @@ export const ROLE_COLORS: Record<DelegationRole, string> = {
   attendee: "bg-slate-500 text-white",
 };
 
+export const DELEGATION_ROLES = Object.keys(ROLE_LABELS) as DelegationRole[];
+
 export const MEMBER_ROLES: DelegationRole[] = (
   Object.keys(ROLE_LABELS) as DelegationRole[]
 ).filter((r) => r !== "scheduling_lead" && r !== "expert");

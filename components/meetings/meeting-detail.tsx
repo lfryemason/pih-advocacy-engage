@@ -15,7 +15,6 @@ import {
   LocalDelegationMember,
   memberFromDelegation,
 } from "@/lib/meetings/types";
-import { DelegationForm } from "@/components/meetings/delegation-form";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
 import { MeetingDetailView } from "@/components/meetings/meeting-detail-view";
@@ -249,13 +248,8 @@ export function MeetingDetail({
       onCancel={handleCancel}
       saveError={saveError}
       isSaving={isSaving}
-      delegationSlot={
-        <DelegationForm
-          meetingId={meeting.id}
-          initialMembers={detail.delegation_members}
-          onChange={setPendingDelegation}
-        />
-      }
+      delegationInitialMembers={detail.delegation_members}
+      onDelegationChange={setPendingDelegation}
     />
   );
 }

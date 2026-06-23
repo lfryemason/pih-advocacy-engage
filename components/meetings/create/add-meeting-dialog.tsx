@@ -37,7 +37,10 @@ export function AddMeetingDialog({ onCreated }: { onCreated: () => void }) {
           Add Meeting
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] max-w-2xl overflow-y-auto">
+      <DialogContent
+        aria-describedby={undefined}
+        className="max-h-[90vh] max-w-2xl overflow-y-auto"
+      >
         <DialogHeader>
           <DialogTitle>Add Meeting</DialogTitle>
         </DialogHeader>

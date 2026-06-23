@@ -205,6 +205,22 @@ export function MeetingDetailView({
               </div>
             )}
           </div>
+          {meeting.represented_teams.length > 0 && (
+            <div>
+              <p className={SECTION_LABEL_CLASSNAME}>Represented teams</p>
+              <ul
+                aria-label="Represented teams"
+                className="mt-1 flex flex-wrap gap-1"
+              >
+                {meeting.represented_teams.map((name, index) => (
+                  <li key={name} className="text-xs text-muted-foreground">
+                    {name}
+                    {index < meeting.represented_teams.length - 1 && ","}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
           {onEdit && (
             <div className="mt-auto pt-2">
               <Button variant="outline" onClick={onEdit}>
