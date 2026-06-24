@@ -15,12 +15,7 @@ for (const theme of themes) {
         localStorage.setItem("theme", t);
       }, theme);
       await page.goto("/");
-      await page.waitForLoadState("load");
-      // Wait for any lazy-loaded images to finish so the screenshot is stable.
-      await page.waitForFunction(
-        () => [...document.images].every((img) => img.complete),
-        { timeout: 5000 },
-      );
+      await page.waitForLoadState("networkidle");
       await setTheme(page, theme);
     });
 
