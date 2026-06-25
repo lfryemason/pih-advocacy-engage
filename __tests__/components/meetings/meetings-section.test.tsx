@@ -291,6 +291,57 @@ describe("MeetingsSection", () => {
   });
 });
 
+describe("MeetingRow staff contact cell", () => {
+  it("shows 'Representative' when no contact and rep is a house member", () => {
+    render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            meeting={makeRow({
+              congressional_contact_id: null,
+              representative_district: 9,
+            })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(screen.getByText("Representative")).toBeInTheDocument();
+  });
+
+  it("shows 'Senator' when no contact and rep is a senator", () => {
+    render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            meeting={makeRow({
+              congressional_contact_id: null,
+              representative_district: null,
+            })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(screen.getByText("Senator")).toBeInTheDocument();
+  });
+
+  it("shows the contact name when a contact is set", () => {
+    render(
+      <table>
+        <tbody>
+          <MeetingRowComponent
+            meeting={makeRow({
+              congressional_contact_id: "contact-1",
+              congressional_contact_name: "Alice Staffer",
+            })}
+          />
+        </tbody>
+      </table>,
+    );
+    expect(screen.getByText("Alice Staffer")).toBeInTheDocument();
+    expect(screen.queryByText("Representative")).not.toBeInTheDocument();
+  });
+});
+
 describe("MeetingRow showRepColumn", () => {
   it("omits the representative cell when showRepColumn is false", () => {
     render(

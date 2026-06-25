@@ -84,7 +84,7 @@ export function MeetingRow({
             <em>
               {meeting.representative_district === null
                 ? "Senator"
-                : "Congressperson"}
+                : "Representative"}
             </em>
           ) : (
             meeting.congressional_contact_name
