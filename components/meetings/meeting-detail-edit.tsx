@@ -92,7 +92,7 @@ function LeftColumn({
           }
           disabled={!form.representativeId}
         >
-          <option value="">— Meeting with representative directly —</option>
+          <option value="">Meeting with representative directly</option>
           {staffers.map((s) => (
             <option key={s.id} value={s.id}>
               {s.first_name} {s.last_name}

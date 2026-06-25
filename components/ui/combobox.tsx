@@ -49,6 +49,7 @@ export function FilterCombobox({
   options,
   priorityIds,
   priorityGroupLabel,
+  nonPriorityGroupLabel,
   value,
   onChange,
   placeholder,
@@ -59,6 +60,7 @@ export function FilterCombobox({
   options: ComboboxOption[];
   priorityIds?: Set<string>;
   priorityGroupLabel?: string;
+  nonPriorityGroupLabel?: string;
   value: string;
   onChange: (id: string) => void;
   placeholder?: string;
@@ -234,6 +236,13 @@ export function FilterCombobox({
                   </>
                 )}
 
+                {nonPriorityGroupLabel &&
+                  priorityCount > 0 &&
+                  visibleOptions.length > clearOffset + priorityCount && (
+                    <p className="px-3 py-1 text-xs font-medium text-muted-foreground">
+                      {nonPriorityGroupLabel}
+                    </p>
+                  )}
                 {visibleOptions
                   .slice(clearOffset + priorityCount)
                   .map((o, i) => {
