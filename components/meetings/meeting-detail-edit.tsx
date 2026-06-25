@@ -20,6 +20,7 @@ import { RepresentativeCombobox } from "@/components/meetings/create/representat
 import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
 import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
+import { DeleteMeetingDialog } from "@/components/meetings/delete-meeting-dialog";
 
 export type FormState = {
   meetingDate: string;
@@ -36,14 +37,18 @@ export type FormState = {
 
 type Props = {
   meetingId: string;
+  canDelete: boolean;
   form: FormState;
   onFormChange: (partial: Partial<FormState>) => void;
   links: LinkFormEntry[];
   onLinksChange: (links: LinkFormEntry[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
+  onDelete: () => void;
   saveError: string | null;
   isSaving: boolean;
+  deleteError: string | null;
+  isDeleting: boolean;
   delegationInitialMembers: DelegationMember[];
   onDelegationChange: (members: LocalDelegationMember[]) => void;
 };
@@ -170,11 +175,15 @@ function LeftColumn({
 
 function RightColumn({
   meetingId,
+  canDelete,
   form,
   onFormChange,
   onCancel,
+  onDelete,
   saveError,
   isSaving,
+  deleteError,
+  isDeleting,
   delegationInitialMembers,
   onDelegationChange,
 }: ColumnProps) {
@@ -245,18 +254,28 @@ function RightColumn({
             {saveError}
           </p>
         )}
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving…" : "Save changes"}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-            disabled={isSaving}
-          >
-            Cancel
-          </Button>
+        <div className="flex items-center gap-2">
+          {canDelete && (
+            <DeleteMeetingDialog
+              onConfirm={onDelete}
+              isDeleting={isDeleting}
+              error={deleteError}
+              disabled={isSaving}
+            />
+          )}
+          <div className="ml-auto flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+              disabled={isSaving || isDeleting}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSaving || isDeleting}>
+              {isSaving ? "Saving…" : "Save changes"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

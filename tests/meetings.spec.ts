@@ -319,6 +319,46 @@ test.describe("edit meeting", () => {
       page.getByLabel("Past Meetings").getByText("Jan 15, 2020"),
     ).toBeVisible();
   });
+
+  test("delete removes the meeting from the list", async ({ page }) => {
+    await page.goto("/meetings");
+
+    // Create a meeting with a distinctive date so the assertions can't collide
+    // with seed data, then delete it. The creator is seeded as the meeting's
+    // scheduling lead, so the test user is allowed to delete it.
+    await page.getByRole("button", { name: /Add Meeting/i }).click();
+    await page.getByLabel("Date").fill("2099-08-15");
+    await page.locator("#meeting-representative").click();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .waitFor();
+    await page
+      .locator("#meeting-representative-listbox [role='option']")
+      .first()
+      .click();
+    await page.getByRole("button", { name: "Add meeting" }).click();
+    await expect(page.getByRole("dialog")).not.toBeVisible();
+
+    const upcoming = page.getByLabel("Upcoming Meetings");
+    await expect(upcoming.getByText("Aug 15, 2099")).toBeVisible();
+
+    // Expand the row, enter edit mode, and delete it.
+    const row = upcoming.getByRole("row").filter({ hasText: "Aug 15, 2099" });
+    await row.getByRole("button", { name: /Expand meeting with/ }).click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: "Delete", exact: true }).click();
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Delete meeting" })
+      .click();
+
+    await expect(upcoming.getByText("Aug 15, 2099")).toHaveCount(0);
+  });
 });
 
 test.describe("US4 — Delegation members", () => {

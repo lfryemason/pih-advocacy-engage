@@ -116,6 +116,7 @@ export function RepMeetings({
         totalCount={upcoming.count}
         onShowMore={() => loadMore("upcoming")}
         disableLoadMore={loadingMore === "upcoming"}
+        onRefresh={loadInitial}
         showRepColumn={false}
       />
       <MeetingsSection
@@ -124,6 +125,7 @@ export function RepMeetings({
         totalCount={past.count}
         onShowMore={() => loadMore("past")}
         disableLoadMore={loadingMore === "past"}
+        onRefresh={loadInitial}
         isPast
         showRepColumn={false}
       />
