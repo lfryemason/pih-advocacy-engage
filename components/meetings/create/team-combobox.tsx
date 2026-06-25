@@ -56,10 +56,11 @@ export function TeamCombobox({
       options={options}
       priorityIds={myTeamIds}
       priorityGroupLabel="My Teams"
+      nonPriorityGroupLabel="Other Teams"
       value={value}
       onChange={handleChange}
-      placeholder="— None —"
-      clearLabel="— None —"
+      placeholder="None"
+      clearLabel="None"
     />
   );
 }

@@ -20,7 +20,8 @@ export function RepresentativesPageClient() {
         <h2 className="mb-3 text-2xl font-bold">My Members of Congress</h2>
         <MyRepresentativesTable />
       </div>
-      <h2 className="mb-3 text-2xl font-bold">Filter Members of Congress</h2>
+      <h2 className="mb-3 text-2xl font-bold">All Members of Congress</h2>
+      <h3 className="mb-2 text-xl font-semibold">Filters</h3>
       <RepresentativesFilters filters={filters} onChange={setFilters} />
       <div className="flex flex-col gap-8 md:flex-row">
         <SenatorsTable filters={filters} />

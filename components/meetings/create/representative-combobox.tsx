@@ -86,6 +86,7 @@ export function RepresentativeCombobox({
       options={options}
       priorityIds={myRepIds}
       priorityGroupLabel="My Representatives"
+      nonPriorityGroupLabel="Other Representatives"
       value={value}
       onChange={onChange}
       required={required}
