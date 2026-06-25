@@ -132,7 +132,7 @@ function LeftColumn({
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <p className={SECTION_LABEL_CLASSNAME}>
-            <Label htmlFor={`edit-followup-${meetingId}`}>Follow-up</Label>
+            <Label htmlFor={`edit-followup-${meetingId}`}>Follow-up date</Label>
           </p>
           <Input
             id={`edit-followup-${meetingId}`}

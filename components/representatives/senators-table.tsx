@@ -81,7 +81,7 @@ export function SenatorsTable({ filters }: { filters: Filters }) {
 
   return (
     <div className="w-full min-w-0 md:w-1/2">
-      <h2 className="mb-3 text-2xl font-bold">Senators</h2>
+      <h3 className="mb-3 text-xl font-semibold">Senators</h3>
       {isLoading ? (
         <p className="text-muted-foreground">Loading…</p>
       ) : error ? (
