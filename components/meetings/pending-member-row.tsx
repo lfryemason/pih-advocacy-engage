@@ -226,6 +226,7 @@ export function PendingMemberRow({
                 setSearchActive(true);
               }
               setSearchQuery(val);
+              setInputFocused(true);
             }}
             onFocus={() => {
               if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
@@ -237,6 +238,12 @@ export function PendingMemberRow({
                 setInputFocused(false);
                 setSearchActive(false);
               }, 100);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                setInputFocused(false);
+              }
             }}
             autoComplete="off"
           />

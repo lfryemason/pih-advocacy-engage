@@ -40,6 +40,13 @@ export function AddMeetingDialog({ onCreated }: { onCreated: () => void }) {
       <DialogContent
         aria-describedby={undefined}
         className="max-h-[90vh] max-w-2xl overflow-y-auto"
+        onEscapeKeyDown={(e) => {
+          if (
+            document.activeElement?.getAttribute("aria-expanded") === "true"
+          ) {
+            e.preventDefault();
+          }
+        }}
       >
         <DialogHeader>
           <DialogTitle>Add Meeting</DialogTitle>
