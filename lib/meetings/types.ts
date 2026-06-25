@@ -94,6 +94,9 @@ export type MeetingFilters = {
   states: string[];
   districts: string[];
   parties: string[];
+  representativeIds: string[];
+  delegateMemberIds: string[];
+  dateRange: { from: string | null; to: string | null };
 };
 
 // ─── Profile search result (used by delegation-form user search) ──────────────

@@ -25,6 +25,9 @@ const EMPTY_FILTERS: MeetingFilters = {
   states: [],
   districts: [],
   parties: [],
+  representativeIds: [],
+  delegateMemberIds: [],
+  dateRange: { from: null, to: null },
 };
 const PAGE_SIZE = 10;
 

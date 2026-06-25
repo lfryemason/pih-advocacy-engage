@@ -32,6 +32,42 @@ describe("hasActiveMeetingFilters", () => {
       }),
     ).toBe(true);
   });
+
+  it("returns true when representativeIds has entries", () => {
+    expect(
+      hasActiveMeetingFilters({
+        ...EMPTY_MEETING_FILTERS,
+        representativeIds: ["abc"],
+      }),
+    ).toBe(true);
+  });
+
+  it("returns true when delegateMemberIds has entries", () => {
+    expect(
+      hasActiveMeetingFilters({
+        ...EMPTY_MEETING_FILTERS,
+        delegateMemberIds: ["abc"],
+      }),
+    ).toBe(true);
+  });
+
+  it("returns true when dateRange.from is set", () => {
+    expect(
+      hasActiveMeetingFilters({
+        ...EMPTY_MEETING_FILTERS,
+        dateRange: { from: "2025-01-01", to: null },
+      }),
+    ).toBe(true);
+  });
+
+  it("returns true when dateRange.to is set", () => {
+    expect(
+      hasActiveMeetingFilters({
+        ...EMPTY_MEETING_FILTERS,
+        dateRange: { from: null, to: "2025-01-31" },
+      }),
+    ).toBe(true);
+  });
 });
 
 describe("MeetingsFilters", () => {
@@ -57,54 +93,6 @@ describe("MeetingsFilters", () => {
     expect(
       screen.queryByRole("button", { name: /Clear all/i }),
     ).not.toBeInTheDocument();
-  });
-
-  it("shows state name when a single state is selected", () => {
-    render(
-      <MeetingsFilters
-        filters={{ ...EMPTY_MEETING_FILTERS, states: ["WA"] }}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: "Filter by state" }),
-    ).toHaveTextContent("Washington");
-  });
-
-  it("shows count when multiple states selected", () => {
-    render(
-      <MeetingsFilters
-        filters={{ ...EMPTY_MEETING_FILTERS, states: ["WA", "OR"] }}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: "Filter by state" }),
-    ).toHaveTextContent("2 states");
-  });
-
-  it("shows district label when a single district is selected", () => {
-    render(
-      <MeetingsFilters
-        filters={{ states: ["WA"], districts: ["9"], parties: [] }}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: "Filter by district" }),
-    ).toHaveTextContent("District 9");
-  });
-
-  it("shows count when multiple districts selected", () => {
-    render(
-      <MeetingsFilters
-        filters={{ states: ["WA"], districts: ["1", "2"], parties: [] }}
-        onChange={vi.fn()}
-      />,
-    );
-    expect(
-      screen.getByRole("button", { name: "Filter by district" }),
-    ).toHaveTextContent("2 districts");
   });
 
   it("adds a state when selected from dropdown", async () => {
@@ -163,7 +151,12 @@ describe("MeetingsFilters", () => {
     const onChange = vi.fn();
     render(
       <MeetingsFilters
-        filters={{ states: ["WA"], districts: ["9"], parties: ["Democrat"] }}
+        filters={{
+          ...EMPTY_MEETING_FILTERS,
+          states: ["WA"],
+          districts: ["9"],
+          parties: ["Democrat"],
+        }}
         onChange={onChange}
       />,
     );

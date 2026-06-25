@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { ChevronDown, X } from "lucide-react";
 import { xor } from "es-toolkit";
 import { Button } from "@/components/ui/button";
@@ -10,31 +10,37 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { createClient } from "@/lib/supabase/client";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 import { PARTIES } from "@/lib/parties";
 import { MeetingFilters } from "@/lib/meetings/types";
+import {
+  RepresentativeFilterPicker,
+  type RepRow,
+  repLabel,
+} from "./meetings-filters/representative-filter-picker";
+import { MemberSearchPicker } from "./meetings-filters/member-search-picker";
+import { DateRangeFilter } from "./meetings-filters/date-range-filter";
 
 export const EMPTY_MEETING_FILTERS: MeetingFilters = {
   states: [],
   districts: [],
   parties: [],
+  representativeIds: [],
+  delegateMemberIds: [],
+  dateRange: { from: null, to: null },
 };
 
 export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
-  return f.states.length > 0 || f.districts.length > 0 || f.parties.length > 0;
-}
-
-const FILTER_WIDTH = "w-40";
-
-function summarize(
-  values: string[],
-  emptyLabel: string,
-  renderOne: (v: string) => string,
-  pluralLabel: string,
-): string {
-  if (values.length === 0) return emptyLabel;
-  if (values.length === 1) return renderOne(values[0]);
-  return `${values.length} ${pluralLabel}`;
+  return (
+    f.states.length > 0 ||
+    f.districts.length > 0 ||
+    f.parties.length > 0 ||
+    f.representativeIds.length > 0 ||
+    f.delegateMemberIds.length > 0 ||
+    f.dateRange.from !== null ||
+    f.dateRange.to !== null
+  );
 }
 
 export function MeetingsFilters({
@@ -48,7 +54,68 @@ export function MeetingsFilters({
 }) {
   const set = (patch: Partial<MeetingFilters>) =>
     onChange({ ...filters, ...patch });
-  const active = hasActiveMeetingFilters(filters);
+
+  const [reps, setReps] = useState<RepRow[]>([]);
+  const [profileState, setProfileState] = useState<string | null>(null);
+  const [profileDistrict, setProfileDistrict] = useState<string | null>(null);
+  const [memberNames, setMemberNames] = useState<Map<string, string>>(
+    new Map(),
+  );
+  const fetchedMemberIds = useRef(new Set<string>());
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from("representatives")
+      .select("id, official_full_name, state, district")
+      .eq("in_office", true)
+      .order("state")
+      .order("official_full_name")
+      .then(({ data }) => setReps(data ?? []));
+
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return;
+      supabase
+        .from("profiles")
+        .select("state, congressional_district")
+        .eq("user_id", user.id)
+        .single()
+        .then(({ data: profile }) => {
+          if (profile?.state) {
+            setProfileState(profile.state);
+            setProfileDistrict(profile.congressional_district);
+          }
+        });
+    });
+  }, []);
+
+  useEffect(() => {
+    if (filters.delegateMemberIds.length === 0) return;
+    const missing = filters.delegateMemberIds.filter(
+      (id) => !fetchedMemberIds.current.has(id),
+    );
+    if (missing.length === 0) return;
+    for (const id of missing) fetchedMemberIds.current.add(id);
+    const supabase = createClient();
+    supabase
+      .from("profiles")
+      .select("user_id, first_name, last_name")
+      .in("user_id", missing)
+      .then(({ data }) => {
+        if (!data) return;
+        setMemberNames((prev) => {
+          const next = new Map(prev);
+          for (const profile of data) {
+            const name =
+              [profile.first_name, profile.last_name]
+                .filter(Boolean)
+                .join(" ") || "Anonymous";
+            next.set(profile.user_id, name);
+          }
+          return next;
+        });
+      });
+  }, [filters.delegateMemberIds]);
 
   const availableDistricts = useMemo(() => {
     const seen = new Set<string>();
@@ -68,134 +135,249 @@ export function MeetingsFilters({
     });
   }, [filters.states]);
 
-  const stateLabel = summarize(
-    filters.states,
-    "State",
-    (code) => US_STATES.find((s) => s.code === code)?.name ?? code,
-    "states",
-  );
-  const districtLabel = summarize(
-    filters.districts,
-    "District",
-    (d) => availableDistricts.find((o) => o.value === d)?.label ?? d,
-    "districts",
-  );
-  const partyLabel = summarize(filters.parties, "Party", (p) => p, "parties");
+  const activeChips: { key: string; label: string; onRemove: () => void }[] = [
+    ...filters.states.map((code) => ({
+      key: `state-${code}`,
+      label:
+        US_STATES.find((stateEntry) => stateEntry.code === code)?.name ?? code,
+      onRemove: () => {
+        const newStates = filters.states.filter(
+          (stateCode) => stateCode !== code,
+        );
+        const validValues = new Set(
+          newStates.flatMap((stateCode) =>
+            getDistrictOptions(stateCode).map((opt) => opt.value),
+          ),
+        );
+        onChange({
+          ...filters,
+          states: newStates,
+          districts: filters.districts.filter((districtCode) =>
+            validValues.has(districtCode),
+          ),
+        });
+      },
+    })),
+    ...filters.districts.map((district) => ({
+      key: `district-${district}`,
+      label:
+        availableDistricts.find((opt) => opt.value === district)?.label ??
+        district,
+      onRemove: () =>
+        set({
+          districts: filters.districts.filter(
+            (districtCode) => districtCode !== district,
+          ),
+        }),
+    })),
+    ...filters.parties.map((party) => ({
+      key: `party-${party}`,
+      label: party,
+      onRemove: () =>
+        set({
+          parties: filters.parties.filter(
+            (existingParty) => existingParty !== party,
+          ),
+        }),
+    })),
+    ...filters.representativeIds.map((repId) => ({
+      key: `rep-${repId}`,
+      label: (() => {
+        const rep = reps.find((repEntry) => repEntry.id === repId);
+        return rep ? repLabel(rep) : repId;
+      })(),
+      onRemove: () =>
+        set({
+          representativeIds: filters.representativeIds.filter(
+            (id) => id !== repId,
+          ),
+        }),
+    })),
+    ...filters.delegateMemberIds.map((userId) => ({
+      key: `member-${userId}`,
+      label: memberNames.get(userId) ?? userId,
+      onRemove: () =>
+        set({
+          delegateMemberIds: filters.delegateMemberIds.filter(
+            (id) => id !== userId,
+          ),
+        }),
+    })),
+  ];
+
+  const hasActive = hasActiveMeetingFilters(filters);
 
   return (
-    <div className="mb-6 flex flex-wrap items-center gap-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant={filters.states.length > 0 ? "default" : "outline"}
-            size="sm"
-            aria-label="Filter by state"
-            className={`${FILTER_WIDTH} justify-between`}
-            disabled={disabled}
-          >
-            <span className="truncate">{stateLabel}</span>
-            <ChevronDown aria-hidden="true" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="max-h-64 overflow-y-auto">
-          {US_STATES.map((state) => (
-            <DropdownMenuCheckboxItem
-              key={state.code}
-              checked={filters.states.includes(state.code)}
-              onSelect={(e) => {
-                e.preventDefault();
-                const newStates = xor(filters.states, [state.code]);
-                const validValues = new Set(
-                  newStates.flatMap((s) =>
-                    getDistrictOptions(s).map((o) => o.value),
-                  ),
-                );
-                const newDistricts = filters.districts.filter((d) =>
-                  validValues.has(d),
-                );
-                onChange({
-                  ...filters,
-                  states: newStates,
-                  districts: newDistricts,
-                });
-              }}
-            >
-              {state.name}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="mb-6 flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <DateRangeFilter
+          dateRange={filters.dateRange}
+          onChange={(range) => set({ dateRange: range })}
+          disabled={disabled}
+        />
 
-      {filters.states.length > 0 && (
+        <MemberSearchPicker
+          selectedIds={filters.delegateMemberIds}
+          onAdd={(userId, displayName) => {
+            setMemberNames((prev) => new Map(prev).set(userId, displayName));
+            set({
+              delegateMemberIds: [...filters.delegateMemberIds, userId],
+            });
+          }}
+          disabled={disabled}
+          placeholder="Delegation Member"
+        />
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
-              variant={filters.districts.length > 0 ? "default" : "outline"}
+              variant="outline"
               size="sm"
-              aria-label="Filter by district"
-              className={`${FILTER_WIDTH} justify-between`}
+              aria-label="Filter by state"
+              className={`justify-between`}
               disabled={disabled}
             >
-              <span className="truncate">{districtLabel}</span>
+              <span className="mx-2 truncate">State</span>
               <ChevronDown aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="max-h-64 overflow-y-auto">
-            {availableDistricts.map(({ value, label }) => (
+            {US_STATES.map((state) => (
               <DropdownMenuCheckboxItem
-                key={value}
-                checked={filters.districts.includes(value)}
+                key={state.code}
+                checked={filters.states.includes(state.code)}
                 onSelect={(e) => {
                   e.preventDefault();
-                  set({ districts: xor(filters.districts, [value]) });
+                  const newStates = xor(filters.states, [state.code]);
+                  const validValues = new Set(
+                    newStates.flatMap((stateCode) =>
+                      getDistrictOptions(stateCode).map((opt) => opt.value),
+                    ),
+                  );
+                  const newDistricts = filters.districts.filter(
+                    (districtCode) => validValues.has(districtCode),
+                  );
+                  onChange({
+                    ...filters,
+                    states: newStates,
+                    districts: newDistricts,
+                  });
                 }}
               >
-                {label}
+                {state.name}
               </DropdownMenuCheckboxItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-      )}
 
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+        {filters.states.length > 0 && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                aria-label="Filter by district"
+                className={`justify-between`}
+                disabled={disabled}
+              >
+                <span className="mx-2 truncate">District</span>
+                <ChevronDown aria-hidden="true" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="max-h-64 overflow-y-auto">
+              {availableDistricts.map(({ value, label }) => (
+                <DropdownMenuCheckboxItem
+                  key={value}
+                  checked={filters.districts.includes(value)}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    set({ districts: xor(filters.districts, [value]) });
+                  }}
+                >
+                  {label}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label="Filter by party"
+              className={`justify-between`}
+              disabled={disabled}
+            >
+              <span className="mx-2 truncate">Party</span>
+              <ChevronDown aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {PARTIES.map((party) => (
+              <DropdownMenuCheckboxItem
+                key={party}
+                checked={filters.parties.includes(party)}
+                onSelect={(e) => {
+                  e.preventDefault();
+                  set({ parties: xor(filters.parties, [party]) });
+                }}
+              >
+                {party}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <RepresentativeFilterPicker
+          selectedIds={filters.representativeIds}
+          reps={reps}
+          profileState={profileState}
+          profileDistrict={profileDistrict}
+          onAdd={(repId) =>
+            set({
+              representativeIds: [...filters.representativeIds, repId],
+            })
+          }
+          disabled={disabled}
+        />
+
+        {hasActive && (
           <Button
-            variant={filters.parties.length > 0 ? "default" : "outline"}
+            variant="ghost"
             size="sm"
-            aria-label="Filter by party"
-            className={`${FILTER_WIDTH} justify-between`}
+            onClick={() => onChange(EMPTY_MEETING_FILTERS)}
             disabled={disabled}
           >
-            <span className="truncate">{partyLabel}</span>
-            <ChevronDown aria-hidden="true" />
+            <X aria-hidden="true" />
+            Clear all filters
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent>
-          {PARTIES.map((party) => (
-            <DropdownMenuCheckboxItem
-              key={party}
-              checked={filters.parties.includes(party)}
-              onSelect={(e) => {
-                e.preventDefault();
-                set({ parties: xor(filters.parties, [party]) });
-              }}
-            >
-              {party}
-            </DropdownMenuCheckboxItem>
-          ))}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        )}
+      </div>
 
-      {active && (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => onChange(EMPTY_MEETING_FILTERS)}
-          disabled={disabled}
-        >
-          <X aria-hidden="true" />
-          Clear all
-        </Button>
+      {activeChips.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {activeChips.map((chip) => (
+            <span
+              key={chip.key}
+              className="inline-flex items-center gap-1 rounded-md border bg-muted px-2 py-1 text-sm"
+            >
+              {chip.label}
+              <button
+                type="button"
+                aria-label={`Remove ${chip.label} filter`}
+                className="ml-1 rounded hover:text-destructive disabled:opacity-50"
+                onClick={chip.onRemove}
+                disabled={disabled}
+              >
+                <X className="h-3 w-3" aria-hidden="true" />
+              </button>
+            </span>
+          ))}
+        </div>
       )}
     </div>
   );
