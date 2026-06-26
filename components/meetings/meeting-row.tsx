@@ -62,6 +62,9 @@ export function MeetingRow({
               )
             : "—"}
         </TableCell>
+        <TableCell className="max-w-0 truncate">
+          {meeting.location ?? "—"}
+        </TableCell>
         {showRepColumn && (
           <TableCell className="max-w-0">
             <div className="truncate">
@@ -89,9 +92,6 @@ export function MeetingRow({
           ) : (
             meeting.congressional_contact_name
           )}
-        </TableCell>
-        <TableCell className="max-w-0 truncate">
-          {meeting.location ?? "—"}
         </TableCell>
         <TableCell className="max-w-0 truncate">
           {meeting.scheduling_lead_name ?? "—"}
