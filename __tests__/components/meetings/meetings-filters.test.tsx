@@ -42,15 +42,6 @@ describe("hasActiveMeetingFilters", () => {
     ).toBe(true);
   });
 
-  it("returns true when delegateMemberIds has entries", () => {
-    expect(
-      hasActiveMeetingFilters({
-        ...EMPTY_MEETING_FILTERS,
-        delegateMemberIds: ["abc"],
-      }),
-    ).toBe(true);
-  });
-
   it("returns true when dateRange.from is set", () => {
     expect(
       hasActiveMeetingFilters({

@@ -56,6 +56,7 @@ export function FilterCombobox({
   clearLabel,
   required,
   disabled,
+  className,
 }: {
   id: string;
   options: ComboboxOption[];
@@ -68,6 +69,7 @@ export function FilterCombobox({
   clearLabel?: string;
   required?: boolean;
   disabled?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -183,7 +185,7 @@ export function FilterCombobox({
           }}
           onClick={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          className="flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pr-8 text-left text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className={`flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pr-8 text-left text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
         />
       </div>
 

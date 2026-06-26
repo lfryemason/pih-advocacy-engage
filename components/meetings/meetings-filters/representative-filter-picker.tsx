@@ -68,6 +68,7 @@ export function RepresentativeFilterPicker({
         }}
         placeholder="Representative"
         disabled={disabled}
+        className={selectedIds.length > 0 ? "!bg-muted" : ""}
       />
     </div>
   );

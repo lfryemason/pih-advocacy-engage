@@ -95,7 +95,6 @@ export type MeetingFilters = {
   districts: string[];
   parties: string[];
   representativeIds: string[];
-  delegateMemberIds: string[];
   dateRange: { from: string | null; to: string | null };
 };
 

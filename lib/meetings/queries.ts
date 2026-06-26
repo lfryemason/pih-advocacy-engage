@@ -170,13 +170,6 @@ export async function fetchMeetings(
   if (filters.representativeIds.length > 0) {
     query = query.in("representative_id", filters.representativeIds);
   }
-  if (filters.delegateMemberIds.length > 0) {
-    query = query.filter(
-      "meeting_delegation_members.user_id",
-      "in",
-      `(${filters.delegateMemberIds.map((id) => `"${id}"`).join(",")})`,
-    );
-  }
   if (filters.dateRange.from) {
     query = query.gte("meeting_date", filters.dateRange.from);
   }
