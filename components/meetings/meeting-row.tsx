@@ -90,18 +90,8 @@ export function MeetingRow({
             meeting.congressional_contact_name
           )}
         </TableCell>
-        <TableCell className="max-w-0">
-          {meeting.primary_team_slug ? (
-            <Link
-              href={`/teams/${meeting.primary_team_slug}`}
-              className={`block truncate ${LINK_CN}`}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {meeting.primary_team_name}
-            </Link>
-          ) : (
-            "—"
-          )}
+        <TableCell className="max-w-0 truncate">
+          {meeting.location ?? "—"}
         </TableCell>
         <TableCell className="max-w-0 truncate">
           {meeting.scheduling_lead_name ?? "—"}
