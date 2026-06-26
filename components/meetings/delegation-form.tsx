@@ -55,6 +55,7 @@ export function DelegationForm({
     initialMembers.map(memberFromDelegation),
   );
   const [pendingRows, setPendingRows] = useState<PendingRow[]>([]);
+  const [newestPendingKey, setNewestPendingKey] = useState<string | null>(null);
   const [myTeamGroups, setMyTeamGroups] = useState<TeamGroup[]>([]);
   const [isLoadingInitial, setIsLoadingInitial] = useState(true);
   const supabaseRef = useRef(createClient());
@@ -102,15 +103,17 @@ export function DelegationForm({
   }
 
   function addPendingRow() {
+    const key = crypto.randomUUID();
     setPendingRows([
       ...pendingRows,
       {
-        key: crypto.randomUUID(),
+        key,
         profile: null,
         team: undefined,
         role: "attendee" as DelegationRole,
       },
     ]);
+    setNewestPendingKey(key);
   }
 
   function updatePendingRow(
@@ -198,6 +201,7 @@ export function DelegationForm({
             <PendingMemberRow
               key={row.key}
               row={row}
+              focusOnMount={row.key === newestPendingKey}
               excludedUserIds={allExcludedUserIds}
               supabase={supabaseRef.current}
               myTeamGroups={myTeamGroups}

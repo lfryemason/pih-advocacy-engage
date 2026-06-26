@@ -37,6 +37,7 @@ export type PendingRow = {
 
 export function PendingMemberRow({
   row,
+  focusOnMount,
   excludedUserIds,
   supabase,
   myTeamGroups,
@@ -45,6 +46,7 @@ export function PendingMemberRow({
   onRemove,
 }: {
   row: PendingRow;
+  focusOnMount?: boolean;
   excludedUserIds: Set<string>;
   supabase: SupabaseClient;
   myTeamGroups: TeamGroup[];
@@ -220,14 +222,16 @@ export function PendingMemberRow({
           <CommandInput
             placeholder="Search by name…"
             value={row.profile?.display_name ?? searchQuery}
+            autoFocus={focusOnMount}
             onValueChange={(val) => {
               if (row.profile) {
                 onUpdate(row.key, null, undefined, row.role);
                 setSearchActive(true);
               }
               setSearchQuery(val);
+              setInputFocused(true);
             }}
-            onFocus={() => {
+            onClick={() => {
               if (blurTimerRef.current) clearTimeout(blurTimerRef.current);
               setInputFocused(true);
             }}
@@ -237,6 +241,12 @@ export function PendingMemberRow({
                 setInputFocused(false);
                 setSearchActive(false);
               }, 100);
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Escape") {
+                event.preventDefault();
+                setInputFocused(false);
+              }
             }}
             autoComplete="off"
           />
