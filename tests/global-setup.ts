@@ -18,6 +18,9 @@ export default async function globalSetup(config: FullConfig) {
   await page.getByLabel("Password").fill(TEST_PASSWORD);
   await page.getByRole("button", { name: "Login" }).click();
   await page.waitForURL((url) => !url.pathname.startsWith("/auth/"));
+  // Wait for the post-login page to fully load so the dev server compiles the
+  // main app routes before the first regression test runs cold.
+  await page.waitForLoadState("networkidle");
 
   fs.mkdirSync("playwright/.auth", { recursive: true });
   await page.context().storageState({ path: AUTH_STATE_PATH });

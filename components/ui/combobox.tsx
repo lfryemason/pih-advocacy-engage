@@ -49,6 +49,7 @@ export function FilterCombobox({
   options,
   priorityIds,
   priorityGroupLabel,
+  nonPriorityGroupLabel,
   value,
   onChange,
   placeholder,
@@ -59,6 +60,7 @@ export function FilterCombobox({
   options: ComboboxOption[];
   priorityIds?: Set<string>;
   priorityGroupLabel?: string;
+  nonPriorityGroupLabel?: string;
   value: string;
   onChange: (id: string) => void;
   placeholder?: string;
@@ -126,7 +128,7 @@ export function FilterCombobox({
     }, [deferredQuery, options, priorityIds, clearLabel]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
-    if (e.key === "ArrowDown") {
+    if (e.key === "ArrowDown" || (e.key === "Tab" && !e.shiftKey && open)) {
       e.preventDefault();
       if (!open) {
         setOpen(true);
@@ -134,17 +136,20 @@ export function FilterCombobox({
         return;
       }
       setHighlightedIndex((i) => Math.min(i + 1, visibleOptions.length - 1));
-    } else if (e.key === "ArrowUp") {
+    } else if (e.key === "ArrowUp" || (e.key === "Tab" && e.shiftKey && open)) {
       e.preventDefault();
       setHighlightedIndex((i) => Math.max(i - 1, -1));
-    } else if (e.key === "Enter") {
+    } else if (e.key === "Enter" || (e.key === " " && !open)) {
       e.preventDefault();
-      if (open && highlightedIndex >= 0) {
+      if (!open) {
+        setOpen(true);
+        setQuery(selected?.label ?? "");
+      } else if (e.key === "Enter" && highlightedIndex >= 0) {
         handleSelect(visibleOptions[highlightedIndex].id);
       }
-    } else if (e.key === "Escape") {
+    } else if (e.key === "Escape" && open) {
+      e.stopPropagation();
       setOpen(false);
-      setQuery("");
       setHighlightedIndex(-1);
     }
   }
@@ -166,14 +171,14 @@ export function FilterCombobox({
           aria-controls={`${id}-listbox`}
           aria-activedescendant={activeDescendant}
           aria-haspopup="listbox"
-          value={open ? query : (selected?.label ?? "")}
+          value={open ? query : (selected?.label ?? query)}
           placeholder={placeholder}
           required={required}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
           }}
-          onFocus={() => setOpen(true)}
+          onClick={() => setOpen(true)}
           onKeyDown={handleKeyDown}
           className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-8 text-left text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
         />
@@ -231,6 +236,13 @@ export function FilterCombobox({
                   </>
                 )}
 
+                {nonPriorityGroupLabel &&
+                  priorityCount > 0 &&
+                  visibleOptions.length > clearOffset + priorityCount && (
+                    <p className="px-3 py-1 text-xs font-medium text-muted-foreground">
+                      {nonPriorityGroupLabel}
+                    </p>
+                  )}
                 {visibleOptions
                   .slice(clearOffset + priorityCount)
                   .map((o, i) => {

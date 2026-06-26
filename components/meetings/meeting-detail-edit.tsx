@@ -97,7 +97,7 @@ function LeftColumn({
           }
           disabled={!form.representativeId}
         >
-          <option value="">— Meeting with representative directly —</option>
+          <option value="">Meeting with representative directly</option>
           {staffers.map((s) => (
             <option key={s.id} value={s.id}>
               {s.first_name} {s.last_name}
@@ -137,7 +137,7 @@ function LeftColumn({
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-2">
           <p className={SECTION_LABEL_CLASSNAME}>
-            <Label htmlFor={`edit-followup-${meetingId}`}>Follow-up</Label>
+            <Label htmlFor={`edit-followup-${meetingId}`}>Follow-up date</Label>
           </p>
           <Input
             id={`edit-followup-${meetingId}`}

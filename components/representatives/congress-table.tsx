@@ -81,7 +81,7 @@ export function CongressTable({ filters }: { filters: Filters }) {
 
   return (
     <div className="w-full min-w-0 md:w-1/2">
-      <h2 className="mb-3 text-2xl font-bold">Representatives</h2>
+      <h2 className="mb-3 text-xl font-semibold">Representatives</h2>
       {isLoading ? (
         <p className="text-muted-foreground">Loading…</p>
       ) : error ? (
