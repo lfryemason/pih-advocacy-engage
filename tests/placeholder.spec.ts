@@ -185,7 +185,7 @@ test.describe("claiming a placeholder account", () => {
     await page.getByLabel("Last Name").fill("Reclaimed");
     await page.getByLabel("Pronouns").fill("they/them");
     await page.getByLabel("Email").fill(SEED_PLACEHOLDER_EMAIL);
-    await page.getByLabel("Password", { exact: true }).fill(password);
+    await page.getByLabel(/^Password/).fill(password);
     await page.getByLabel("Repeat Password").fill(password);
     await page.getByRole("button", { name: "Sign up" }).click();
     await page.waitForURL("**/auth/sign-up-success");

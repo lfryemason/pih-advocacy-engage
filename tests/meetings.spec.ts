@@ -411,12 +411,13 @@ test.describe("US4 — Delegation members", () => {
       page.getByRole("button", { name: "Save changes" }),
     ).toBeVisible();
 
+    await page.getByRole("button", { name: "Add member" }).click();
+
     const searchInput = page.getByRole("combobox", { name: /search members/i });
     await searchInput.fill("Penny");
     const pennyResult = page.getByText("Penny Placeholder");
     await expect(pennyResult).toBeVisible();
     await pennyResult.click();
-    await page.getByRole("button", { name: /add to delegation/i }).click();
 
     await page.getByRole("button", { name: "Save changes" }).click();
     await expect(
