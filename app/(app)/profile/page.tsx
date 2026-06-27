@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { ProfileForm } from "@/components/profile-form";
+import { DeleteAccountSection } from "@/components/profile/delete-account-section";
 
 export const metadata: Metadata = { title: "Profile" };
 
@@ -11,6 +12,7 @@ export default function Profile() {
         Your Engage account details
       </p>
       <ProfileForm />
+      <DeleteAccountSection />
     </div>
   );
 }
