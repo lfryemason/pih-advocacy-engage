@@ -7,7 +7,6 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -68,82 +67,72 @@ export function DeleteAccountSection() {
   const lockDialog = isDeleting || deleted;
 
   return (
-    <Card className="mt-10 flex max-w-lg flex-col gap-4 border-destructive/50 p-6 sm:flex-row sm:items-center sm:justify-between">
-      <div className="space-y-1">
-        <h2 className="font-semibold text-destructive-dark">Delete Account</h2>
-        <p className="text-sm text-muted-foreground">
-          If you delete your account, your information will be deleted and you
-          will be unable to access this platform until you receive another join
-          link.
-        </p>
-      </div>
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogTrigger asChild>
-          <Button variant="destructive" className="shrink-0">
-            Delete Account
-          </Button>
-        </DialogTrigger>
-        <DialogContent
-          className={cn("sm:max-w-md", deleted && "border-destructive/50")}
-          showCloseButton={!lockDialog}
-          onEscapeKeyDown={(e) => lockDialog && e.preventDefault()}
-          onPointerDownOutside={(e) => lockDialog && e.preventDefault()}
-          onInteractOutside={(e) => lockDialog && e.preventDefault()}
-        >
-          {deleted ? (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogTrigger asChild>
+        <Button variant="destructive" className="mt-6">
+          Delete Account
+        </Button>
+      </DialogTrigger>
+      <DialogContent
+        className={cn("sm:max-w-md", deleted && "border-destructive/50")}
+        showCloseButton={!lockDialog}
+        onEscapeKeyDown={(e) => lockDialog && e.preventDefault()}
+        onPointerDownOutside={(e) => lockDialog && e.preventDefault()}
+        onInteractOutside={(e) => lockDialog && e.preventDefault()}
+      >
+        {deleted ? (
+          <DialogHeader>
+            <DialogTitle className="text-destructive-dark">
+              Your account has been deleted
+            </DialogTitle>
+            <DialogDescription>
+              Your account and personal information have been permanently
+              removed. Taking you back to the login page&hellip;
+            </DialogDescription>
+          </DialogHeader>
+        ) : (
+          <>
             <DialogHeader>
-              <DialogTitle className="text-destructive-dark">
-                Your account has been deleted
-              </DialogTitle>
+              <DialogTitle>Are you sure?</DialogTitle>
               <DialogDescription>
-                Your account and personal information have been permanently
-                removed. Taking you back to the login page&hellip;
+                This permanently deletes your account and removes you from your
+                teams. You&apos;ll need a new invite link to return. Meeting
+                records you&apos;ve logged will be kept.
               </DialogDescription>
             </DialogHeader>
-          ) : (
-            <>
-              <DialogHeader>
-                <DialogTitle>Are you sure?</DialogTitle>
-                <DialogDescription>
-                  This permanently deletes your account and removes you from
-                  your teams. You&apos;ll need a new invite link to return.
-                  Meeting records you&apos;ve logged will be kept.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-2">
-                <Label htmlFor="confirm-delete">
-                  Type <span className="font-semibold">{CONFIRM_PHRASE}</span>{" "}
-                  to confirm
-                </Label>
-                <Input
-                  id="confirm-delete"
-                  value={confirmText}
-                  onChange={(e) => setConfirmText(e.target.value)}
-                  autoComplete="off"
-                  aria-invalid={confirmText.length > 0 && !canDelete}
-                />
-              </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
-              <DialogFooter>
-                <Button
-                  variant="outline"
-                  onClick={() => handleOpenChange(false)}
-                  disabled={isDeleting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  variant="destructive"
-                  onClick={handleDelete}
-                  disabled={!canDelete || isDeleting}
-                >
-                  {isDeleting ? "Deleting..." : "Delete Account"}
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
-    </Card>
+            <div className="grid gap-2">
+              <Label htmlFor="confirm-delete">
+                Type <span className="font-semibold">{CONFIRM_PHRASE}</span> to
+                confirm
+              </Label>
+              <Input
+                id="confirm-delete"
+                value={confirmText}
+                onChange={(e) => setConfirmText(e.target.value)}
+                autoComplete="off"
+                aria-invalid={confirmText.length > 0 && !canDelete}
+              />
+            </div>
+            {error && <p className="text-sm text-red-500">{error}</p>}
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDelete}
+                disabled={!canDelete || isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete Account"}
+              </Button>
+            </DialogFooter>
+          </>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }

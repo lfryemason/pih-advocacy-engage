@@ -42,11 +42,8 @@ describe("DeleteAccountSection", () => {
     mockRefresh.mockReset();
   });
 
-  it("renders the danger card with the delete trigger", () => {
+  it("renders the delete trigger", () => {
     render(<DeleteAccountSection />);
-    expect(
-      screen.getByRole("heading", { name: "Delete Account" }),
-    ).toBeInTheDocument();
     expect(
       screen.getByRole("button", { name: "Delete Account" }),
     ).toBeInTheDocument();
