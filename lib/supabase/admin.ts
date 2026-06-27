@@ -14,7 +14,8 @@ import type { Database } from "@/lib/supabase/database.types";
  * lib/supabase/server.ts for the same convention).
  */
 export function createAdminClient() {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SERVICE_ROLE_KEY;
   if (!key) {
     throw new Error(
       "SUPABASE_SERVICE_ROLE_KEY is required for admin operations. " +
