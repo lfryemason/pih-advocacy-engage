@@ -15,7 +15,7 @@ export function PendingBadge() {
           Pending
         </Badge>
       </TooltipTrigger>
-      <TooltipContent>This member hasn&apos;t signed up yet</TooltipContent>
+      <TooltipContent>This member hasn&apos;t signed up yet. They need to sign up with the same email.</TooltipContent>
     </Tooltip>
   );
 }
