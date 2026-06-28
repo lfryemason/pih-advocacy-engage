@@ -45,7 +45,7 @@ export function DeleteMeetingDialog({
         <DialogHeader>
           <DialogTitle>Delete this meeting?</DialogTitle>
           <DialogDescription>
-            This permanently deletes the meeting and everyone in its delegation.
+            This permanently deletes the meeting and removes everyone from the delegation.
             This can&rsquo;t be undone.
           </DialogDescription>
         </DialogHeader>
