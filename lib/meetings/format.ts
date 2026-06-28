@@ -1,3 +1,16 @@
+import type { MeetingLocation } from "@/lib/meetings/types";
+
+export function formatLocation(loc: MeetingLocation): string {
+  if (loc.isVirtual) return "Virtual";
+  const building = [loc.building, loc.room && `Rm ${loc.room}`]
+    .filter((p) => p && p.trim())
+    .join(", ");
+  const cityState = [loc.city, loc.state]
+    .filter((p) => p && p.trim())
+    .join(", ");
+  return [building, cityState].filter(Boolean).join(" — ");
+}
+
 export function formatDate(isoDate: string): string {
   return new Date(`${isoDate}T00:00:00`).toLocaleDateString("en-US", {
     month: "short",

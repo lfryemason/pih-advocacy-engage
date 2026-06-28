@@ -96,12 +96,13 @@ async function main() {
     "3:30 PM ET",
     null,
   ];
+  const blank = { isVirtual: false, city: "", state: "" };
   const locations = [
-    "Virtual",
-    "509 Hart Senate Office Building",
-    "2268 Rayburn House Office Building",
-    "1003 Longworth House Office Building",
-    "Russell Senate Office Building",
+    { isVirtual: true, city: "", state: "", building: "", room: "" },
+    { ...blank, building: "Hart Senate Office Building", room: "509" },
+    { ...blank, building: "Rayburn House Office Building", room: "2268" },
+    { ...blank, building: "Longworth House Office Building", room: "1003" },
+    { ...blank, building: "Russell Senate Office Building", room: "" },
     null,
   ];
   const pick = <T>(arr: T[], i: number) => arr[i % arr.length];

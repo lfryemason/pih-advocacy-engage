@@ -82,11 +82,19 @@ describe("MeetingDetailView — location", () => {
   it("renders location when set", () => {
     render(
       <MeetingDetailView
-        meeting={makeMeeting({ location: "Capitol Hill, Room 101" })}
+        meeting={makeMeeting({
+          location: {
+            isVirtual: false,
+            city: "",
+            state: "",
+            building: "Capitol Hill",
+            room: "101",
+          },
+        })}
         onEdit={vi.fn()}
       />,
     );
-    expect(screen.getByText("Capitol Hill, Room 101")).toBeInTheDocument();
+    expect(screen.getByText("Capitol Hill, Rm 101")).toBeInTheDocument();
   });
 
   it("shows the Location header with an em dash when null", () => {

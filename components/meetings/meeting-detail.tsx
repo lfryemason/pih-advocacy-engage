@@ -14,6 +14,8 @@ import {
   LinkFormEntry,
   LocalDelegationMember,
   memberFromDelegation,
+  EMPTY_LOCATION,
+  isLocationEmpty,
 } from "@/lib/meetings/types";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
@@ -30,7 +32,7 @@ const DEFAULT_FORM: FormState = {
   representativeId: "",
   congressionalContactId: "",
   primaryTeamId: "",
-  location: "",
+  location: EMPTY_LOCATION,
   notes: "",
   followUpDate: "",
   followUpCompleted: false,
@@ -45,7 +47,7 @@ function formStateFromDetail(d: MeetingDetailType): FormState {
     representativeId: d.representative_id,
     congressionalContactId: d.congressional_contact_id ?? "",
     primaryTeamId: d.primary_team_id ?? "",
-    location: d.location ?? "",
+    location: d.location ?? EMPTY_LOCATION,
     notes: d.notes ?? "",
     followUpDate: d.follow_up_date ?? "",
     followUpCompleted: d.follow_up_completed,
@@ -186,7 +188,7 @@ export function MeetingDetail({
       congressional_contact_id: form.congressionalContactId || null,
       primary_team_id: form.primaryTeamId || null,
       notes: form.notes.trim() || null,
-      location: form.location.trim() || null,
+      location: isLocationEmpty(form.location) ? null : form.location,
       follow_up_date: form.followUpDate || null,
       follow_up_completed: form.followUpCompleted,
       champion_score: parsedScore,

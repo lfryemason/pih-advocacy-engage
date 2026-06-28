@@ -8,6 +8,7 @@ import {
   StafferOption,
   DelegationMember,
   LocalDelegationMember,
+  MeetingLocation,
 } from "@/lib/meetings/types";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { isDelegationMember } from "@/lib/meetings/permissions";
@@ -24,6 +25,7 @@ import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
 import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
 import { DeleteMeetingButton } from "@/components/meetings/delete-meeting-button";
+import { LocationFields } from "@/components/meetings/create/location-fields";
 
 export type FormState = {
   meetingDate: string;
@@ -32,7 +34,7 @@ export type FormState = {
   representativeId: string;
   congressionalContactId: string;
   primaryTeamId: string;
-  location: string;
+  location: MeetingLocation;
   notes: string;
   followUpDate: string;
   followUpCompleted: boolean;
@@ -228,14 +230,11 @@ function RightColumn({
       </div>
 
       <div className="flex flex-col gap-2">
-        <p className={SECTION_LABEL_CLASSNAME}>
-          <Label htmlFor={`edit-location-${meetingId}`}>Location</Label>
-        </p>
-        <Input
-          id={`edit-location-${meetingId}`}
+        <p className={SECTION_LABEL_CLASSNAME}>Location</p>
+        <LocationFields
+          idPrefix={`edit-location-${meetingId}`}
           value={form.location}
-          onChange={(e) => onFormChange({ location: e.target.value })}
-          placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
+          onChange={(location) => onFormChange({ location })}
         />
       </div>
 

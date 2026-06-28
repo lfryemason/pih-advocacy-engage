@@ -13,6 +13,7 @@ import {
   LocalDelegationMember,
   ProfileSearchResult,
   TeamGroup,
+  parseMeetingLocation,
 } from "@/lib/meetings/types";
 import { localDateString } from "@/lib/utils";
 import { ORG_ID } from "@/lib/org";
@@ -193,6 +194,23 @@ export async function fetchMeetings(
     query = query.lte("meeting_date", filters.dateRange.to);
   }
 
+  // Location filters apply to the meetings table's own jsonb column.
+  if (filters.isVirtual === true) {
+    query = query.filter("location->>isVirtual", "eq", "true");
+  } else if (filters.isVirtual === false) {
+    // In-person includes meetings with no location set at all.
+    query = query.or("location->>isVirtual.eq.false,location.is.null");
+  }
+  if (filters.buildings.length > 0) {
+    // ilike (no wildcards) gives a case-insensitive exact match per building.
+    const ors = filters.buildings
+      .map((b) => sanitizeBuildingFilter(b))
+      .filter(Boolean)
+      .map((b) => `location->>building.ilike.${b}`)
+      .join(",");
+    if (ors) query = query.or(ors);
+  }
+
   query = query.range(offset, offset + limit - 1);
 
   const { data, error, count } = await query;
@@ -202,6 +220,36 @@ export async function fetchMeetings(
     meetings: (data as unknown as RawRow[]).map(mapRow),
     count: count ?? 0,
   };
+}
+
+// Strip characters that are structural in PostgREST filter strings or act as
+// LIKE wildcards, mirroring the sanitization in searchProfiles below.
+function sanitizeBuildingFilter(value: string): string {
+  return value.replace(/[,()%_"']/g, "").trim();
+}
+
+// Distinct building names already used across the org's meetings, deduped
+// case-insensitively (keeping the first-seen casing). Feeds both the building
+// filter dropdown and the create/edit form autocomplete.
+export async function fetchMeetingBuildings(
+  supabase: SupabaseBrowserClient,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("meetings")
+    .select("location")
+    .eq("org_id", ORG_ID)
+    .not("location", "is", null);
+
+  if (error) throw error;
+
+  const seen = new Map<string, string>();
+  for (const row of (data as unknown as { location: unknown }[]) ?? []) {
+    const building = parseMeetingLocation(row.location)?.building.trim();
+    if (!building) continue;
+    const key = building.toLowerCase();
+    if (!seen.has(key)) seen.set(key, building);
+  }
+  return [...seen.values()].sort((a, b) => a.localeCompare(b));
 }
 
 export async function createMeeting(
@@ -281,6 +329,7 @@ type RawDetailDelegationMember = {
 
 type RawDetailRow = Omit<RawRow, "meeting_delegation_members"> & {
   notes: string | null;
+  location: unknown;
   links: MeetingLink[] | null;
   meeting_delegation_members: RawDetailDelegationMember[];
 };
@@ -345,6 +394,7 @@ export async function fetchMeetingDetail(
   return {
     ...mapRow(row),
     notes: row.notes,
+    location: parseMeetingLocation(row.location),
     links: row.links ?? [],
     delegation_members,
     represented_teams,

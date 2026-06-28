@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { CreateMeetingValues, LinkFormEntry } from "@/lib/meetings/types";
+import {
+  CreateMeetingValues,
+  LinkFormEntry,
+  MeetingLocation,
+  EMPTY_LOCATION,
+  isLocationEmpty,
+} from "@/lib/meetings/types";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
 import { useStaffers } from "@/lib/meetings/use-staffers";
@@ -14,6 +20,7 @@ import { RepresentativeCombobox } from "@/components/meetings/create/representat
 import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
 import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
+import { LocationFields } from "@/components/meetings/create/location-fields";
 
 type SubmitFn = (
   values: CreateMeetingValues,
@@ -37,7 +44,7 @@ export function CreateMeetingForm({
   const [congressionalContactId, setCongressionalContactId] = useState("");
   const [primaryTeamId, setPrimaryTeamId] = useState("");
   const [primaryTeamName, setPrimaryTeamName] = useState<string | null>(null);
-  const [location, setLocation] = useState("");
+  const [location, setLocation] = useState<MeetingLocation>(EMPTY_LOCATION);
   const [notes, setNotes] = useState("");
   const [links, setLinks] = useState<LinkFormEntry[]>([]);
 
@@ -67,7 +74,7 @@ export function CreateMeetingForm({
       congressional_contact_id: congressionalContactId || null,
       primary_team_id: primaryTeamId || null,
       notes: notes.trim() || null,
-      location: location.trim() || null,
+      location: isLocationEmpty(location) ? null : location,
     };
 
     const filteredLinks = links.filter((l) => l.label.trim() || l.url.trim());
@@ -166,12 +173,11 @@ export function CreateMeetingForm({
         </div>
 
         <div className="grid gap-2 sm:col-span-2">
-          <Label htmlFor="meeting-location">Location</Label>
-          <Input
-            id="meeting-location"
+          <Label>Location</Label>
+          <LocationFields
+            idPrefix="meeting-location"
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            placeholder="e.g. 'Meeting Room 1, State House', or 'Virtual'"
+            onChange={setLocation}
           />
         </div>
 

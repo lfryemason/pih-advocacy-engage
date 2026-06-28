@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import type { MeetingDetail } from "@/lib/meetings/types";
 import {
   formatDate,
+  formatLocation,
   formatTime,
   EMPTY_VALUE_CLASSNAME,
   LINK_CN,
@@ -145,7 +146,9 @@ export function MeetingDetailView({
             </p>
           </div>
           <Field label="Location" isEmpty={!meeting.location}>
-            <p className="mt-1 text-sm">{meeting.location}</p>
+            <p className="mt-1 text-sm">
+              {meeting.location && formatLocation(meeting.location)}
+            </p>
           </Field>
           <Field label="Notes" isEmpty={!meeting.notes}>
             <div className="mt-1 border-l-4 border-muted pl-3">

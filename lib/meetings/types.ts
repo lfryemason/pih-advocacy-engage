@@ -36,6 +36,48 @@ export type MeetingLink = {
   url: string;
 };
 
+export type MeetingLocation = {
+  isVirtual: boolean;
+  city: string;
+  state: string;
+  building: string;
+  room: string;
+};
+
+export const EMPTY_LOCATION: MeetingLocation = {
+  isVirtual: false,
+  city: "",
+  state: "",
+  building: "",
+  room: "",
+};
+
+// Coerce a raw DB jsonb value into a MeetingLocation, applying defaults for any
+// missing/malformed keys. Returns null when there is no location data at all.
+export function parseMeetingLocation(raw: unknown): MeetingLocation | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+  return {
+    isVirtual: r.isVirtual === true,
+    city: typeof r.city === "string" ? r.city : "",
+    state: typeof r.state === "string" ? r.state : "",
+    building: typeof r.building === "string" ? r.building : "",
+    room: typeof r.room === "string" ? r.room : "",
+  };
+}
+
+// An in-person location with every field blank carries no information, so it is
+// stored as null rather than an empty object.
+export function isLocationEmpty(loc: MeetingLocation): boolean {
+  return (
+    !loc.isVirtual &&
+    !loc.city.trim() &&
+    !loc.state.trim() &&
+    !loc.building.trim() &&
+    !loc.room.trim()
+  );
+}
+
 export type DelegationMember = {
   id: string;
   user_id: string;
@@ -51,6 +93,7 @@ export type DelegationMember = {
 
 export type MeetingDetail = MeetingRow & {
   notes: string | null;
+  location: MeetingLocation | null;
   links: MeetingLink[];
   delegation_members: DelegationMember[];
   represented_teams: string[];
@@ -74,7 +117,7 @@ export type CreateMeetingValues = {
   congressional_contact_id: string | null;
   primary_team_id: string | null;
   notes: string | null;
-  location: string | null;
+  location: MeetingLocation | null;
 };
 
 export type MeetingFormValues = CreateMeetingValues & {
@@ -99,6 +142,9 @@ export type MeetingFilters = {
   parties: string[];
   representativeIds: string[];
   dateRange: { from: string | null; to: string | null };
+  buildings: string[];
+  // null = either, true = virtual only, false = in-person only
+  isVirtual: boolean | null;
 };
 
 // ─── Profile search result (used by delegation-form user search) ──────────────
