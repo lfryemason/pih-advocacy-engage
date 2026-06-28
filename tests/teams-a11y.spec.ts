@@ -39,3 +39,20 @@ for (const { name, path } of pages) {
     });
   }
 }
+
+test("team edit page with add-teammate dialog open has no accessibility violations", async ({
+  page,
+}) => {
+  await page.goto("/teams/seattle-high-school/edit");
+  await page.waitForLoadState("networkidle");
+  await page.getByRole("button", { name: "Add teammate" }).click();
+  await expect(
+    page.getByRole("dialog", { name: "Add teammate" }),
+  ).toBeVisible();
+
+  const results = await new AxeBuilder({ page })
+    .exclude("h1") // primary color on white fails contrast — known issue
+    .analyze();
+
+  expect(results.violations).toEqual([]);
+});

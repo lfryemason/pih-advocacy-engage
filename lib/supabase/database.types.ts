@@ -468,6 +468,10 @@ export type Database = {
         };
         Returns: undefined;
       };
+      delete_own_account: {
+        Args: Record<PropertyKey, never>;
+        Returns: undefined;
+      };
       is_in_org: { Args: { target_org_id: string }; Returns: boolean };
       is_org_admin_for: { Args: { target_org_id: string }; Returns: boolean };
       is_super_admin: { Args: never; Returns: boolean };

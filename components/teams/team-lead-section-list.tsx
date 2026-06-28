@@ -15,6 +15,7 @@ import {
   type MembershipWithProfile,
 } from "@/lib/teams";
 import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
+import { PendingBadge } from "@/components/teams/pending-badge";
 
 export function TeamLeadSectionList({
   memberships,
@@ -64,6 +65,7 @@ export function TeamLeadSectionList({
                     name={displayName(m.profiles)}
                     pronouns={m.profiles?.pronouns}
                   />
+                  {m.profiles?.is_placeholder && <PendingBadge />}
                 </TableCell>
                 <TableCell>
                   {m.profiles?.email && (

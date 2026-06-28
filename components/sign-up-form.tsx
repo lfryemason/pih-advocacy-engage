@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
+import { signUpOrClaim } from "@/lib/auth/sign-up-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -41,7 +41,6 @@ export function SignUpForm({
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
@@ -52,24 +51,22 @@ export function SignUpForm({
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const result = await signUpOrClaim({
         email,
         password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/protected`,
-          data: {
-            first_name: firstName,
-            last_name: lastName,
-            pronouns,
-            state,
-            congressional_district: district || null,
-          },
-        },
+        firstName,
+        lastName,
+        pronouns,
+        state,
+        district,
       });
-      if (error) throw error;
-      router.push("/auth/sign-up-success");
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      if (result.ok) {
+        router.push("/auth/sign-up-success");
+      } else {
+        setError(result.error);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }

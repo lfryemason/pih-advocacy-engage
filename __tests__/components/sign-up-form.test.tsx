@@ -2,10 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SignUpForm } from "@/components/sign-up-form";
-import { createClient } from "@/lib/supabase/client";
+import { signUpOrClaim } from "@/lib/auth/sign-up-actions";
 
-vi.mock("@/lib/supabase/client", () => ({
-  createClient: vi.fn(),
+// The form submits through the signUpOrClaim server action (which wraps
+// supabase.auth.signUp and the placeholder claim flow). Mock the action —
+// its module pulls in the server-only admin client.
+vi.mock("@/lib/auth/sign-up-actions", () => ({
+  signUpOrClaim: vi.fn(),
 }));
 
 const mockPush = vi.fn();
@@ -13,11 +16,7 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mockPush }),
 }));
 
-const mockSignUp = vi.fn();
-
-function mockClient() {
-  return { auth: { signUp: mockSignUp } };
-}
+const mockSignUp = vi.mocked(signUpOrClaim);
 
 async function fillRequiredFields() {
   await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
@@ -29,11 +28,8 @@ async function fillRequiredFields() {
 
 describe("SignUpForm", () => {
   beforeEach(() => {
-    vi.mocked(createClient).mockReturnValue(
-      mockClient() as unknown as ReturnType<typeof createClient>,
-    );
     mockSignUp.mockReset();
-    mockSignUp.mockResolvedValue({ error: null });
+    mockSignUp.mockResolvedValue({ ok: true });
     mockPush.mockReset();
   });
 
@@ -111,26 +107,20 @@ describe("SignUpForm", () => {
     await userEvent.click(screen.getByRole("button", { name: "Sign up" }));
 
     await waitFor(() => {
-      expect(mockSignUp).toHaveBeenCalledWith(
-        expect.objectContaining({
-          email: "alice@example.com",
-          password: "password123",
-          options: expect.objectContaining({
-            data: {
-              first_name: "Alice",
-              last_name: "Smith",
-              pronouns: "she/her",
-              state: "PA",
-              congressional_district: "5",
-            },
-          }),
-        }),
-      );
+      expect(mockSignUp).toHaveBeenCalledWith({
+        email: "alice@example.com",
+        password: "password123",
+        firstName: "Alice",
+        lastName: "Smith",
+        pronouns: "she/her",
+        state: "PA",
+        district: "5",
+      });
     });
     expect(mockPush).toHaveBeenCalledWith("/auth/sign-up-success");
   });
 
-  it("sends null district when no district is selected", async () => {
+  it("sends an empty district when no district is selected", async () => {
     render(<SignUpForm />);
     await fillRequiredFields();
     await userEvent.click(screen.getByRole("button", { name: "Sign up" }));
@@ -138,20 +128,16 @@ describe("SignUpForm", () => {
     await waitFor(() => {
       expect(mockSignUp).toHaveBeenCalledWith(
         expect.objectContaining({
-          options: expect.objectContaining({
-            data: expect.objectContaining({
-              pronouns: "",
-              state: "",
-              congressional_district: null,
-            }),
-          }),
+          pronouns: "",
+          state: "",
+          district: "",
         }),
       );
     });
   });
 
   it("shows an error and does not redirect when signup fails", async () => {
-    mockSignUp.mockResolvedValue({ error: new Error("Email already in use") });
+    mockSignUp.mockResolvedValue({ ok: false, error: "Email already in use" });
     render(<SignUpForm />);
     await fillRequiredFields();
     await userEvent.click(screen.getByRole("button", { name: "Sign up" }));
