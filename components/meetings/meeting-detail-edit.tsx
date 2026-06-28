@@ -9,6 +9,7 @@ import {
   DelegationMember,
   LocalDelegationMember,
 } from "@/lib/meetings/types";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { useStaffers } from "@/lib/meetings/use-staffers";
 import { DelegationForm } from "@/components/meetings/delegation-form";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ import { RepresentativeCombobox } from "@/components/meetings/create/representat
 import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
 import { TimezoneSelect } from "@/components/meetings/create/timezone-select";
-import { DeleteMeetingDialog } from "@/components/meetings/delete-meeting-dialog";
+import { DeleteMeetingButton } from "@/components/meetings/delete-meeting-button";
 
 export type FormState = {
   meetingDate: string;
@@ -37,23 +38,20 @@ export type FormState = {
 
 type Props = {
   meetingId: string;
-  canDelete: boolean;
   form: FormState;
   onFormChange: (partial: Partial<FormState>) => void;
   links: LinkFormEntry[];
   onLinksChange: (links: LinkFormEntry[]) => void;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
-  onDelete: () => void;
+  onDeleted: () => void;
   saveError: string | null;
   isSaving: boolean;
-  deleteError: string | null;
-  isDeleting: boolean;
   delegationInitialMembers: DelegationMember[];
   onDelegationChange: (members: LocalDelegationMember[]) => void;
 };
 
-type ColumnProps = Props & { staffers: StafferOption[] };
+type ColumnProps = Props & { staffers: StafferOption[]; canDelete: boolean };
 
 function LeftColumn({
   meetingId,
@@ -179,11 +177,9 @@ function RightColumn({
   form,
   onFormChange,
   onCancel,
-  onDelete,
+  onDeleted,
   saveError,
   isSaving,
-  deleteError,
-  isDeleting,
   delegationInitialMembers,
   onDelegationChange,
 }: ColumnProps) {
@@ -256,10 +252,9 @@ function RightColumn({
         )}
         <div className="flex items-center gap-2">
           {canDelete && (
-            <DeleteMeetingDialog
-              onConfirm={onDelete}
-              isDeleting={isDeleting}
-              error={deleteError}
+            <DeleteMeetingButton
+              meetingId={meetingId}
+              onDeleted={onDeleted}
               disabled={isSaving}
             />
           )}
@@ -268,11 +263,11 @@ function RightColumn({
               type="button"
               variant="outline"
               onClick={onCancel}
-              disabled={isSaving || isDeleting}
+              disabled={isSaving}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSaving || isDeleting}>
+            <Button type="submit" disabled={isSaving}>
               {isSaving ? "Saving…" : "Save changes"}
             </Button>
           </div>
@@ -283,7 +278,8 @@ function RightColumn({
 }
 
 export function MeetingDetailEdit(props: Props) {
-  const { form, onFormChange } = props;
+  const { form, onFormChange, delegationInitialMembers } = props;
+  const { userId, isAdmin } = useCurrentUser();
   const staffers = useStaffers(form.representativeId);
 
   useEffect(() => {
@@ -294,7 +290,18 @@ export function MeetingDetailEdit(props: Props) {
     }
   }, [staffers, form.congressionalContactId, onFormChange]);
 
-  const columnProps: ColumnProps = { ...props, staffers };
+  // Admins/super admins, or any current scheduling lead of this meeting, may
+  // delete it — mirroring the RLS delete policy. The lead is whoever currently
+  // holds that delegation role, so reassigning it hands off delete rights.
+  const canDelete =
+    isAdmin ||
+    (userId !== null &&
+      delegationInitialMembers.some(
+        (member) =>
+          member.role === "scheduling_lead" && member.user_id === userId,
+      ));
+
+  const columnProps: ColumnProps = { ...props, staffers, canDelete };
 
   return (
     <div className="p-4">

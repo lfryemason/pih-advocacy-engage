@@ -5,7 +5,6 @@ import { createClient } from "@/lib/supabase/client";
 import {
   fetchMeetingDetail,
   updateMeeting,
-  deleteMeeting,
   syncDelegationMembers,
 } from "@/lib/meetings/queries";
 import {
@@ -18,7 +17,6 @@ import {
 } from "@/lib/meetings/types";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
-import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { MeetingDetailView } from "@/components/meetings/meeting-detail-view";
 import {
   MeetingDetailEdit,
@@ -60,8 +58,6 @@ export function MeetingDetail({
   meeting: MeetingRow;
   onSaved: () => void;
 }) {
-  const { userId, isAdmin } = useCurrentUser();
-
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [detail, setDetail] = useState<MeetingDetailType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -75,8 +71,6 @@ export function MeetingDetail({
 
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const isMountedRef = useRef(true);
   useEffect(() => {
@@ -140,7 +134,6 @@ export function MeetingDetail({
 
   function handleEnterEdit() {
     setSaveError(null);
-    setDeleteError(null);
     setMode("edit");
   }
 
@@ -150,26 +143,7 @@ export function MeetingDetail({
     setLinks(detail.links);
     setPendingDelegation(detail.delegation_members.map(memberFromDelegation));
     setSaveError(null);
-    setDeleteError(null);
     setMode("view");
-  }
-
-  async function handleDelete() {
-    setDeleteError(null);
-    setIsDeleting(true);
-    try {
-      const supabase = createClient();
-      await deleteMeeting(supabase, meeting.id);
-      // The refreshed list no longer includes this meeting, so this row (and
-      // therefore this component) unmounts. Leave isDeleting true through the
-      // unmount rather than flashing the button back to its default label.
-      onSaved();
-    } catch (err: unknown) {
-      setDeleteError(
-        err instanceof Error ? err.message : "Failed to delete meeting",
-      );
-      setIsDeleting(false);
-    }
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -263,31 +237,18 @@ export function MeetingDetail({
     return <MeetingDetailView meeting={detail} onEdit={handleEnterEdit} />;
   }
 
-  // Admins/super admins, or any current scheduling lead of this meeting, may
-  // delete it — mirroring the RLS delete policy. The lead is whoever currently
-  // holds that delegation role, so reassigning it hands off delete rights.
-  const canDelete =
-    isAdmin ||
-    (userId !== null &&
-      detail.delegation_members.some(
-        (m) => m.role === "scheduling_lead" && m.user_id === userId,
-      ));
-
   return (
     <MeetingDetailEdit
       meetingId={meeting.id}
-      canDelete={canDelete}
       form={form}
       onFormChange={updateForm}
       links={links}
       onLinksChange={setLinks}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
-      onDelete={handleDelete}
+      onDeleted={onSaved}
       saveError={saveError}
       isSaving={isSaving}
-      deleteError={deleteError}
-      isDeleting={isDeleting}
       delegationInitialMembers={detail.delegation_members}
       onDelegationChange={setPendingDelegation}
     />
