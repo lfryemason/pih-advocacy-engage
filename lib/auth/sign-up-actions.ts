@@ -6,18 +6,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 export type SignUpOrClaimResult = { ok: true } | { ok: false; error: string };
 
 /**
- * Public signup that also handles claiming a placeholder teammate account.
+ * Public signup that also claims a placeholder teammate account when the email
+ * matches one. Runs server-side and returns the same neutral success on every
+ * branch so the response never reveals whether an account already exists.
  *
- * Runs server-side so the placeholder lookup never reaches the client, and
- * every branch returns the same neutral success — the response must not
- * reveal whether an email already has an account (real or placeholder).
- *
- * Claiming is safe because the staged password is inert until the email is
- * confirmed: a no-password placeholder can't log in, and with email
- * confirmations enabled a freshly staged password can't be used either until
- * the confirmation link — delivered only to the real inbox — is clicked.
- * The user_id never changes, so team memberships and delegation assignments
- * carry over automatically.
+ * Claiming is safe because the staged password stays inert until the email is
+ * confirmed via the link sent to the real inbox; the user_id never changes, so
+ * memberships and delegations carry over.
  */
 export async function signUpOrClaim(input: {
   email: string;
@@ -33,8 +28,6 @@ export async function signUpOrClaim(input: {
     return { ok: false, error: "Email and password are required." };
   }
 
-  // Look up the email via the profiles table (service role). Auth emails are
-  // stored lowercased, and handle_new_user copies them verbatim.
   const admin = createAdminClient();
   const { data: profile, error: lookupError } = await admin
     .from("profiles")
@@ -45,8 +38,7 @@ export async function signUpOrClaim(input: {
     return { ok: false, error: "Something went wrong. Please try again." };
   }
 
-  // Real/claimed account (not a placeholder): neutral no-op so the response
-  // never reveals the account exists.
+  // Neutral no-op for a real account, so the response never reveals it exists.
   if (profile && !profile.is_placeholder) {
     return { ok: true };
   }
@@ -57,14 +49,10 @@ export async function signUpOrClaim(input: {
     const { data: userData } = await admin.auth.admin.getUserById(
       profile.user_id,
     );
-    // Unclaimed placeholders are exactly the unconfirmed ones; anything else
-    // falls through to the neutral response below.
+    // Unclaimed placeholders are exactly the unconfirmed ones.
     if (userData?.user && !userData.user.email_confirmed_at) {
-      // Stage the password AND the claimer's own profile details (same
-      // metadata shape as a fresh signup). Both stay inert until the email
-      // is confirmed; the confirmation trigger then copies these details
-      // over the placeholder's profile, so the claimer's spelling of their
-      // name/pronouns wins over whatever the placeholder's creator entered.
+      // Stage the password and the claimer's profile details; both stay inert
+      // until the confirmation trigger applies them over the placeholder.
       const { error: stageError } = await admin.auth.admin.updateUserById(
         profile.user_id,
         {
@@ -80,23 +68,32 @@ export async function signUpOrClaim(input: {
         },
       );
       if (stageError) {
-        // Password policy violations are about the caller's own input — safe
-        // and useful to surface.
+        // The caller's own password failing policy is safe to surface.
         return {
           ok: false,
           error:
             stageError.message || "Something went wrong. Please try again.",
         };
       }
-      // Send the confirmation email (anon client; respects rate limits).
-      await supabase.auth.resend({ type: "signup", email });
+      const { error: resendError } = await supabase.auth.resend({
+        type: "signup",
+        email,
+      });
+      if (resendError) {
+        // Keep the response neutral: surfacing this would reveal the
+        // placeholder exists. Log it so a delivery failure is still visible.
+        console.error(
+          "Failed to send placeholder confirmation email",
+          resendError,
+        );
+      }
       return { ok: true };
     }
     return { ok: true };
   }
 
-  // No profile — a normal signup. Supabase obfuscates signups against
-  // existing confirmed auth users itself, so this branch stays neutral too.
+  // No profile — a normal signup; Supabase keeps this neutral against existing
+  // confirmed users on its own.
   const { error: signUpError } = await supabase.auth.signUp({
     email,
     password: input.password,

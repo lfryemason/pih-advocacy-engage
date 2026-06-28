@@ -50,23 +50,26 @@ export function SignUpForm({
       return;
     }
 
-    // Server action: also claims a placeholder teammate account if this email
-    // matches one. Detection happens server-side so nothing leaks here.
-    const result = await signUpOrClaim({
-      email,
-      password,
-      firstName,
-      lastName,
-      pronouns,
-      state,
-      district,
-    });
-    if (result.ok) {
-      router.push("/auth/sign-up-success");
-    } else {
-      setError(result.error);
+    try {
+      const result = await signUpOrClaim({
+        email,
+        password,
+        firstName,
+        lastName,
+        pronouns,
+        state,
+        district,
+      });
+      if (result.ok) {
+        router.push("/auth/sign-up-success");
+      } else {
+        setError(result.error);
+      }
+    } catch {
+      setError("Something went wrong. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
 
   const districtOptions = getDistrictOptions(state);

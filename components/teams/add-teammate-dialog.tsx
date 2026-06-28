@@ -25,9 +25,7 @@ import { Select } from "@/components/ui/select";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
 /**
- * Create a placeholder teammate (login-less account) on a team, or edit an
- * existing placeholder's profile when `editUserId` is set. The person can
- * later claim the account by signing up with the same email; email is
+ * Create a placeholder teammate, or edit one when `editUserId` is set. Email is
  * read-only in edit mode because the claim flow matches on it.
  */
 export function AddTeammateDialog({
@@ -54,8 +52,6 @@ export function AddTeammateDialog({
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
-  // Edit mode: prefill from the profile when the dialog opens. Org members
-  // can read own-org profiles under RLS, so the browser client suffices.
   useEffect(() => {
     if (!open || !isEdit) return;
     let cancelled = false;
@@ -99,8 +95,7 @@ export function AddTeammateDialog({
   };
 
   const handleOpenChange = (next: boolean) => {
-    // Reset before closing so the form doesn't flash stale values during the
-    // dialog's exit transition.
+    // Reset before closing so stale values don't flash on the exit transition.
     if (!next) resetForm();
     setOpen(next);
   };

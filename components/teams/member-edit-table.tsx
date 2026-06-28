@@ -44,7 +44,6 @@ export function MemberEditTable({
   const isTeamMember =
     currentRole !== null &&
     memberships.some((m) => m.user_id === currentRole.user_id);
-  // Org admins can manage any team; everyone else only their own.
   const canAddTeammate = isTeamMember || isAdmin;
   const canDeletePlaceholders = isAdmin;
   const [changing, setChanging] = useState<string | null>(null);
@@ -108,8 +107,6 @@ export function MemberEditTable({
     }
   };
 
-  // Irreversible: deletes the placeholder's auth user, profile, memberships,
-  // and delegation history. Requires typing DELETE; org admins only.
   const handleHardDelete = async (membership: MembershipWithProfile) => {
     const name =
       [membership.profiles?.first_name, membership.profiles?.last_name]

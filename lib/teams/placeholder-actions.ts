@@ -13,12 +13,10 @@ export type PlaceholderActionResult =
   | { ok: false; error: string };
 
 /**
- * Create a login-less placeholder auth user and add it to a team.
- *
- * Runs with the service role because RLS (correctly) forbids inserting a
- * team_memberships row for a user_id other than auth.uid(), and creating an
- * auth user requires the admin API. The caller must be a signed-in member of
- * the org.
+ * Create a login-less placeholder auth user and add it to a team. Uses the
+ * service role because RLS forbids inserting a membership for another user_id
+ * and creating an auth user needs the admin API; the caller must be an org
+ * member.
  */
 export async function createPlaceholderTeammate(input: {
   teamId: string;
@@ -54,8 +52,6 @@ export async function createPlaceholderTeammate(input: {
   const isAdmin =
     callerRole.role === "org_admin" || callerRole.role === "super_admin";
 
-  // Both checks run through the caller's RLS-scoped client (which blocks
-  // cross-org teamIds) and are independent, so issue them together.
   const supabase = await createClient();
   const [{ data: team }, { data: callerMembership }] = await Promise.all([
     supabase
@@ -73,7 +69,6 @@ export async function createPlaceholderTeammate(input: {
       .maybeSingle(),
   ]);
   if (!team) return { ok: false, error: "Team not found." };
-  // Org admins can add to any team; everyone else must be on it.
   if (!isAdmin && !callerMembership) {
     return {
       ok: false,
@@ -81,9 +76,7 @@ export async function createPlaceholderTeammate(input: {
     };
   }
 
-  // No password and email_confirm: false — the user cannot log in. The
-  // handle_new_user trigger creates the user_role + profiles rows and reads
-  // is_placeholder from the metadata.
+  // No password and email_confirm: false, so the placeholder can't log in.
   const admin = createAdminClient();
   const { data: created, error: createError } =
     await admin.auth.admin.createUser({
@@ -116,7 +109,6 @@ export async function createPlaceholderTeammate(input: {
       role,
     });
   if (membershipError) {
-    // Best effort: don't leave an orphaned auth user behind.
     await admin.auth.admin.deleteUser(userId).catch(() => {});
     return { ok: false, error: "Failed to add teammate to the team." };
   }
@@ -126,10 +118,9 @@ export async function createPlaceholderTeammate(input: {
 }
 
 /**
- * Edit a placeholder's profile fields. Gated to is_placeholder = true — real
- * accounts can only be edited by their owners. Email is intentionally not
- * editable: the claim flow matches on the auth email (auth.users), so a
- * profiles-only email edit would silently break claiming.
+ * Edit a placeholder's profile fields, gated to is_placeholder = true so real
+ * accounts are untouched. Email isn't editable because the claim flow matches
+ * on the auth email, so editing it here would silently break claiming.
  */
 export async function updatePlaceholderTeammate(input: {
   userId: string;
@@ -151,8 +142,6 @@ export async function updatePlaceholderTeammate(input: {
     return { ok: false, error: "A first or last name is required." };
   }
 
-  // Same gate as creating a placeholder: org admins may edit any team's
-  // placeholders; everyone else must be a member of the team.
   const isAdmin =
     callerRole.role === "org_admin" || callerRole.role === "super_admin";
   if (!isAdmin) {
@@ -208,9 +197,9 @@ export async function updatePlaceholderTeammate(input: {
 }
 
 /**
- * Permanently delete a placeholder account (cascades its profile, team
- * memberships, and delegation rows). Irreversible — restricted to org admins
- * and gated to is_placeholder = true so a real account can never be deleted.
+ * Permanently delete a placeholder account (cascades profile, memberships, and
+ * delegations). Restricted to org admins and gated to is_placeholder = true so
+ * a real account can never be deleted.
  */
 export async function deletePlaceholderTeammate(input: {
   userId: string;
