@@ -22,6 +22,9 @@ import {
   SEED_USER_ALICE_ID,
   SEED_USER_BOB_ID,
   SEED_USER_CAROL_ID,
+  SEED_USER_PLACEHOLDER_ID,
+  SEED_PLACEHOLDER_EMAIL,
+  SEED_PLACEHOLDER_PROFILE,
 } from "./seed";
 
 const SUPABASE_URL =
@@ -80,9 +83,51 @@ export async function seedTestUser() {
   }
 }
 
+/**
+ * Ensure the seed placeholder user exists in the unclaimed state (no
+ * password, unconfirmed email). If a claim test confirmed it, delete and
+ * recreate it — there is no admin API to un-confirm an email.
+ */
+async function ensurePlaceholderUser(supabase: ReturnType<typeof adminClient>) {
+  const { data, error: getError } = await supabase.auth.admin.getUserById(
+    SEED_USER_PLACEHOLDER_ID,
+  );
+  if (getError && getError.status !== 404) {
+    throw new Error(`Failed to look up placeholder user: ${getError.message}`);
+  }
+
+  if (data?.user) {
+    if (!data.user.email_confirmed_at) return;
+    const { error: deleteError } = await supabase.auth.admin.deleteUser(
+      SEED_USER_PLACEHOLDER_ID,
+    );
+    if (deleteError) {
+      throw new Error(
+        `Failed to delete claimed placeholder user: ${deleteError.message}`,
+      );
+    }
+  }
+
+  const { error: createError } = await supabase.auth.admin.createUser({
+    id: SEED_USER_PLACEHOLDER_ID,
+    email: SEED_PLACEHOLDER_EMAIL,
+    email_confirm: false,
+    user_metadata: { is_placeholder: true },
+  });
+  if (createError) {
+    throw new Error(
+      `Failed to create placeholder user: ${createError.message}`,
+    );
+  }
+}
+
 /** Reset profile, role, representatives, and staffers to seed state. */
 export async function resetDatabase() {
   const supabase = adminClient();
+
+  // Placeholder user must exist (unclaimed) before its profile/membership
+  // rows are restored below.
+  await ensurePlaceholderUser(supabase);
 
   // Reset primary test user profile
   const { error: profileError } = await supabase
@@ -101,6 +146,17 @@ export async function resetDatabase() {
   if (extraProfileError) {
     throw new Error(
       `Failed to upsert extra profiles: ${extraProfileError.message}`,
+    );
+  }
+
+  // Restore the placeholder profile (separate upsert: it carries
+  // is_placeholder, and bulk upsert rows must share the same keys).
+  const { error: placeholderProfileError } = await supabase
+    .from("profiles")
+    .upsert(SEED_PLACEHOLDER_PROFILE, { onConflict: "user_id" });
+  if (placeholderProfileError) {
+    throw new Error(
+      `Failed to upsert placeholder profile: ${placeholderProfileError.message}`,
     );
   }
 

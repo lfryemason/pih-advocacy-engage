@@ -195,3 +195,6 @@ npx playwright test auth-regression sidebar-regression --update-snapshots
 ```
 
 Note: locally generated snapshots will only match on the same OS and browser they were generated on. Prefer the GitHub Action for snapshots that need to pass in CI.
+
+## Checking Decoy Email
+Visit http://localhost:54324 in order to verify your email address, since the dev environment does not send you real emails.

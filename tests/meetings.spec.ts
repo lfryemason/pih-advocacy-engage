@@ -396,4 +396,31 @@ test.describe("US4 — Delegation members", () => {
       page.getByRole("list", { name: /represented teams/i }),
     ).toBeHidden();
   });
+
+  test("placeholder teammate appears in member search and can be added", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: /add member/i }).click();
+    const searchInput = page.getByPlaceholder("Search by name…").last();
+    await searchInput.fill("Penny");
+    const pennyResult = page.getByText("Penny Placeholder");
+    await expect(pennyResult).toBeVisible();
+    await pennyResult.click();
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
+  });
 });
