@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchMeetings } from "@/lib/meetings/queries";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
 import { MeetingsSection } from "@/components/meetings/meetings-section";
+import { MeetingsSkeleton } from "@/components/meetings/meetings-skeleton";
 import { MeetingsFilters } from "@/components/meetings/meetings-filters";
 import { AddMeetingDialog } from "@/components/meetings/create/add-meeting-dialog";
 
@@ -45,6 +46,7 @@ export function MeetingsPage() {
   const [past, setPast] = useState<SectionState>({ meetings: [], count: 0 });
   const [initialLoading, setInitialLoading] = useState(true);
   const [filtering, setFiltering] = useState(false);
+  const [applyingFilters, setApplyingFilters] = useState(false);
   const [loadingMore, setLoadingMore] = useState<"upcoming" | "past" | null>(
     null,
   );
@@ -100,7 +102,8 @@ export function MeetingsPage() {
   useEffect(() => {
     const f = filtersFromParams(searchParams);
     setFilters(f);
-    loadInitial(f);
+    setApplyingFilters(true);
+    loadInitial(f).finally(() => setApplyingFilters(false));
   }, [searchParams, loadInitial]);
 
   const handleFiltersChange = (f: MeetingFilters) => {
@@ -161,6 +164,8 @@ export function MeetingsPage() {
         <p role="alert" className="py-8 text-center text-destructive">
           {error}
         </p>
+      ) : applyingFilters ? (
+        <MeetingsSkeleton />
       ) : (
         <div className="flex flex-col gap-10">
           <MeetingsSection

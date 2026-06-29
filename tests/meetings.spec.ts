@@ -64,6 +64,32 @@ test.describe("meetings list page", () => {
     );
   });
 
+  test("shows a loading skeleton while a filter is being applied", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+    // Wait for the initial list so we isolate the filter-triggered refetch.
+    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+
+    // Delay the refetch so the transient skeleton is observable.
+    await page.route(/\/rest\/v1\/meetings/, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.continue();
+    });
+
+    await page.getByRole("button", { name: "Filter by state" }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
+    // Close the (modal) dropdown so the page behind it is no longer aria-hidden.
+    await page.keyboard.press("Escape");
+
+    const status = page.getByRole("status", { name: "Updating meetings" });
+    await expect(status).toBeVisible();
+
+    // Once the refetch resolves, the skeleton gives way to the results.
+    await expect(status).toBeHidden();
+    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+  });
+
   test("expand button toggles chevron aria-expanded", async ({ page }) => {
     await page.goto("/meetings");
     const expandBtn = page
