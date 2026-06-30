@@ -364,6 +364,16 @@ export async function updateMeeting(
   if (error) throw error;
 }
 
+export async function deleteMeeting(
+  supabase: SupabaseBrowserClient,
+  id: string,
+): Promise<void> {
+  // Delegation members are removed automatically via the
+  // meeting_delegation_members.meeting_id ON DELETE CASCADE.
+  const { error } = await supabase.from("meetings").delete().eq("id", id);
+  if (error) throw error;
+}
+
 type RawProfile = {
   user_id: string;
   first_name: string | null;
