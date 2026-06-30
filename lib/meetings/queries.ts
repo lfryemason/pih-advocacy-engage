@@ -167,6 +167,15 @@ export async function fetchMeetings(
       `(${filters.parties.map((p) => `"${p}"`).join(",")})`,
     );
   }
+  if (filters.representativeIds.length > 0) {
+    query = query.in("representative_id", filters.representativeIds);
+  }
+  if (filters.dateRange.from) {
+    query = query.gte("meeting_date", filters.dateRange.from);
+  }
+  if (filters.dateRange.to) {
+    query = query.lte("meeting_date", filters.dateRange.to);
+  }
 
   query = query.range(offset, offset + limit - 1);
 
