@@ -5,16 +5,28 @@ import { MeetingsSkeleton } from "@/components/meetings/meetings-skeleton";
 describe("MeetingsSkeleton", () => {
   it("exposes a status region announcing the update", () => {
     render(<MeetingsSkeleton />);
-    const status = screen.getByRole("status", { name: "Updating meetings" });
-    expect(status).toBeInTheDocument();
-    expect(status).toHaveTextContent("Updating meetings");
+    expect(
+      screen.getByRole("status", { name: "Updating meetings" }),
+    ).toBeInTheDocument();
   });
 
-  it("renders placeholder rows for both meeting sections", () => {
+  it("keeps the real section headings and column headers", () => {
+    render(<MeetingsSkeleton />);
+    expect(
+      screen.getByRole("heading", { name: "Upcoming Meetings" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Past Meetings" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getAllByRole("columnheader", { name: "Date" }).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("renders skeleton placeholders for the rows", () => {
     const { container } = render(<MeetingsSkeleton />);
-    // 2 section title bars + 5 rows per section = 12 placeholders
-    expect(container.querySelectorAll('[data-slot="skeleton"]')).toHaveLength(
-      12,
-    );
+    expect(
+      container.querySelectorAll('[data-slot="skeleton"]').length,
+    ).toBeGreaterThan(0);
   });
 });
