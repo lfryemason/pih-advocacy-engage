@@ -18,18 +18,25 @@ type SectionState = {
 };
 
 function filtersFromParams(params: URLSearchParams): MeetingFilters {
+  const dateFrom = params.get("dateFrom");
+  const dateTo = params.get("dateTo");
   return {
     states: params.getAll("state"),
     districts: params.getAll("district"),
     parties: params.getAll("party"),
+    representativeIds: params.getAll("rep"),
+    dateRange: { from: dateFrom, to: dateTo },
   };
 }
 
 function filtersToSearch(f: MeetingFilters): string {
   const params = new URLSearchParams();
-  f.states.forEach((s) => params.append("state", s));
-  f.districts.forEach((d) => params.append("district", d));
-  f.parties.forEach((p) => params.append("party", p));
+  f.states.forEach((state) => params.append("state", state));
+  f.districts.forEach((district) => params.append("district", district));
+  f.parties.forEach((party) => params.append("party", party));
+  f.representativeIds.forEach((id) => params.append("rep", id));
+  if (f.dateRange.from) params.set("dateFrom", f.dateRange.from);
+  if (f.dateRange.to) params.set("dateTo", f.dateRange.to);
   const str = params.toString();
   return str ? `?${str}` : "";
 }

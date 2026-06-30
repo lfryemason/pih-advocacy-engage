@@ -21,6 +21,7 @@ export type MeetingRow = {
   primary_team_id: string | null;
   primary_team_name: string | null;
   primary_team_slug: string | null;
+  location: string | null;
   scheduling_lead_name: string | null;
   follow_up_date: string | null;
   champion_score: number | null;
@@ -48,7 +49,6 @@ export type DelegationMember = {
 
 export type MeetingDetail = MeetingRow & {
   notes: string | null;
-  location: string | null;
   links: MeetingLink[];
   delegation_members: DelegationMember[];
   represented_teams: string[];
@@ -94,6 +94,8 @@ export type MeetingFilters = {
   states: string[];
   districts: string[];
   parties: string[];
+  representativeIds: string[];
+  dateRange: { from: string | null; to: string | null };
 };
 
 // ─── Profile search result (used by delegation-form user search) ──────────────

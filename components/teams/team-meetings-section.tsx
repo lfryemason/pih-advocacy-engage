@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { fetchMeetings } from "@/lib/meetings/queries";
-import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
+import { MeetingRow } from "@/lib/meetings/types";
+import { EMPTY_MEETING_FILTERS } from "@/components/meetings/meetings-filters";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -21,11 +22,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-const EMPTY_FILTERS: MeetingFilters = {
-  states: [],
-  districts: [],
-  parties: [],
-};
 const PAGE_SIZE = 10;
 
 function formatDate(isoDate: string): string {
@@ -57,7 +53,7 @@ function MeetingsTable({
     const supabase = createClient();
     setLoading(true);
     fetchMeetings(supabase, {
-      filters: EMPTY_FILTERS,
+      filters: EMPTY_MEETING_FILTERS,
       section,
       offset: 0,
       limit: PAGE_SIZE,
@@ -82,7 +78,7 @@ function MeetingsTable({
     const supabase = createClient();
     try {
       const result = await fetchMeetings(supabase, {
-        filters: EMPTY_FILTERS,
+        filters: EMPTY_MEETING_FILTERS,
         section,
         offset: meetings.length,
         limit: PAGE_SIZE,
