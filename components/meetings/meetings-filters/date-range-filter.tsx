@@ -27,14 +27,15 @@ function SingleDatePicker({
 }) {
   const [open, setOpen] = useState(false);
 
-  const selected = value ? new Date(`${value}T00:00:00`) : undefined;
+  const parsed = value ? new Date(`${value}T00:00:00`) : undefined;
+  const selected = parsed && !isNaN(parsed.getTime()) ? parsed : undefined;
 
   function handleSelect(day: Date | undefined) {
     onChange(day ? format(day, "yyyy-MM-dd") : null);
     setOpen(false);
   }
 
-  const buttonLabel = value ? format(selected!, "MMM d, yyyy") : label;
+  const buttonLabel = selected ? format(selected, "MMM d, yyyy") : label;
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

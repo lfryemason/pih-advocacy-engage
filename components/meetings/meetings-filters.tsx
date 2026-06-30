@@ -40,6 +40,14 @@ export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
   );
 }
 
+function validDistrictsForStates(states: string[]): Set<string> {
+  return new Set(
+    states.flatMap((stateCode) =>
+      getDistrictOptions(stateCode).map((opt) => opt.value),
+    ),
+  );
+}
+
 export function MeetingsFilters({
   filters,
   onChange,
@@ -52,11 +60,12 @@ export function MeetingsFilters({
   const set = (patch: Partial<MeetingFilters>) =>
     onChange({ ...filters, ...patch });
 
-  const [reps, setReps] = useState<RepRow[]>([]);
+  const [reps, setReps] = useState<RepRow[] | null>(null);
   const [profileState, setProfileState] = useState<string | null>(null);
   const [profileDistrict, setProfileDistrict] = useState<string | null>(null);
 
   useEffect(() => {
+    let cancelled = false;
     const supabase = createClient();
     supabase
       .from("representatives")
@@ -64,22 +73,27 @@ export function MeetingsFilters({
       .eq("in_office", true)
       .order("state")
       .order("official_full_name")
-      .then(({ data }) => setReps(data ?? []));
+      .then(({ data }) => {
+        if (!cancelled) setReps(data ?? []);
+      });
 
     supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return;
+      if (cancelled || !user) return;
       supabase
         .from("profiles")
         .select("state, congressional_district")
         .eq("user_id", user.id)
         .single()
         .then(({ data: profile }) => {
-          if (profile?.state) {
+          if (!cancelled && profile?.state) {
             setProfileState(profile.state);
             setProfileDistrict(profile.congressional_district);
           }
         });
     });
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const availableDistricts = useMemo(() => {
@@ -109,11 +123,7 @@ export function MeetingsFilters({
         const newStates = filters.states.filter(
           (stateCode) => stateCode !== code,
         );
-        const validValues = new Set(
-          newStates.flatMap((stateCode) =>
-            getDistrictOptions(stateCode).map((opt) => opt.value),
-          ),
-        );
+        const validValues = validDistrictsForStates(newStates);
         onChange({
           ...filters,
           states: newStates,
@@ -148,8 +158,8 @@ export function MeetingsFilters({
     ...filters.representativeIds.map((repId) => ({
       key: `rep-${repId}`,
       label: (() => {
-        const rep = reps.find((repEntry) => repEntry.id === repId);
-        return rep ? repLabel(rep) : repId;
+        const rep = reps?.find((repEntry) => repEntry.id === repId);
+        return rep ? repLabel(rep) : reps === null ? "Loading…" : repId;
       })(),
       onRemove: () =>
         set({
@@ -192,11 +202,7 @@ export function MeetingsFilters({
                 onSelect={(e) => {
                   e.preventDefault();
                   const newStates = xor(filters.states, [state.code]);
-                  const validValues = new Set(
-                    newStates.flatMap((stateCode) =>
-                      getDistrictOptions(stateCode).map((opt) => opt.value),
-                    ),
-                  );
+                  const validValues = validDistrictsForStates(newStates);
                   const newDistricts = filters.districts.filter(
                     (districtCode) => validValues.has(districtCode),
                   );
@@ -275,7 +281,7 @@ export function MeetingsFilters({
 
         <RepresentativeFilterPicker
           selectedIds={filters.representativeIds}
-          reps={reps}
+          reps={reps ?? []}
           profileState={profileState}
           profileDistrict={profileDistrict}
           onAdd={(repId) =>
