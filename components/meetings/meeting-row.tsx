@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronRight, CircleCheckBig } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
@@ -13,11 +14,13 @@ import { Pronouns } from "@/components/pronouns";
 export function MeetingRow({
   meeting,
   isPast = false,
+  upcomingClassName,
   showRepColumn = true,
   onRefresh = () => {},
 }: {
   meeting: MeetingRowType;
   isPast?: boolean;
+  upcomingClassName?: string;
   showRepColumn?: boolean;
   onRefresh?: () => void;
 }) {
@@ -27,10 +30,12 @@ export function MeetingRow({
 
   const toggle = () => setIsExpanded((v) => !v);
 
+  const rowBg = isExpanded ? "bg-accent" : upcomingClassName;
+
   return (
     <>
       <TableRow
-        className={`cursor-pointer hover:bg-accent ${isExpanded ? "bg-accent" : ""}`}
+        className={cn("cursor-pointer hover:bg-accent", rowBg)}
         onClick={toggle}
       >
         <TableCell>

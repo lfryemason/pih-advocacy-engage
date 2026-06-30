@@ -49,7 +49,7 @@ function mapRow(row: RawRow): MeetingRow {
   const rep = row.representatives;
   const staffer = row.staffers;
   const schedulingLead = row.meeting_delegation_members.find(
-    (m) => m.role === "scheduling_lead",
+    (member) => member.role === "scheduling_lead",
   );
 
   return {
@@ -106,6 +106,7 @@ export async function fetchMeetings(
     offset,
     limit,
     teamId,
+    meetingIds,
   }: {
     filters: MeetingFilters;
     representativeId?: string;
@@ -113,6 +114,7 @@ export async function fetchMeetings(
     offset: number;
     limit: number;
     teamId?: string;
+    meetingIds?: string[];
   },
 ): Promise<{ meetings: MeetingRow[]; count: number }> {
   const today = localDateString();
@@ -120,7 +122,7 @@ export async function fetchMeetings(
   let query = supabase
     .from("meetings")
     .select(SELECT, { count: "exact" })
-    .order("meeting_date", { ascending: section === "upcoming" });
+    .order("meeting_date", { ascending: false });
 
   if (section === "upcoming") {
     query = query.gte("meeting_date", today);
@@ -136,15 +138,21 @@ export async function fetchMeetings(
     query = query.eq("primary_team_id", teamId);
   }
 
+  if (meetingIds && meetingIds.length > 0) {
+    query = query.in("id", meetingIds);
+  }
+
   if (filters.states.length > 0) {
     query = query.filter(
       "representatives.state",
       "in",
-      `(${filters.states.map((s) => `"${s}"`).join(",")})`,
+      `(${filters.states.map((stateCode) => `"${stateCode}"`).join(",")})`,
     );
   }
   if (filters.districts.length > 0) {
-    const numbers = filters.districts.filter((d) => d !== "at-large");
+    const numbers = filters.districts.filter(
+      (district) => district !== "at-large",
+    );
     const includesAtLarge = filters.districts.includes("at-large");
     if (numbers.length > 0 && includesAtLarge) {
       query = query.or(`district.in.(${numbers.join(",")}),district.is.null`, {
@@ -164,7 +172,7 @@ export async function fetchMeetings(
     query = query.filter(
       "representatives.party",
       "in",
-      `(${filters.parties.map((p) => `"${p}"`).join(",")})`,
+      `(${filters.parties.map((party) => `"${party}"`).join(",")})`,
     );
   }
   if (filters.representativeIds.length > 0) {
@@ -554,4 +562,74 @@ export async function syncDelegationMembers(
       ),
     ),
   ]);
+}
+
+export async function fetchMyTeams(
+  supabase: SupabaseBrowserClient,
+): Promise<{ team_id: string; team_name: string }[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("team_memberships")
+    .select("team_id, teams(name)")
+    .eq("user_id", user.id);
+
+  if (error || !data) return [];
+
+  type RawMembership = { team_id: string; teams: { name: string } | null };
+  return (data as unknown as RawMembership[])
+    .filter((m) => m.teams?.name)
+    .map((m) => ({ team_id: m.team_id, team_name: m.teams!.name }));
+}
+
+export type PersonalFetchParams = {
+  filters: MeetingFilters;
+  section: "upcoming" | "past";
+  offset: number;
+  limit: number;
+};
+
+async function fetchMeetingsByDelegationColumn(
+  supabase: SupabaseBrowserClient,
+  column: "user_id" | "team_id",
+  value: string,
+  params: PersonalFetchParams,
+): Promise<{ meetings: MeetingRow[]; count: number }> {
+  const { data: delegations, error } = await supabase
+    .from("meeting_delegation_members")
+    .select("meeting_id")
+    .eq(column, value);
+
+  if (error || !delegations || delegations.length === 0) {
+    return { meetings: [], count: 0 };
+  }
+
+  const meetingIds = (delegations as { meeting_id: string }[]).map(
+    (delegation) => delegation.meeting_id,
+  );
+
+  return fetchMeetings(supabase, { ...params, meetingIds });
+}
+
+export async function fetchMyMeetings(
+  supabase: SupabaseBrowserClient,
+  params: PersonalFetchParams,
+): Promise<{ meetings: MeetingRow[]; count: number }> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { meetings: [], count: 0 };
+
+  return fetchMeetingsByDelegationColumn(supabase, "user_id", user.id, params);
+}
+
+export async function fetchTeamDelegationMeetings(
+  supabase: SupabaseBrowserClient,
+  params: PersonalFetchParams & { teamId: string },
+): Promise<{ meetings: MeetingRow[]; count: number }> {
+  const { teamId, ...rest } = params;
+  return fetchMeetingsByDelegationColumn(supabase, "team_id", teamId, rest);
 }

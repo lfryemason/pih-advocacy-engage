@@ -39,7 +39,7 @@ export function SingleDatePicker({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <div className={`flex w-36 items-center ${value ? "bg-muted" : ""}`}>
+      <div className={`flex w-36 items-center ${selected ? "bg-muted" : ""}`}>
         <PopoverTrigger asChild>
           <button
             type="button"
@@ -48,21 +48,21 @@ export function SingleDatePicker({
             className="flex flex-1 items-center gap-1.5 px-3 py-1.5 text-sm disabled:opacity-50"
           >
             <span className="flex min-w-0 flex-1 items-center gap-1.5 truncate text-left">
-              {showIcon && !value && (
+              {showIcon && !selected && (
                 <CalendarIcon
                   className="h-3.5 w-3.5 shrink-0 text-muted-foreground"
                   aria-hidden="true"
                 />
               )}
               <span
-                className={`truncate ${value ? "" : "text-muted-foreground"}`}
+                className={`truncate ${selected ? "" : "text-muted-foreground"}`}
               >
                 {buttonLabel}
               </span>
             </span>
           </button>
         </PopoverTrigger>
-        {value && (
+        {selected && (
           <button
             type="button"
             aria-label={`Clear ${label.toLowerCase()} date`}
