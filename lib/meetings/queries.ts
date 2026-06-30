@@ -170,6 +170,15 @@ export async function fetchMeetings(
       `(${filters.parties.map((p) => `"${p}"`).join(",")})`,
     );
   }
+  if (filters.representativeIds.length > 0) {
+    query = query.in("representative_id", filters.representativeIds);
+  }
+  if (filters.dateRange.from) {
+    query = query.gte("meeting_date", filters.dateRange.from);
+  }
+  if (filters.dateRange.to) {
+    query = query.lte("meeting_date", filters.dateRange.to);
+  }
 
   query = query.range(offset, offset + limit - 1);
 
@@ -353,6 +362,16 @@ export async function updateMeeting(
     })
     .eq("id", id);
 
+  if (error) throw error;
+}
+
+export async function deleteMeeting(
+  supabase: SupabaseBrowserClient,
+  id: string,
+): Promise<void> {
+  // Delegation members are removed automatically via the
+  // meeting_delegation_members.meeting_id ON DELETE CASCADE.
+  const { error } = await supabase.from("meetings").delete().eq("id", id);
   if (error) throw error;
 }
 
