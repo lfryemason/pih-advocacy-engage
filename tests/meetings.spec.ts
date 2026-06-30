@@ -95,7 +95,7 @@ test.describe("create meeting", () => {
     ).toBeVisible();
 
     // Fill required fields
-    await page.getByLabel("Date").fill("2099-12-25");
+    await page.getByLabel(/^Date$/).fill("2099-12-25");
 
     // Open the representative combobox and select the first option once loaded.
     await page.locator("#meeting-representative").click();
@@ -135,7 +135,7 @@ test.describe("create meeting", () => {
     await page.goto("/meetings");
 
     await page.getByRole("button", { name: /Add Meeting/i }).click();
-    await page.getByLabel("Date").fill("2099-12-25");
+    await page.getByLabel(/^Date$/).fill("2099-12-25");
     await page.getByRole("button", { name: "Add meeting" }).click();
 
     await expect(page.getByRole("alert")).toContainText(
@@ -160,7 +160,7 @@ test.describe("create meeting", () => {
     await page.goto("/meetings");
 
     await page.getByRole("button", { name: /Add Meeting/i }).click();
-    await page.getByLabel("Date").fill("2099-11-01");
+    await page.getByLabel(/^Date$/).fill("2099-11-01");
     await page.locator("#meeting-representative").click();
     await page
       .locator("#meeting-representative-listbox [role='option']")
@@ -435,5 +435,32 @@ test.describe("US4 — Delegation members", () => {
     await expect(
       page.getByRole("list", { name: /represented teams/i }),
     ).toBeHidden();
+  });
+
+  test("placeholder teammate appears in member search and can be added", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+
+    const expandBtn = page
+      .getByRole("button", { name: /Expand meeting with/ })
+      .first();
+    await expandBtn.click();
+    await page.getByRole("button", { name: /Edit Meeting/i }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).toBeVisible();
+
+    await page.getByRole("button", { name: /add member/i }).click();
+    const searchInput = page.getByPlaceholder("Search by name…").last();
+    await searchInput.fill("Penny");
+    const pennyResult = page.getByText("Penny Placeholder");
+    await expect(pennyResult).toBeVisible();
+    await pennyResult.click();
+
+    await page.getByRole("button", { name: "Save changes" }).click();
+    await expect(
+      page.getByRole("button", { name: "Save changes" }),
+    ).not.toBeVisible();
   });
 });

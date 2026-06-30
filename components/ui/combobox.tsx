@@ -8,7 +8,7 @@ import {
   useMemo,
   memo,
 } from "react";
-import { ChevronsUpDown, Check } from "lucide-react";
+import { Check } from "lucide-react";
 
 export type ComboboxOption = { id: string; label: string };
 
@@ -55,6 +55,8 @@ export function FilterCombobox({
   placeholder,
   clearLabel,
   required,
+  disabled,
+  className,
 }: {
   id: string;
   options: ComboboxOption[];
@@ -66,6 +68,8 @@ export function FilterCombobox({
   placeholder?: string;
   clearLabel?: string;
   required?: boolean;
+  disabled?: boolean;
+  className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -174,15 +178,15 @@ export function FilterCombobox({
           value={open ? query : (selected?.label ?? query)}
           placeholder={placeholder}
           required={required}
+          disabled={disabled}
           onChange={(e) => {
             setQuery(e.target.value);
             setOpen(true);
           }}
           onClick={() => setOpen(true)}
           onKeyDown={handleKeyDown}
-          className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-2 pr-8 text-left text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+          className={`flex h-8 w-full rounded-md border border-input bg-transparent px-3 py-1 pr-8 text-left text-sm shadow-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 ${className ?? ""}`}
         />
-        <ChevronsUpDown className="pointer-events-none absolute right-2.5 top-1/2 h-4 w-4 shrink-0 -translate-y-1/2 opacity-50" />
       </div>
 
       {open && (
