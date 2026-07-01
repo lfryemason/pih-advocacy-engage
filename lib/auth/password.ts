@@ -1,9 +1,3 @@
-// Shared password policy for the signup and password-reset forms. Mirrors the
-// server-side rules Supabase Auth enforces (supabase/config.toml:
-// minimum_password_length + password_requirements) so users get immediate
-// feedback instead of a round-trip rejection. Kept dependency-free so it can
-// be imported from "use client" components.
-
 export const MIN_PASSWORD_LENGTH = 8;
 
 /**

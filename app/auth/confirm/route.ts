@@ -28,8 +28,6 @@ export async function GET(request: NextRequest) {
       // redirect user to specified redirect URL or root of app
       redirect(next);
     } else {
-      // Don't reflect the raw GoTrue error back to the browser; log it for
-      // debugging and show the user a generic reason instead.
       console.error("verifyOtp failed", error);
       redirect(`/auth/error?reason=invalid-link`);
     }
