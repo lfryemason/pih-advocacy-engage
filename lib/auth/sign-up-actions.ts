@@ -7,8 +7,7 @@ export type SignUpOrClaimResult = { ok: true } | { ok: false; error: string };
 
 /**
  * Public signup that also claims a placeholder teammate account when the email
- * matches one. Runs server-side and returns the same neutral success on every
- * branch so the response never reveals whether an account already exists.
+ * matches one. Errors if a real (non-placeholder) account already exists.
  *
  * Claiming is safe because the staged password stays inert until the email is
  * confirmed via the link sent to the real inbox; the user_id never changes, so
@@ -44,9 +43,8 @@ export async function signUpOrClaim(input: {
     return { ok: false, error: "Something went wrong. Please try again." };
   }
 
-  // Neutral no-op for a real account, so the response never reveals it exists.
   if (profile && !profile.is_placeholder) {
-    return { ok: true };
+    return { ok: false, error: "An account with this email already exists." };
   }
 
   const supabase = await createClient();
