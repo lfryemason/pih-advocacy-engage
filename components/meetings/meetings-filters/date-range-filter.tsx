@@ -15,7 +15,7 @@ export function DateRangeFilter({
     <div className="inline-flex h-8 items-stretch overflow-hidden rounded-md border border-input bg-background text-sm shadow-sm">
       <SingleDatePicker
         label="From"
-        ariaLabel="Filter from date"
+        ariaLabel="Filter from"
         value={dateRange.from}
         onChange={(date) => onChange({ ...dateRange, from: date })}
         disabled={disabled}
@@ -23,7 +23,7 @@ export function DateRangeFilter({
       <div className="w-px self-stretch bg-border" aria-hidden="true" />
       <SingleDatePicker
         label="To"
-        ariaLabel="Filter to date"
+        ariaLabel="Filter to"
         value={dateRange.to}
         onChange={(date) => onChange({ ...dateRange, to: date })}
         disabled={disabled}

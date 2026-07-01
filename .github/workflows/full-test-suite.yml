@@ -8,6 +8,7 @@ on:
 env:
   NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH
+  SIGNUP_ACCESS_CODE: test-access-code
 
 jobs:
   e2e:
