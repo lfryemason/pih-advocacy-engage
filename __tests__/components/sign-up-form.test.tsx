@@ -19,6 +19,7 @@ vi.mock("next/navigation", () => ({
 const mockSignUp = vi.mocked(signUpOrClaim);
 
 async function fillRequiredFields() {
+  await userEvent.type(screen.getByLabelText(/Access Code/), "test-code");
   await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
   await userEvent.type(screen.getByLabelText(/Last Name/), "Smith");
   await userEvent.type(screen.getByLabelText(/Email/), "alice@example.com");
@@ -35,6 +36,7 @@ describe("SignUpForm", () => {
 
   it("renders all profile, credential, and location fields", () => {
     render(<SignUpForm />);
+    expect(screen.getByLabelText(/Access Code/)).toBeInTheDocument();
     expect(screen.getByLabelText(/First Name/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Last Name/)).toBeInTheDocument();
     expect(screen.getByLabelText("Pronouns")).toBeInTheDocument();
@@ -55,7 +57,7 @@ describe("SignUpForm", () => {
   it("renders asterisks on the required field labels only", () => {
     const { container } = render(<SignUpForm />);
     const markers = container.querySelectorAll(".text-destructive");
-    expect(markers).toHaveLength(5);
+    expect(markers).toHaveLength(6);
     expect(screen.getByLabelText("Pronouns")).toBeInTheDocument();
     expect(screen.getByLabelText("State")).toBeInTheDocument();
     expect(screen.getByLabelText("Congressional District")).toBeInTheDocument();
@@ -82,6 +84,7 @@ describe("SignUpForm", () => {
 
   it("shows an error when passwords do not match", async () => {
     render(<SignUpForm />);
+    await userEvent.type(screen.getByLabelText(/Access Code/), "test-code");
     await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
     await userEvent.type(screen.getByLabelText(/Last Name/), "Smith");
     await userEvent.type(screen.getByLabelText(/Email/), "alice@example.com");
@@ -128,6 +131,7 @@ describe("SignUpForm", () => {
       expect(mockSignUp).toHaveBeenCalledWith({
         email: "alice@example.com",
         password: "Password123",
+        accessCode: "test-code",
         firstName: "Alice",
         lastName: "Smith",
         pronouns: "she/her",
@@ -146,6 +150,7 @@ describe("SignUpForm", () => {
     await waitFor(() => {
       expect(mockSignUp).toHaveBeenCalledWith(
         expect.objectContaining({
+          accessCode: "test-code",
           pronouns: "",
           state: "",
           district: "",

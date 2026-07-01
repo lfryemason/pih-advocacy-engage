@@ -14,6 +14,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { CircleHelp } from "lucide-react";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -31,6 +38,7 @@ export function SignUpForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [accessCode, setAccessCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -62,6 +70,7 @@ export function SignUpForm({
       const result = await signUpOrClaim({
         email,
         password,
+        accessCode,
         firstName,
         lastName,
         pronouns,
@@ -93,6 +102,39 @@ export function SignUpForm({
         <CardContent>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <div className="flex items-center gap-1">
+                  <Label htmlFor="access-code">
+                    Access Code{" "}
+                    <span aria-hidden="true" className="text-destructive">
+                      *
+                    </span>
+                  </Label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger
+                        type="button"
+                        className="text-muted-foreground"
+                        aria-label="More info"
+                      >
+                        <CircleHelp className="size-3.5" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-md text-sm">
+                        An access code is required to make an account. Ask your
+                        team coordinator or a PIHE staff member if you have not
+                        received one.
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                <Input
+                  id="access-code"
+                  type="text"
+                  required
+                  value={accessCode}
+                  onChange={(e) => setAccessCode(e.target.value)}
+                />
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="first-name">
                   First Name{" "}
