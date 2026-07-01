@@ -327,7 +327,7 @@ test.describe("edit meeting", () => {
     // with seed data, then delete it. The creator is seeded as the meeting's
     // scheduling lead, so the test user is allowed to delete it.
     await page.getByRole("button", { name: /Add Meeting/i }).click();
-    await page.getByLabel("Date").fill("2099-08-15");
+    await page.getByLabel(/^Date$/).fill("2099-08-15");
     await page.locator("#meeting-representative").click();
     await page
       .locator("#meeting-representative-listbox [role='option']")
