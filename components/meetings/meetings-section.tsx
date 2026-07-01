@@ -39,7 +39,6 @@ export function MeetingsSection({
   isPast?: boolean;
   showRepColumn?: boolean;
   variant?: MeetingsSectionVariant;
-  compact?: boolean;
 }) {
   const headingId = title.toLowerCase().replace(/\s+/g, "-");
   const hasMore = meetings.length < totalCount;

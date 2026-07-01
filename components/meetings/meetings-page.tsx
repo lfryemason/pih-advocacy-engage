@@ -175,7 +175,6 @@ export function MeetingsPage() {
       <div className="flex flex-col gap-6">
         <CollapsibleMeetingsGroup title="My Meetings" defaultOpen>
           <PersonalMeetingsSection
-            title="My Meetings"
             mode="user"
             filters={filters}
             variant="pink"
@@ -218,7 +217,6 @@ export function MeetingsPage() {
                 onShowMore={() => loadMore("upcoming")}
                 disableLoadMore={loadingMore === "upcoming" || filtering}
                 onRefresh={() => loadInitial(filtersRef.current)}
-                compact
               />
               <MeetingsSection
                 title="Past Meetings"
@@ -228,7 +226,6 @@ export function MeetingsPage() {
                 disableLoadMore={loadingMore === "past" || filtering}
                 onRefresh={() => loadInitial(filtersRef.current)}
                 isPast
-                compact
               />
               {loadMoreError && (
                 <p

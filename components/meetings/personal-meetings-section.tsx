@@ -22,7 +22,6 @@ type SectionState = { meetings: MeetingRow[]; count: number };
 
 type Props =
   | {
-      title: string;
       mode: "user";
       filters: MeetingFilters;
       variant?: MeetingsSectionVariant;
@@ -175,7 +174,6 @@ export function PersonalMeetingsSection(props: Props) {
         disableLoadMore={loadingMoreUpcoming}
         onRefresh={handleRefresh}
         variant={variant}
-        compact={!!teamId}
       />
       <MeetingsSection
         title="Past Meetings"
@@ -186,7 +184,6 @@ export function PersonalMeetingsSection(props: Props) {
         onRefresh={handleRefresh}
         isPast
         variant={variant}
-        compact={!!teamId}
       />
     </div>
   );

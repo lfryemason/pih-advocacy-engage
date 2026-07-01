@@ -51,9 +51,13 @@ test.describe("meetings list page", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
-    const emptyMessages = page.getByText("No meetings found.");
+    // Scope to the "All Meetings" region — "My Meetings" and "Team Meetings"
+    // independently render their own empty states for the same filter.
+    const allMeetings = page.getByRole("region", { name: "All Meetings" });
+    const emptyMessages = allMeetings.getByText("No meetings found.");
     await expect(emptyMessages).toHaveCount(2);
   });
 
@@ -338,6 +342,7 @@ test.describe("edit meeting", () => {
 
   test("delete removes the meeting from the list", async ({ page }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     // Create a meeting with a distinctive date so the assertions can't collide
     // with seed data, then delete it. The creator is seeded as the meeting's
