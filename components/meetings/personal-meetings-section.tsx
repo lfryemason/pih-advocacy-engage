@@ -26,19 +26,16 @@ type Props =
       mode: "user";
       filters: MeetingFilters;
       variant?: MeetingsSectionVariant;
-      compact?: boolean;
     }
   | {
-      title: string;
       mode: "team";
       teamId: string;
       filters: MeetingFilters;
       variant?: MeetingsSectionVariant;
-      compact?: boolean;
     };
 
 export function PersonalMeetingsSection(props: Props) {
-  const { title, mode, filters, variant = "default", compact = false } = props;
+  const { mode, filters, variant = "default" } = props;
   const teamId = mode === "team" ? props.teamId : undefined;
 
   const [upcoming, setUpcoming] = useState<SectionState>({
@@ -47,7 +44,8 @@ export function PersonalMeetingsSection(props: Props) {
   });
   const [past, setPast] = useState<SectionState>({ meetings: [], count: 0 });
   const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
+  const [loadingMoreUpcoming, setLoadingMoreUpcoming] = useState(false);
+  const [loadingMorePast, setLoadingMorePast] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchGenRef = useRef(0);
@@ -112,28 +110,27 @@ export function PersonalMeetingsSection(props: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtersKey, loadInitial]);
 
-  const loadMore = async () => {
+  const loadMore = async (section: "upcoming" | "past") => {
+    const setLoadingMore =
+      section === "upcoming" ? setLoadingMoreUpcoming : setLoadingMorePast;
     setLoadingMore(true);
     const supabase = createClient();
     try {
-      if (upcoming.meetings.length < upcoming.count) {
-        const result = await fetchSection(supabase, {
-          filters: filtersRef.current,
-          section: "upcoming",
-          offset: upcoming.meetings.length,
-          limit: PAGE_SIZE,
-        });
+      const result = await fetchSection(supabase, {
+        filters: filtersRef.current,
+        section,
+        offset:
+          section === "upcoming"
+            ? upcoming.meetings.length
+            : past.meetings.length,
+        limit: PAGE_SIZE,
+      });
+      if (section === "upcoming") {
         setUpcoming((prev) => ({
           count: result.count,
           meetings: [...prev.meetings, ...result.meetings],
         }));
-      } else if (past.meetings.length < past.count) {
-        const result = await fetchSection(supabase, {
-          filters: filtersRef.current,
-          section: "past",
-          offset: past.meetings.length,
-          limit: PAGE_SIZE,
-        });
+      } else {
         setPast((prev) => ({
           count: result.count,
           meetings: [...prev.meetings, ...result.meetings],
@@ -152,49 +149,45 @@ export function PersonalMeetingsSection(props: Props) {
     loadInitial(filtersRef.current);
   }, [loadInitial]);
 
-  const headingId = title.toLowerCase().replace(/\s+/g, "-");
-  const allMeetings = [...upcoming.meetings, ...past.meetings];
-  const totalCount = upcoming.count + past.count;
-  const headingClass = compact ? "text-xl font-semibold" : "text-2xl font-bold";
-
   if (loading) {
     return (
-      <section aria-labelledby={headingId}>
-        <h2 id={headingId} className={`mb-3 ${headingClass}`}>
-          {title}
-        </h2>
-        <p role="status" className="py-8 text-center text-muted-foreground">
-          Loading…
-        </p>
-      </section>
+      <p role="status" className="py-8 text-center text-muted-foreground">
+        Loading…
+      </p>
     );
   }
 
   if (error) {
     return (
-      <section aria-labelledby={headingId}>
-        <h2 id={headingId} className={`mb-3 ${headingClass}`}>
-          {title}
-        </h2>
-        <p role="alert" className="py-8 text-center text-destructive">
-          {error}
-        </p>
-      </section>
+      <p role="alert" className="py-8 text-center text-destructive">
+        {error}
+      </p>
     );
   }
 
   return (
-    <MeetingsSection
-      title={title}
-      meetings={allMeetings}
-      totalCount={totalCount}
-      onShowMore={loadMore}
-      disableLoadMore={loadingMore}
-      isPast
-      upcomingCount={upcoming.meetings.length}
-      onRefresh={handleRefresh}
-      variant={variant}
-      compact={compact}
-    />
+    <div className="flex flex-col gap-6">
+      <MeetingsSection
+        title="Upcoming Meetings"
+        meetings={upcoming.meetings}
+        totalCount={upcoming.count}
+        onShowMore={() => loadMore("upcoming")}
+        disableLoadMore={loadingMoreUpcoming}
+        onRefresh={handleRefresh}
+        variant={variant}
+        compact={!!teamId}
+      />
+      <MeetingsSection
+        title="Past Meetings"
+        meetings={past.meetings}
+        totalCount={past.count}
+        onShowMore={() => loadMore("past")}
+        disableLoadMore={loadingMorePast}
+        onRefresh={handleRefresh}
+        isPast
+        variant={variant}
+        compact={!!teamId}
+      />
+    </div>
   );
 }

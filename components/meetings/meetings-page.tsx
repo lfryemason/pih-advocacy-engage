@@ -173,24 +173,30 @@ export function MeetingsPage() {
         disabled={filtering || initialLoading}
       />
       <div className="flex flex-col gap-6">
-        <PersonalMeetingsSection
-          title="My Meetings"
-          mode="user"
-          filters={filters}
-          variant="pink"
-        />
+        <CollapsibleMeetingsGroup title="My Meetings" defaultOpen>
+          <PersonalMeetingsSection
+            title="My Meetings"
+            mode="user"
+            filters={filters}
+            variant="pink"
+          />
+        </CollapsibleMeetingsGroup>
         {myTeams.length > 0 && (
-          <CollapsibleMeetingsGroup title="Team Meetings" defaultOpen>
+          <CollapsibleMeetingsGroup title="Team Meetings" defaultOpen={false}>
             {myTeams.map((team) => (
-              <PersonalMeetingsSection
-                key={team.team_id}
-                title={`${team.team_name} Meetings`}
-                mode="team"
-                teamId={team.team_id}
-                filters={filters}
-                variant="teal"
-                compact
-              />
+              <div key={team.team_id}>
+                <h3 className="text-xl font-semibold">
+                  {`${team.team_name} Meetings`}
+                </h3>
+                <div className="ml-8 mt-3">
+                  <PersonalMeetingsSection
+                    mode="team"
+                    teamId={team.team_id}
+                    filters={filters}
+                    variant="teal"
+                  />
+                </div>
+              </div>
             ))}
           </CollapsibleMeetingsGroup>
         )}

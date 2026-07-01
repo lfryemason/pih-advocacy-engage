@@ -19,11 +19,6 @@ const HEADER_COLOR: Record<MeetingsSectionVariant, string> = {
   teal: "[&_tr]:bg-secondary-teal [&_tr]:hover:bg-secondary-teal [&_th]:text-secondary-teal-foreground",
 };
 
-const UPCOMING_ROW_CLASS: Partial<Record<MeetingsSectionVariant, string>> = {
-  pink: "bg-pink-50 dark:bg-pink-950/30",
-  teal: "bg-blue-50 dark:bg-blue-950/30",
-};
-
 export function MeetingsSection({
   title,
   meetings,
@@ -32,10 +27,8 @@ export function MeetingsSection({
   disableLoadMore,
   onRefresh = () => {},
   isPast = false,
-  upcomingCount = 0,
   showRepColumn = true,
   variant = "default",
-  compact = false,
 }: {
   title: string;
   meetings: MeetingRowType[];
@@ -44,18 +37,16 @@ export function MeetingsSection({
   disableLoadMore: boolean;
   onRefresh?: () => void;
   isPast?: boolean;
-  upcomingCount?: number;
   showRepColumn?: boolean;
   variant?: MeetingsSectionVariant;
   compact?: boolean;
 }) {
   const headingId = title.toLowerCase().replace(/\s+/g, "-");
   const hasMore = meetings.length < totalCount;
-  const headingClass = compact ? "text-xl font-semibold" : "text-2xl font-bold";
 
   return (
     <section aria-labelledby={headingId}>
-      <h2 id={headingId} className={`mb-3 ${headingClass}`}>
+      <h2 id={headingId} className={`mb-3 text-lg font-semibold`}>
         {title}
       </h2>
       {totalCount === 0 ? (
@@ -79,22 +70,17 @@ export function MeetingsSection({
                 <TableHead className="w-36">Staff Contact</TableHead>
                 <TableHead className="w-52">PIH Team</TableHead>
                 <TableHead className="w-36">Scheduler/Follow-up</TableHead>
-                {isPast && meetings.length > upcomingCount && (
+                {isPast && (
                   <TableHead className="text-center">Follow-up</TableHead>
                 )}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {meetings.map((meeting, index) => (
+              {meetings.map((meeting) => (
                 <MeetingRow
                   key={meeting.id}
                   meeting={meeting}
-                  isPast={isPast && index >= upcomingCount}
-                  upcomingClassName={
-                    index < upcomingCount
-                      ? UPCOMING_ROW_CLASS[variant]
-                      : undefined
-                  }
+                  isPast={isPast}
                   showRepColumn={showRepColumn}
                   onRefresh={onRefresh}
                 />

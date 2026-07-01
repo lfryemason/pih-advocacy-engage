@@ -22,7 +22,7 @@ export function CollapsibleMeetingsGroup({
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
         aria-controls={contentId}
-        className="flex items-center gap-2 py-1"
+        className="flex w-[100%] items-center gap-2 border-b py-2"
       >
         {open ? (
           <ChevronDown
@@ -39,7 +39,10 @@ export function CollapsibleMeetingsGroup({
         )}
         <span className="text-2xl font-bold">{title}</span>
       </button>
-      <div id={contentId} className="mt-4 flex flex-col gap-10" hidden={!open}>
+      <div
+        id={contentId}
+        className={open ? "mt-2 flex flex-col gap-6" : "hidden"}
+      >
         {children}
       </div>
     </section>
