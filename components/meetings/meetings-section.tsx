@@ -64,11 +64,11 @@ export function MeetingsSection({
                 </TableHead>
                 <TableHead className="w-28">Date</TableHead>
                 <TableHead className="w-24">Time</TableHead>
+                <TableHead className="w-52">Location</TableHead>
                 {showRepColumn && (
                   <TableHead className="w-56">Member of Congress</TableHead>
                 )}
                 <TableHead className="w-36">Staff Contact</TableHead>
-                <TableHead className="w-52">PIH Team</TableHead>
                 <TableHead className="w-36">Scheduler/Follow-up</TableHead>
                 {isPast && (
                   <TableHead className="text-center">Follow-up</TableHead>

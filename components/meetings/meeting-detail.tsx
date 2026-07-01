@@ -246,6 +246,7 @@ export function MeetingDetail({
       onLinksChange={setLinks}
       onSubmit={handleSubmit}
       onCancel={handleCancel}
+      onDeleted={onSaved}
       saveError={saveError}
       isSaving={isSaving}
       delegationInitialMembers={detail.delegation_members}
