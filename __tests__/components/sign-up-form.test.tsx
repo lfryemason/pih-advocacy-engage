@@ -100,6 +100,7 @@ describe("SignUpForm", () => {
 
   it("rejects a password that doesn't meet the policy before submitting", async () => {
     render(<SignUpForm />);
+    await userEvent.type(screen.getByLabelText(/Access Code/), "test-code");
     await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
     await userEvent.type(screen.getByLabelText(/Last Name/), "Smith");
     await userEvent.type(screen.getByLabelText(/Email/), "alice@example.com");
