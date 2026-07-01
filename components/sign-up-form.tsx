@@ -30,6 +30,7 @@ export function SignUpForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [accessCode, setAccessCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -54,6 +55,7 @@ export function SignUpForm({
       const result = await signUpOrClaim({
         email,
         password,
+        accessCode,
         firstName,
         lastName,
         pronouns,
@@ -85,6 +87,21 @@ export function SignUpForm({
         <CardContent>
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
+              <div className="grid gap-2">
+                <Label htmlFor="access-code">
+                  Access Code{" "}
+                  <span aria-hidden="true" className="text-destructive">
+                    *
+                  </span>
+                </Label>
+                <Input
+                  id="access-code"
+                  type="password"
+                  required
+                  value={accessCode}
+                  onChange={(e) => setAccessCode(e.target.value)}
+                />
+              </div>
               <div className="grid gap-2">
                 <Label htmlFor="first-name">
                   First Name{" "}
