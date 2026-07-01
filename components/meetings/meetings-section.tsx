@@ -45,7 +45,7 @@ export function MeetingsSection({
   const hasMore = meetings.length < totalCount;
 
   return (
-    <section aria-labelledby={headingId}>
+    <div aria-labelledby={headingId}>
       <h2 id={headingId} className={`mb-3 text-lg font-semibold`}>
         {title}
       </h2>
@@ -102,6 +102,6 @@ export function MeetingsSection({
           )}
         </>
       )}
-    </section>
+    </div>
   );
 }
