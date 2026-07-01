@@ -1,6 +1,6 @@
 import { MobileHeader } from "@/components/mobile-header";
 import { Sidebar } from "@/components/sidebar";
-import { getIsAdmin } from "@/lib/auth/guards";
+import { getIsAdmin, requireRole } from "@/lib/auth/guards";
 import { ORG_ID } from "@/lib/org";
 
 export default async function AppLayout({
@@ -8,6 +8,8 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  await requireRole();
+
   const isAdmin = await getIsAdmin(ORG_ID);
 
   return (
