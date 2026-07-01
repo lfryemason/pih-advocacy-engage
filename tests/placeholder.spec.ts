@@ -181,6 +181,9 @@ test.describe("claiming a placeholder account", () => {
     // Sign up with details that differ from the seeded placeholder
     // ("Penny Placeholder", she/her): the claimer's own input must win.
     await page.goto("/auth/sign-up");
+    await page
+      .getByLabel("Access Code")
+      .fill(process.env.SIGNUP_ACCESS_CODE ?? "");
     await page.getByLabel("First Name").fill("Penelope");
     await page.getByLabel("Last Name").fill("Reclaimed");
     await page.getByLabel("Pronouns").fill("they/them");
