@@ -107,7 +107,7 @@ export function SignUpForm({
                       <TooltipTrigger
                         type="button"
                         className="text-muted-foreground"
-                        aria-label="What is an access code?"
+                        aria-label="More info"
                       >
                         <CircleHelp className="size-3.5" />
                       </TooltipTrigger>
