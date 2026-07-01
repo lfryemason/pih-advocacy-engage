@@ -2,6 +2,10 @@ import { test, expect, type Page } from "@playwright/test";
 import { AUTH_STATE_PATH } from "./global-setup";
 import { resetDatabase } from "./reset-db";
 
+async function expandAllMeetings(page: Page) {
+  await page.getByRole("button", { name: "All Meetings" }).click();
+}
+
 test.use({ storageState: AUTH_STATE_PATH });
 test.beforeEach(resetDatabase);
 
@@ -20,6 +24,7 @@ test.describe("meetings list page", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     await expect(
       page.getByLabel("Upcoming Meetings").getByText("Adam Smith"),
     ).toBeVisible();
@@ -27,6 +32,7 @@ test.describe("meetings list page", () => {
 
   test("shows seed past meeting in the Past section", async ({ page }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     // Both sections contain Adam Smith; verify at least one row is in the past table
     await expect(page.getByText("Jan 15, 2020")).toBeVisible();
   });
@@ -35,6 +41,7 @@ test.describe("meetings list page", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
     await expect(page.getByText("Adam Smith").first()).toBeVisible();
@@ -54,6 +61,7 @@ test.describe("meetings list page", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
     await page.keyboard.press("Escape");
@@ -66,6 +74,7 @@ test.describe("meetings list page", () => {
 
   test("expand button toggles chevron aria-expanded", async ({ page }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     const expandBtn = page
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
@@ -87,6 +96,7 @@ test.describe("create meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     // Open dialog
     await page.getByRole("button", { name: /Add Meeting/i }).click();
@@ -158,6 +168,7 @@ test.describe("create meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     await page.getByRole("button", { name: /Add Meeting/i }).click();
     await page.getByLabel(/^Date$/).fill("2099-11-01");
@@ -189,6 +200,7 @@ test.describe("edit meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     const expandBtn = page
       .getByRole("button", { name: /Expand meeting with/ })
@@ -206,6 +218,7 @@ test.describe("edit meeting", () => {
 
   test("clicking Edit Meeting shows the edit form", async ({ page }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     const expandBtn = page
       .getByRole("button", { name: /Expand meeting with/ })
@@ -223,6 +236,7 @@ test.describe("edit meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     const expandBtn = page
       .getByRole("button", { name: /Expand meeting with/ })
@@ -255,6 +269,7 @@ test.describe("edit meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     // Expand a past meeting row and enter edit mode
     const pastSection = page.getByLabel("Past Meetings");
@@ -291,6 +306,7 @@ test.describe("edit meeting", () => {
 
   test("edit date to past moves meeting to Past section", async ({ page }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     // Expand an upcoming meeting row and enter edit mode
     const upcomingSection = page.getByLabel("Upcoming Meetings");
@@ -335,6 +351,7 @@ test.describe("US4 — Delegation members", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     const expandBtn = page
       .getByRole("button", { name: /Expand meeting with/ })
@@ -365,6 +382,7 @@ test.describe("US4 — Delegation members", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     const expandBtn = page
       .getByRole("button", { name: /Expand meeting with/ })
@@ -401,6 +419,7 @@ test.describe("US4 — Delegation members", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     const expandBtn = page
       .getByRole("button", { name: /Expand meeting with/ })

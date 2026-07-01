@@ -43,6 +43,7 @@ for (const theme of themes) {
     }, theme);
 
     // Expand a meeting row then enter edit mode so the edit form is in the DOM.
+    await page.getByRole("button", { name: "All Meetings" }).click();
     await page
       .getByRole("button", { name: /Expand meeting with/ })
       .first()
@@ -72,6 +73,7 @@ for (const theme of themes) {
     }, theme);
 
     // Expand a meeting row, enter edit mode so the delegation form is in DOM.
+    await page.getByRole("button", { name: "All Meetings" }).click();
     await page
       .getByRole("button", { name: /Expand meeting with/ })
       .first()
