@@ -22,8 +22,8 @@ async function fillRequiredFields() {
   await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
   await userEvent.type(screen.getByLabelText(/Last Name/), "Smith");
   await userEvent.type(screen.getByLabelText(/Email/), "alice@example.com");
-  await userEvent.type(screen.getByLabelText(/^Password/), "password123");
-  await userEvent.type(screen.getByLabelText(/Repeat Password/), "password123");
+  await userEvent.type(screen.getByLabelText(/^Password/), "Password123");
+  await userEvent.type(screen.getByLabelText(/Repeat Password/), "Password123");
 }
 
 describe("SignUpForm", () => {
@@ -85,13 +85,31 @@ describe("SignUpForm", () => {
     await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
     await userEvent.type(screen.getByLabelText(/Last Name/), "Smith");
     await userEvent.type(screen.getByLabelText(/Email/), "alice@example.com");
-    await userEvent.type(screen.getByLabelText(/^Password/), "password123");
+    await userEvent.type(screen.getByLabelText(/^Password/), "Password123");
     await userEvent.type(
       screen.getByLabelText(/Repeat Password/),
-      "different123",
+      "Different123",
     );
     await userEvent.click(screen.getByRole("button", { name: "Sign up" }));
     expect(screen.getByText("Passwords do not match")).toBeInTheDocument();
+    expect(mockSignUp).not.toHaveBeenCalled();
+  });
+
+  it("rejects a password that doesn't meet the policy before submitting", async () => {
+    render(<SignUpForm />);
+    await userEvent.type(screen.getByLabelText(/First Name/), "Alice");
+    await userEvent.type(screen.getByLabelText(/Last Name/), "Smith");
+    await userEvent.type(screen.getByLabelText(/Email/), "alice@example.com");
+    // All lowercase + digits: fails the uppercase requirement.
+    await userEvent.type(screen.getByLabelText(/^Password/), "password123");
+    await userEvent.type(
+      screen.getByLabelText(/Repeat Password/),
+      "password123",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Sign up" }));
+    expect(
+      screen.getByText("Password must include an uppercase letter."),
+    ).toBeInTheDocument();
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 
@@ -109,7 +127,7 @@ describe("SignUpForm", () => {
     await waitFor(() => {
       expect(mockSignUp).toHaveBeenCalledWith({
         email: "alice@example.com",
-        password: "password123",
+        password: "Password123",
         firstName: "Alice",
         lastName: "Smith",
         pronouns: "she/her",

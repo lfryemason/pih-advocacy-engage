@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
+import { validatePassword } from "@/lib/auth/password";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,6 +30,13 @@ export function UpdatePasswordForm({
     const supabase = createClient();
     setIsLoading(true);
     setError(null);
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.updateUser({ password });
