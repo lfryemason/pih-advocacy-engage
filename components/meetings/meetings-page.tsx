@@ -182,7 +182,18 @@ export function MeetingsPage() {
             onShowMore={() => loadMore("upcoming")}
             disableLoadMore={loadingMore === "upcoming" || filtering}
             onRefresh={() => loadInitial(filtersRef.current)}
-          />
+</p>
+      ) : (
+<div className="flex flex-col gap-10">
+<MeetingsSection
+title="Upcoming Meetings"
+meetings={upcoming.meetings}
+totalCount={upcoming.count}
+onShowMore={() => loadMore("upcoming")}
+disableLoadMore={loadingMore === "upcoming" || filtering}
+onRefresh={() => loadInitial(filtersRef.current)}
+loading={applyingFilters}
+/>
           <MeetingsSection
             title="Past Meetings"
             meetings={past.meetings}
