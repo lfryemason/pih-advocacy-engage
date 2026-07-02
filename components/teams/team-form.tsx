@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
@@ -19,11 +20,13 @@ export function TeamForm({
   team,
   onDone,
   onCancel,
+  cancelHref,
 }: {
   orgId: string;
   team?: Team;
   onDone?: () => void;
   onCancel?: () => void;
+  cancelHref?: string;
 }) {
   const router = useRouter();
   const isEdit = team !== undefined;
@@ -244,7 +247,7 @@ export function TeamForm({
           <Button type="submit" disabled={isSaving}>
             {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
           </Button>
-          {onCancel && (
+          {onCancel ? (
             <Button
               type="button"
               variant="outline"
@@ -253,7 +256,11 @@ export function TeamForm({
             >
               Cancel
             </Button>
-          )}
+          ) : cancelHref ? (
+            <Button asChild variant="outline">
+              <Link href={cancelHref}>Cancel</Link>
+            </Button>
+          ) : null}
         </div>
       </div>
     </form>
