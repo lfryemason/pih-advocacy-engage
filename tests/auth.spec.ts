@@ -78,6 +78,9 @@ test.describe("sign up page", () => {
   });
 
   test("shows error when passwords do not match", async ({ page }) => {
+    await page
+      .getByLabel("Access Code")
+      .fill(process.env.SIGNUP_ACCESS_CODE ?? "");
     await page.getByLabel("First Name").fill("Test");
     await page.getByLabel("Last Name").fill("User");
     await page.getByLabel("Email").fill("test@example.com");

@@ -17,12 +17,18 @@ export type SignUpOrClaimResult = { ok: true } | { ok: false; error: string };
 export async function signUpOrClaim(input: {
   email: string;
   password: string;
+  accessCode: string;
   firstName: string;
   lastName: string;
   pronouns: string;
   state: string;
   district: string;
 }): Promise<SignUpOrClaimResult> {
+  const requiredAccessCode = process.env.SIGNUP_ACCESS_CODE;
+  if (!requiredAccessCode || input.accessCode !== requiredAccessCode) {
+    return { ok: false, error: "Invalid access code." };
+  }
+
   const email = input.email.trim().toLowerCase();
   if (!email || !input.password) {
     return { ok: false, error: "Email and password are required." };
