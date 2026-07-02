@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { signUpOrClaim } from "@/lib/auth/sign-up-actions";
+import { validatePassword } from "@/lib/auth/password";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -54,6 +55,13 @@ export function SignUpForm({
 
     if (password !== repeatPassword) {
       setError("Passwords do not match");
+      setIsLoading(false);
+      return;
+    }
+
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
       setIsLoading(false);
       return;
     }
