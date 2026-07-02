@@ -11,6 +11,7 @@ import {
   PanelLeftOpen,
   Landmark,
   ShieldUser,
+  TriangleAlert,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -133,9 +134,10 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
             }}
           >
             <span
-              className={`rounded bg-red-100 py-0.5 text-sm font-semibold text-red-950 dark:border-red-500 dark:bg-red-950 dark:text-red-100 ${isCollapsed ? "px-1.5" : "w-full text-center"}`}
+              className={`flex flex-row items-center justify-center gap-2 rounded bg-red-100 py-1 text-sm font-semibold text-red-950 dark:border-red-500 dark:bg-red-950 dark:text-red-100 ${isCollapsed ? "px-1.5" : "w-full text-center"}`}
             >
-              Beta
+              <TriangleAlert size={16} />
+              Site in beta
             </span>
           </div>
         </div>
