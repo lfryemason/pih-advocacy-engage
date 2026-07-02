@@ -11,6 +11,7 @@ import type {
 import {
   formatDate,
   formatTime,
+  EMPTY_VALUE_CLASSNAME,
   LINK_CN,
   SECTION_LABEL_CLASSNAME,
 } from "@/lib/meetings/format";
@@ -96,17 +97,19 @@ export function MeetingDetailView({
               )}
             </div>
           )}
-          {meeting.notes && (
-            <div>
-              <p className={SECTION_LABEL_CLASSNAME}>Notes</p>
+          <div>
+            <p className={SECTION_LABEL_CLASSNAME}>Notes</p>
+            {meeting.notes ? (
               <div className="mt-1 border-l-4 border-muted pl-3">
                 <p className="text-sm">{meeting.notes}</p>
               </div>
-            </div>
-          )}
-          {meeting.links.length > 0 && (
-            <div>
-              <p className={SECTION_LABEL_CLASSNAME}>Links</p>
+            ) : (
+              <p className={EMPTY_VALUE_CLASSNAME}>—</p>
+            )}
+          </div>
+          <div>
+            <p className={SECTION_LABEL_CLASSNAME}>Links</p>
+            {meeting.links.length > 0 ? (
               <ul className="mt-1 flex flex-col gap-1">
                 {meeting.links.map((link) => (
                   <li key={`${link.label}::${link.url}`}>
@@ -128,14 +131,16 @@ export function MeetingDetailView({
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+            ) : (
+              <p className={EMPTY_VALUE_CLASSNAME}>—</p>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
-          {meeting.meeting_time && (
-            <div>
-              <p className={SECTION_LABEL_CLASSNAME}>Time</p>
+          <div>
+            <p className={SECTION_LABEL_CLASSNAME}>Time</p>
+            {meeting.meeting_time ? (
               <p className="mt-1 text-sm">
                 {formatTime(
                   meeting.meeting_date,
@@ -143,14 +148,18 @@ export function MeetingDetailView({
                   meeting.meeting_timezone,
                 )}
               </p>
-            </div>
-          )}
-          {meeting.location && (
-            <div>
-              <p className={SECTION_LABEL_CLASSNAME}>Location</p>
+            ) : (
+              <p className={EMPTY_VALUE_CLASSNAME}>—</p>
+            )}
+          </div>
+          <div>
+            <p className={SECTION_LABEL_CLASSNAME}>Location</p>
+            {meeting.location ? (
               <p className="mt-1 text-sm">{meeting.location}</p>
-            </div>
-          )}
+            ) : (
+              <p className={EMPTY_VALUE_CLASSNAME}>—</p>
+            )}
+          </div>
           <div>
             <p className={SECTION_LABEL_CLASSNAME}>Delegation</p>
             {meeting.delegation_members.length === 0 ? (
@@ -205,9 +214,9 @@ export function MeetingDetailView({
               </div>
             )}
           </div>
-          {meeting.represented_teams.length > 0 && (
-            <div>
-              <p className={SECTION_LABEL_CLASSNAME}>Represented teams</p>
+          <div>
+            <p className={SECTION_LABEL_CLASSNAME}>Represented teams</p>
+            {meeting.represented_teams.length > 0 ? (
               <ul
                 aria-label="Represented teams"
                 className="mt-1 flex flex-wrap gap-1"
@@ -219,8 +228,10 @@ export function MeetingDetailView({
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
+            ) : (
+              <p className={EMPTY_VALUE_CLASSNAME}>—</p>
+            )}
+          </div>
           {onEdit && (
             <div className="mt-auto pt-2">
               <Button variant="outline" onClick={onEdit}>

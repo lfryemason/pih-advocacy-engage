@@ -87,7 +87,7 @@ describe("MeetingDetailView — location", () => {
     expect(screen.getByText("Capitol Hill, Room 101")).toBeInTheDocument();
   });
 
-  it("omits location section when null", () => {
+  it("shows the Location header with an em dash when null", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ location: null })}
@@ -95,8 +95,9 @@ describe("MeetingDetailView — location", () => {
       />,
     );
     expect(
-      screen.queryByText(/Location/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+      screen.getByText(/Location/i, { selector: "p" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Location").nextSibling).toHaveTextContent("—");
   });
 });
 
@@ -122,16 +123,15 @@ describe("MeetingDetailView — notes with accent bar", () => {
     expect(notesEl.closest("div")).toHaveClass("border-l-4");
   });
 
-  it("omits notes section when null", () => {
+  it("shows the Notes header with an em dash when null", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ notes: null })}
         onEdit={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByText(/Notes/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Notes")).toBeInTheDocument();
+    expect(screen.getByText("Notes").nextSibling).toHaveTextContent("—");
   });
 });
 
@@ -156,16 +156,15 @@ describe("MeetingDetailView — links", () => {
     expect(briefingLink).toHaveAttribute("href", "https://example.com/brief");
   });
 
-  it("omits links section when empty", () => {
+  it("shows the Links header with an em dash when empty", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ links: [] })}
         onEdit={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByText(/Links/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Links")).toBeInTheDocument();
+    expect(screen.getByText("Links").nextSibling).toHaveTextContent("—");
   });
 });
 
@@ -351,7 +350,7 @@ describe("MeetingDetailView — represented teams", () => {
     expect(screen.getAllByText("Global Health")).toHaveLength(1);
   });
 
-  it("omits the section when no members have a team snapshot", () => {
+  it("shows the header with an em dash when no members have a team snapshot", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({
@@ -373,21 +372,23 @@ describe("MeetingDetailView — represented teams", () => {
         onEdit={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByText(/Represented teams/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Represented teams")).toBeInTheDocument();
+    expect(screen.getByText("Represented teams").nextSibling).toHaveTextContent(
+      "—",
+    );
   });
 
-  it("omits the section when delegation is empty", () => {
+  it("shows the header with an em dash when delegation is empty", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ delegation_members: [] })}
         onEdit={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByText(/Represented teams/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Represented teams")).toBeInTheDocument();
+    expect(screen.getByText("Represented teams").nextSibling).toHaveTextContent(
+      "—",
+    );
   });
 });
 
