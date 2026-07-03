@@ -2,14 +2,8 @@ import { test, expect, type Page } from "@playwright/test";
 import { AUTH_STATE_PATH } from "./global-setup";
 import { resetDatabase } from "./reset-db";
 
-// Idempotent: only clicks the toggle if it isn't already expanded, so it's
-// safe to call again after an action (like a filter change) that might have
-// reset the group's local open state.
 async function expandAllMeetings(page: Page) {
-  const toggle = page.getByRole("button", { name: "All Meetings" });
-  if ((await toggle.getAttribute("aria-expanded")) !== "true") {
-    await toggle.click();
-  }
+  await page.getByRole("button", { name: "All Meetings" }).click();
 }
 
 // The seed test user is a delegate on every seeded meeting, so seeded rows
@@ -69,9 +63,9 @@ test.describe("meetings list page", () => {
     await expandAllMeetings(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
-    // The filter change re-renders the page; re-assert the group is expanded
-    // in case that reset its local open state.
-    await expandAllMeetings(page);
+    // The dropdown stays open after checking an item; close it so the rest
+    // of the page (hidden via aria-hidden while it's open) is queryable again.
+    await page.keyboard.press("Escape");
     // Scope to the "All Meetings" region — "My Meetings" and "Team Meetings"
     // independently render their own empty states for the same filter.
     const emptyMessages =
