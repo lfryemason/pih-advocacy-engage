@@ -24,6 +24,7 @@ export type MeetingRow = {
   location: string | null;
   scheduling_lead_name: string | null;
   follow_up_date: string | null;
+  follow_up_completed: boolean;
   champion_score: number | null;
 };
 
@@ -77,6 +78,7 @@ export type CreateMeetingValues = {
 
 export type MeetingFormValues = CreateMeetingValues & {
   follow_up_date: string | null;
+  follow_up_completed: boolean;
   champion_score: number | null;
 };
 

@@ -58,9 +58,10 @@ export function MeetingsSection({
                   <TableHead className="w-56">Member of Congress</TableHead>
                 )}
                 <TableHead className="w-36">Staff Contact</TableHead>
-                <TableHead className="w-36">Scheduler/Follow-up</TableHead>
-                {isPast && (
+                {isPast ? (
                   <TableHead className="text-center">Follow-up</TableHead>
+                ) : (
+                  <TableHead className="w-36">Scheduler</TableHead>
                 )}
               </TableRow>
             </TableHeader>

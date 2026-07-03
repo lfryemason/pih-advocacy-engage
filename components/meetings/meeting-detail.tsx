@@ -33,6 +33,7 @@ const DEFAULT_FORM: FormState = {
   location: "",
   notes: "",
   followUpDate: "",
+  followUpCompleted: false,
   championScore: "",
 };
 
@@ -47,6 +48,7 @@ function formStateFromDetail(d: MeetingDetailType): FormState {
     location: d.location ?? "",
     notes: d.notes ?? "",
     followUpDate: d.follow_up_date ?? "",
+    followUpCompleted: d.follow_up_completed,
     championScore: d.champion_score != null ? String(d.champion_score) : "",
   };
 }
@@ -173,6 +175,7 @@ export function MeetingDetail({
       notes: form.notes.trim() || null,
       location: form.location.trim() || null,
       follow_up_date: form.followUpDate || null,
+      follow_up_completed: form.followUpCompleted,
       champion_score: parsedScore,
     };
 

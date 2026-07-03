@@ -66,7 +66,8 @@ export function MeetingDetailView({
 }) {
   const isPast = meeting.meeting_date < localDateString();
   const showChampion = isPast || meeting.champion_score != null;
-  const showFollowUp = isPast || meeting.follow_up_date != null;
+  const showFollowUp =
+    isPast || meeting.follow_up_date != null || meeting.follow_up_completed;
 
   return (
     <div className="p-4">
@@ -88,9 +89,11 @@ export function MeetingDetailView({
                 <div>
                   <p className={SECTION_LABEL_CLASSNAME}>Follow-up</p>
                   <p className="mt-1 text-sm">
-                    {meeting.follow_up_date
-                      ? formatDate(meeting.follow_up_date)
-                      : "—"}
+                    {meeting.follow_up_completed
+                      ? "Completed"
+                      : "Not completed"}
+                    {meeting.follow_up_date &&
+                      ` (${formatDate(meeting.follow_up_date)})`}
                   </p>
                 </div>
               )}

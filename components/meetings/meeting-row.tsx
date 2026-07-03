@@ -22,7 +22,7 @@ export function MeetingRow({
   onRefresh?: () => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
-  const colSpan = (isPast ? 8 : 7) - (showRepColumn ? 0 : 1);
+  const colSpan = 6 + (showRepColumn ? 1 : 0);
   const detailRowId = `meeting-detail-${meeting.id}`;
 
   const toggle = () => setIsExpanded((v) => !v);
@@ -93,18 +93,19 @@ export function MeetingRow({
             meeting.congressional_contact_name
           )}
         </TableCell>
-        <TableCell className="max-w-0 truncate">
-          {meeting.scheduling_lead_name ?? "—"}
-        </TableCell>
-        {isPast && (
+        {isPast ? (
           <TableCell className="text-center">
-            {meeting.follow_up_date ? (
+            {meeting.follow_up_completed ? (
               <CircleCheckBig
                 role="img"
-                aria-label="Follow-up sent"
+                aria-label="Follow-up completed"
                 className="m-auto h-4 w-4 text-green-600"
               />
             ) : null}
+          </TableCell>
+        ) : (
+          <TableCell className="max-w-0 truncate">
+            {meeting.scheduling_lead_name ?? "—"}
           </TableCell>
         )}
       </TableRow>

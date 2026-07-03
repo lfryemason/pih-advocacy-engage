@@ -29,6 +29,7 @@ type RawRow = {
   primary_team_id: string | null;
   location: string | null;
   follow_up_date: string | null;
+  follow_up_completed: boolean;
   champion_score: number | null;
   representatives: {
     bioguide_id: string;
@@ -79,6 +80,7 @@ function mapRow(row: RawRow): MeetingRow {
           .join(" ") || null
       : null,
     follow_up_date: row.follow_up_date,
+    follow_up_completed: row.follow_up_completed,
     champion_score: row.champion_score,
   };
 }
@@ -93,6 +95,7 @@ const SELECT = `
   primary_team_id,
   location,
   follow_up_date,
+  follow_up_completed,
   champion_score,
   representatives!inner ( bioguide_id, official_full_name, pronouns, state, district, party ),
   staffers ( first_name, last_name ),
@@ -281,6 +284,7 @@ const SELECT_DETAIL = `
   congressional_contact_id,
   primary_team_id,
   follow_up_date,
+  follow_up_completed,
   champion_score,
   notes,
   location,
@@ -357,6 +361,7 @@ export async function updateMeeting(
       notes: values.notes,
       location: values.location,
       follow_up_date: values.follow_up_date,
+      follow_up_completed: values.follow_up_completed,
       champion_score: values.champion_score,
       links,
     })
