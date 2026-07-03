@@ -3,11 +3,13 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { fetchMeetings } from "@/lib/meetings/queries";
+import { fetchMeetings, fetchMyTeams } from "@/lib/meetings/queries";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
 import { MeetingsSection } from "@/components/meetings/meetings-section";
 import { MeetingsFilters } from "@/components/meetings/meetings-filters";
 import { AddMeetingDialog } from "@/components/meetings/create/add-meeting-dialog";
+import { PersonalMeetingsSection } from "@/components/meetings/personal-meetings-section";
+import { CollapsibleMeetingsGroup } from "@/components/meetings/collapsible-meetings-group";
 
 const PAGE_SIZE = 15;
 
@@ -60,12 +62,22 @@ export function MeetingsPage() {
   const [filters, setFilters] = useState<MeetingFilters>(() =>
     filtersFromParams(searchParams),
   );
+  const [myTeams, setMyTeams] = useState<
+    { team_id: string; team_name: string }[]
+  >([]);
 
   // Always reflects the latest committed filters so loadMore doesn't close over stale values
   const filtersRef = useRef(filters);
   useEffect(() => {
     filtersRef.current = filters;
   }, [filters]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    fetchMyTeams(supabase)
+      .then(setMyTeams)
+      .catch(() => {});
+  }, []);
 
   // Incremented on every loadInitial call; stale responses are discarded
   const fetchGenRef = useRef(0);
@@ -160,40 +172,73 @@ export function MeetingsPage() {
         onChange={handleFiltersChange}
         disabled={filtering || initialLoading}
       />
-      {initialLoading ? (
-        <p role="status" className="py-8 text-center text-muted-foreground">
-          Loading meetings…
-        </p>
-      ) : error ? (
-        <p role="alert" className="py-8 text-center text-destructive">
-          {error}
-        </p>
-      ) : (
-        <div className="flex flex-col gap-10">
-          <MeetingsSection
-            title="Upcoming Meetings"
-            meetings={upcoming.meetings}
-            totalCount={upcoming.count}
-            onShowMore={() => loadMore("upcoming")}
-            disableLoadMore={loadingMore === "upcoming" || filtering}
-            onRefresh={() => loadInitial(filtersRef.current)}
+      <div className="flex flex-col gap-6">
+        <CollapsibleMeetingsGroup title="My Meetings" defaultOpen>
+          <PersonalMeetingsSection
+            mode="user"
+            filters={filters}
+            variant="pink"
           />
-          <MeetingsSection
-            title="Past Meetings"
-            meetings={past.meetings}
-            totalCount={past.count}
-            onShowMore={() => loadMore("past")}
-            disableLoadMore={loadingMore === "past" || filtering}
-            onRefresh={() => loadInitial(filtersRef.current)}
-            isPast
-          />
-          {loadMoreError && (
-            <p role="alert" className="text-center text-sm text-destructive">
-              {loadMoreError}
+        </CollapsibleMeetingsGroup>
+        {myTeams.length > 0 && (
+          <CollapsibleMeetingsGroup title="Team Meetings" defaultOpen={false}>
+            {myTeams.map((team) => (
+              <div key={team.team_id}>
+                <h3 className="text-xl font-semibold">
+                  {`${team.team_name} Meetings`}
+                </h3>
+                <div className="ml-8 mt-3">
+                  <PersonalMeetingsSection
+                    mode="team"
+                    teamId={team.team_id}
+                    filters={filters}
+                    variant="teal"
+                  />
+                </div>
+              </div>
+            ))}
+          </CollapsibleMeetingsGroup>
+        )}
+        <CollapsibleMeetingsGroup title="All Meetings" defaultOpen={false}>
+          {initialLoading ? (
+            <p role="status" className="py-8 text-center text-muted-foreground">
+              Loading meetings…
             </p>
+          ) : error ? (
+            <p role="alert" className="py-8 text-center text-destructive">
+              {error}
+            </p>
+          ) : (
+            <>
+              <MeetingsSection
+                title="Upcoming Meetings"
+                meetings={upcoming.meetings}
+                totalCount={upcoming.count}
+                onShowMore={() => loadMore("upcoming")}
+                disableLoadMore={loadingMore === "upcoming" || filtering}
+                onRefresh={() => loadInitial(filtersRef.current)}
+              />
+              <MeetingsSection
+                title="Past Meetings"
+                meetings={past.meetings}
+                totalCount={past.count}
+                onShowMore={() => loadMore("past")}
+                disableLoadMore={loadingMore === "past" || filtering}
+                onRefresh={() => loadInitial(filtersRef.current)}
+                isPast
+              />
+              {loadMoreError && (
+                <p
+                  role="alert"
+                  className="text-center text-sm text-destructive"
+                >
+                  {loadMoreError}
+                </p>
+              )}
+            </>
           )}
-        </div>
-      )}
+        </CollapsibleMeetingsGroup>
+      </div>
     </div>
   );
 }
