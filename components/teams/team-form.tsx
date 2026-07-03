@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/select";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 import { cn } from "@/lib/utils";
 import { TYPE_LABELS } from "@/lib/teams";
+import { DeleteTeamButton } from "@/components/teams/delete-team-button";
 
 type Team = Tables<"teams">;
 
@@ -21,15 +22,32 @@ export function TeamForm({
   onDone,
   onCancel,
   cancelHref,
+  canDelete = false,
 }: {
   orgId: string;
   team?: Team;
   onDone?: () => void;
   onCancel?: () => void;
   cancelHref?: string;
+  canDelete?: boolean;
 }) {
   const router = useRouter();
   const isEdit = team !== undefined;
+  // Editing always offers a way back to the team page; cancelling a create is
+  // opt-in via onCancel/cancelHref (e.g. when embedded in a dialog, or linked
+  // from a server-rendered page that can't pass a callback).
+  const showCancel =
+    onCancel !== undefined || cancelHref !== undefined || isEdit;
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+      return;
+    }
+    if (team) {
+      router.replace(`/teams/${team.slug}`);
+    }
+  };
 
   const [name, setName] = useState(team?.name ?? "");
   const [state, setState] = useState(team?.state ?? "");
@@ -243,24 +261,34 @@ export function TeamForm({
             {error}
           </p>
         )}
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isSaving}>
-            {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
-          </Button>
-          {onCancel ? (
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
+        <div className="flex items-center gap-2">
+          {team && canDelete && (
+            <DeleteTeamButton
+              teamId={team.id}
+              teamName={team.name}
               disabled={isSaving}
-            >
-              Cancel
+            />
+          )}
+          <div className="ml-auto flex gap-2">
+            {showCancel &&
+              (cancelHref && !onCancel ? (
+                <Button asChild variant="outline">
+                  <Link href={cancelHref}>Cancel</Link>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+              ))}
+            <Button type="submit" disabled={isSaving}>
+              {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
             </Button>
-          ) : cancelHref ? (
-            <Button asChild variant="outline">
-              <Link href={cancelHref}>Cancel</Link>
-            </Button>
-          ) : null}
+          </div>
         </div>
       </div>
     </form>

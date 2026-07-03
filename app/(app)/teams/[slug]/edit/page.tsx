@@ -84,6 +84,12 @@ async function EditTeamContent({
     }),
   );
 
+  // Mirrors the "org admins delete teams" RLS policy; non-admin members can
+  // edit but not delete, so the delete control stays hidden for them.
+  const canDeleteTeam =
+    currentRole?.role === "super_admin" ||
+    (currentRole?.role === "org_admin" && currentRole.org_id === ORG_ID);
+
   return (
     <>
       <Breadcrumb>
@@ -100,8 +106,8 @@ async function EditTeamContent({
         </BreadcrumbList>
       </Breadcrumb>
       <h1 className="mt-4 text-2xl font-bold">{team.name}</h1>
-      <div className="mt-6 grid grid-cols-1 items-start gap-x-8 gap-y-8 lg:grid-cols-[3fr_5fr]">
-        <TeamForm orgId={ORG_ID} team={team} />
+      <div className="mt-6 flex flex-col gap-8">
+        <TeamForm orgId={ORG_ID} team={team} canDelete={canDeleteTeam} />
         <MemberEditTable
           memberships={memberships}
           teamId={team.id}
