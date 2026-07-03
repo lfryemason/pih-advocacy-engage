@@ -236,6 +236,46 @@ describe("MeetingDetailView — delegation", () => {
     expect(screen.getByText(/alice@example\.com/)).toBeInTheDocument();
   });
 
+  it("shows all scheduling leads when more than one is assigned", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: "alice@example.com",
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+            {
+              id: "dm-2",
+              user_id: "u-2",
+              first_name: "Carol",
+              last_name: "Diaz",
+              display_name: "Carol Diaz",
+              email: "carol@example.com",
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Alice Smith")).toBeInTheDocument();
+    expect(screen.getByText("Carol Diaz")).toBeInTheDocument();
+    expect(screen.getByText(/alice@example\.com/)).toBeInTheDocument();
+    expect(screen.getByText(/carol@example\.com/)).toBeInTheDocument();
+  });
+
   it("does not show email for attendee roles", () => {
     render(
       <MeetingDetailView
@@ -261,14 +301,40 @@ describe("MeetingDetailView — delegation", () => {
     expect(screen.queryByText(/bob@example\.com/)).not.toBeInTheDocument();
   });
 
-  it("shows None when delegation is empty", () => {
+  it("shows the Delegation header with an em dash when empty", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ delegation_members: [] })}
         onEdit={vi.fn()}
       />,
     );
-    expect(screen.getByText("None")).toBeInTheDocument();
+    expect(screen.getByText("Delegation")).toBeInTheDocument();
+    expect(screen.getByText("Delegation").nextSibling).toHaveTextContent("—");
+  });
+
+  it("shows the Delegation header with an em dash when the only member is the scheduling lead", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: null,
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Delegation").nextSibling).toHaveTextContent("—");
   });
 });
 

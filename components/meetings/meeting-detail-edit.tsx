@@ -53,14 +53,7 @@ type Props = {
 
 type ColumnProps = Props & { staffers: StafferOption[]; canDelete: boolean };
 
-function LeftColumn({
-  meetingId,
-  form,
-  onFormChange,
-  links,
-  staffers,
-  onLinksChange,
-}: ColumnProps) {
+function LeftColumn({ meetingId, form, onFormChange, staffers }: ColumnProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -102,17 +95,6 @@ function LeftColumn({
             </option>
           ))}
         </Select>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <p className={SECTION_LABEL_CLASSNAME}>
-          <Label htmlFor={`edit-team-${meetingId}`}>Primary PIH Team</Label>
-        </p>
-        <TeamCombobox
-          id={`edit-team-${meetingId}`}
-          value={form.primaryTeamId}
-          onChange={(id) => onFormChange({ primaryTeamId: id })}
-        />
       </div>
 
       <div className="flex gap-4">
@@ -165,8 +147,6 @@ function LeftColumn({
           aria-label="Notes"
         />
       </div>
-
-      <EditMeetingLinks links={links} onChange={onLinksChange} />
     </div>
   );
 }
@@ -176,6 +156,8 @@ function RightColumn({
   canDelete,
   form,
   onFormChange,
+  links,
+  onLinksChange,
   onCancel,
   onDeleted,
   saveError,
@@ -239,10 +221,23 @@ function RightColumn({
         />
       </div>
 
+      <div className="flex flex-col gap-2">
+        <p className={SECTION_LABEL_CLASSNAME}>
+          <Label htmlFor={`edit-team-${meetingId}`}>Primary PIH Team</Label>
+        </p>
+        <TeamCombobox
+          id={`edit-team-${meetingId}`}
+          value={form.primaryTeamId}
+          onChange={(id) => onFormChange({ primaryTeamId: id })}
+        />
+      </div>
+
       <DelegationForm
         initialMembers={delegationInitialMembers}
         onChange={onDelegationChange}
       />
+
+      <EditMeetingLinks links={links} onChange={onLinksChange} />
 
       <div className="mt-auto pt-2">
         {saveError && (

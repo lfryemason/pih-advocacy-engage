@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { ChevronDown, ChevronRight, CircleCheckBig } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
-import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
+import { formatDate, formatTime } from "@/lib/meetings/format";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
-import { Pronouns } from "@/components/pronouns";
+import { RepresentativeLink } from "@/components/meetings/representative-link";
+import { StafferDisplay } from "@/components/meetings/staffer-display";
 
 export function MeetingRow({
   meeting,
@@ -68,30 +68,15 @@ export function MeetingRow({
         {showRepColumn && (
           <TableCell className="max-w-0">
             <div className="truncate">
-              <Link
-                href={`/representatives/${meeting.representative_bioguide_id}`}
-                className={LINK_CN}
+              <RepresentativeLink
+                meeting={meeting}
                 onClick={(e) => e.stopPropagation()}
-              >
-                {meeting.representative_district === null ? "Sen. " : "Rep. "}
-                {meeting.representative_name}
-              </Link>{" "}
-              <Pronouns pronouns={meeting.representative_pronouns} /> —{" "}
-              {meeting.representative_state} (
-              {meeting.representative_party[0] ?? "?"})
+              />
             </div>
           </TableCell>
         )}
         <TableCell className="max-w-0 truncate">
-          {meeting.congressional_contact_id === null ? (
-            <em>
-              {meeting.representative_district === null
-                ? "Senator"
-                : "Representative"}
-            </em>
-          ) : (
-            meeting.congressional_contact_name
-          )}
+          <StafferDisplay meeting={meeting} />
         </TableCell>
         <TableCell className="max-w-0 truncate">
           {meeting.scheduling_lead_name ?? "—"}
