@@ -293,4 +293,24 @@ describe("TeamForm — cancel button", () => {
     await userEvent.click(cancelBtn);
     expect(onCancel).toHaveBeenCalled();
   });
+
+  it("renders a Cancel link to cancelHref when provided", () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockCreateClient() as unknown as ReturnType<typeof createClient>,
+    );
+    render(<TeamForm orgId="pihe" cancelHref="/teams" />);
+    const cancelLink = screen.getByRole("link", { name: "Cancel" });
+    expect(cancelLink).toHaveAttribute("href", "/teams");
+  });
+
+  it("prefers onCancel over cancelHref when both are provided", () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockEditClient() as unknown as ReturnType<typeof createClient>,
+    );
+    render(<TeamForm orgId="pihe" onCancel={vi.fn()} cancelHref="/teams" />);
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Cancel" }),
+    ).not.toBeInTheDocument();
+  });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Tables } from "@/lib/supabase/database.types";
@@ -20,19 +21,23 @@ export function TeamForm({
   team,
   onDone,
   onCancel,
+  cancelHref,
   canDelete = false,
 }: {
   orgId: string;
   team?: Team;
   onDone?: () => void;
   onCancel?: () => void;
+  cancelHref?: string;
   canDelete?: boolean;
 }) {
   const router = useRouter();
   const isEdit = team !== undefined;
   // Editing always offers a way back to the team page; cancelling a create is
-  // opt-in via onCancel (e.g. when embedded in a dialog).
-  const showCancel = onCancel !== undefined || isEdit;
+  // opt-in via onCancel/cancelHref (e.g. when embedded in a dialog, or linked
+  // from a server-rendered page that can't pass a callback).
+  const showCancel =
+    onCancel !== undefined || cancelHref !== undefined || isEdit;
 
   const handleCancel = () => {
     if (onCancel) {
@@ -265,16 +270,21 @@ export function TeamForm({
             />
           )}
           <div className="ml-auto flex gap-2">
-            {showCancel && (
-              <Button
-                type="button"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isSaving}
-              >
-                Cancel
-              </Button>
-            )}
+            {showCancel &&
+              (cancelHref && !onCancel ? (
+                <Button asChild variant="outline">
+                  <Link href={cancelHref}>Cancel</Link>
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isSaving}
+                >
+                  Cancel
+                </Button>
+              ))}
             <Button type="submit" disabled={isSaving}>
               {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
             </Button>
