@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
 import { MeetingRow } from "@/components/meetings/meeting-row";
 import {
@@ -11,6 +12,14 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 
+export type MeetingsSectionVariant = "default" | "pink" | "teal";
+
+const HEADER_COLOR: Record<MeetingsSectionVariant, string> = {
+  default: "",
+  pink: "[&_tr]:bg-secondary-magenta [&_tr]:hover:bg-secondary-magenta [&_th]:text-secondary-magenta-foreground",
+  teal: "[&_tr]:bg-secondary-teal [&_tr]:hover:bg-secondary-teal [&_th]:text-secondary-teal-foreground",
+};
+
 export function MeetingsSection({
   title,
   meetings,
@@ -20,6 +29,7 @@ export function MeetingsSection({
   onRefresh = () => {},
   isPast = false,
   showRepColumn = true,
+  variant = "default",
 }: {
   title: string;
   meetings: MeetingRowType[];
@@ -29,13 +39,14 @@ export function MeetingsSection({
   onRefresh?: () => void;
   isPast?: boolean;
   showRepColumn?: boolean;
+  variant?: MeetingsSectionVariant;
 }) {
-  const headingId = title.toLowerCase().replace(/\s+/g, "-");
+  const headingId = useId();
   const hasMore = meetings.length < totalCount;
 
   return (
-    <section aria-labelledby={headingId}>
-      <h2 id={headingId} className="mb-3 text-2xl font-bold">
+    <div aria-labelledby={headingId}>
+      <h2 id={headingId} className={`mb-3 text-lg font-semibold`}>
         {title}
       </h2>
       {totalCount === 0 ? (
@@ -46,7 +57,7 @@ export function MeetingsSection({
         <>
           <Table>
             <caption className="sr-only">{title}</caption>
-            <TableHeader>
+            <TableHeader className={HEADER_COLOR[variant]}>
               <TableRow>
                 <TableHead className="w-10">
                   <span className="sr-only">Actions</span>
@@ -91,6 +102,6 @@ export function MeetingsSection({
           )}
         </>
       )}
-    </section>
+    </div>
   );
 }
