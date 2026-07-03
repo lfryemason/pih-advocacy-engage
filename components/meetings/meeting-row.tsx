@@ -54,8 +54,6 @@ export function MeetingRow({
         onClick={canViewDetails ? toggle : undefined}
       >
         <TableCell>
-          {/* Fixed-size wrapper so rows without an expand button (details
-              hidden) are the same height as rows with one. */}
           <div className="flex size-9 items-center justify-center">
             {canViewDetails && (
               <Button

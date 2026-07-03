@@ -314,10 +314,6 @@ export async function resetDatabase() {
     throw new Error(`Failed to seed meetings: ${meetingInsertError.message}`);
   }
 
-  // Mirror createMeeting()'s behavior of adding the creator as scheduling
-  // lead, so seeded meetings look like ones created through the app (the
-  // creator can view/edit their own upcoming meeting's details). No team
-  // snapshot is set, so the seed meetings start with no represented teams.
   const seedDelegationMembers = [
     {
       org_id: "pihe",

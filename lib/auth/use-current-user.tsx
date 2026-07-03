@@ -18,10 +18,6 @@ export type CurrentUser = {
 
 const CurrentUserContext = createContext<CurrentUser | null>(null);
 
-// Lets a server component (e.g. the app layout) resolve the current user once
-// and share it with every client component below, instead of each one doing
-// its own Supabase round trip. `userId`/`isAdmin` come from a server-side
-// lookup, so they're already known on first client render — no loading flash.
 export function CurrentUserProvider({
   userId,
   isAdmin,
@@ -40,12 +36,7 @@ export function CurrentUserProvider({
 }
 
 // Resolves the signed-in user and whether they're an admin so the UI can gate
-// privileged actions (e.g. deleting a meeting, viewing meeting details). When
-// rendered under CurrentUserProvider, this reads the shared value the layout
-// already resolved server-side. Otherwise (e.g. a component rendered outside
-// the app layout, or in tests without the provider) it falls back to its own
-// client-side lookup, starting from the null/false default until that
-// resolves.
+// privileged actions (e.g. deleting a meeting, viewing meeting details).
 export function useCurrentUser(): CurrentUser {
   const context = useContext(CurrentUserContext);
   const [fetched, setFetched] = useState<CurrentUser>({
