@@ -103,7 +103,7 @@ export function MeetingDetailView({
           <div>
             <p className={SECTION_LABEL_CLASSNAME}>Member of Congress</p>
             <p className="mt-1 text-sm">
-              <RepresentativeLink meeting={meeting} />
+              <RepresentativeLink meeting={meeting} linked />
             </p>
           </div>
           {(showChampion || showFollowUp) && (

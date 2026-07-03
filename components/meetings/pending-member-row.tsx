@@ -67,7 +67,8 @@ export function PendingMemberRow({
   const [searchActive, setSearchActive] = useState(false);
   const commandRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{
-    top: number;
+    top: number | null;
+    bottom: number | null;
     left: number;
     width: number;
   } | null>(null);
@@ -186,9 +187,25 @@ export function PendingMemberRow({
     if (!showDropdown) return;
     function updatePos() {
       if (commandRef.current) {
-        const { bottom, left, width } =
+        const { top, bottom, left, width } =
           commandRef.current.getBoundingClientRect();
-        setDropdownPos({ top: bottom + 4, left, width });
+        // The dropdown is portaled and position: fixed, so it can render
+        // below the visible viewport when the row sits low on a tall page.
+        // Since scrolling the page never moves a fixed element on screen,
+        // that would make it permanently unreachable — flip it above the
+        // input instead when there isn't room below (matches CommandList's
+        // max-h-64 = 256px cap).
+        const dropdownMaxHeight = 256;
+        const spaceBelow = window.innerHeight - bottom;
+        const spaceAbove = top;
+        const openAbove =
+          spaceBelow < dropdownMaxHeight && spaceAbove > spaceBelow;
+        setDropdownPos({
+          top: openAbove ? null : bottom + 4,
+          bottom: openAbove ? window.innerHeight - top + 4 : null,
+          left,
+          width,
+        });
       }
     }
     updatePos();
@@ -263,9 +280,11 @@ export function PendingMemberRow({
                     ? {
                         position: "fixed",
                         zIndex: 50,
-                        top: dropdownPos.top,
                         left: dropdownPos.left,
                         width: dropdownPos.width,
+                        ...(dropdownPos.top != null
+                          ? { top: dropdownPos.top }
+                          : { bottom: dropdownPos.bottom! }),
                       }
                     : { display: "none" }
                 }

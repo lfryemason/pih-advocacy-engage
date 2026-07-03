@@ -22,10 +22,14 @@ export function MeetingRow({
   onRefresh?: () => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const colSpan = (isPast ? 8 : 7) - (showRepColumn ? 0 : 1);
   const detailRowId = `meeting-detail-${meeting.id}`;
 
-  const toggle = () => setIsExpanded((v) => !v);
+  const toggle = () => {
+    if (isExpanded && isEditing) return;
+    setIsExpanded((v) => !v);
+  };
 
   return (
     <>
@@ -40,6 +44,7 @@ export function MeetingRow({
             aria-label={`Expand meeting with ${meeting.representative_name}`}
             aria-expanded={isExpanded}
             aria-controls={detailRowId}
+            disabled={isExpanded && isEditing}
             onClick={(e) => {
               e.stopPropagation();
               toggle();
@@ -68,10 +73,7 @@ export function MeetingRow({
         {showRepColumn && (
           <TableCell className="max-w-0">
             <div className="truncate">
-              <RepresentativeLink
-                meeting={meeting}
-                onClick={(e) => e.stopPropagation()}
-              />
+              <RepresentativeLink meeting={meeting} />
             </div>
           </TableCell>
         )}
@@ -99,7 +101,11 @@ export function MeetingRow({
       >
         {isExpanded && (
           <TableCell colSpan={colSpan} className="whitespace-normal p-0">
-            <MeetingDetail meeting={meeting} onSaved={onRefresh} />
+            <MeetingDetail
+              meeting={meeting}
+              onSaved={onRefresh}
+              onEditingChange={setIsEditing}
+            />
           </TableCell>
         )}
       </TableRow>
