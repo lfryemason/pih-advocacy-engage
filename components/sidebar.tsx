@@ -11,6 +11,7 @@ import {
   PanelLeftOpen,
   Landmark,
   ShieldUser,
+  TriangleAlert,
 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -94,35 +95,51 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
       }}
     >
       <nav aria-label="Main navigation">
-        <div
-          className="flex flex-row items-center justify-between gap-6 border-b border-border py-6"
-          style={{
-            paddingLeft: isCollapsed ? "8px" : "24px",
-            paddingRight: isCollapsed ? "8px" : "24px",
-          }}
-        >
-          {!isCollapsed && (
-            <Link href="/">
-              <Image
-                src={logo}
-                alt="PIH Advocacy Engage"
-                className="block h-auto max-h-[76px] w-auto"
-                priority
-              />
-            </Link>
-          )}
-          <button
-            onClick={() => setIsCollapsed((prev) => !prev)}
-            type="button"
-            className="h-fit rounded-md p-0 hover:bg-accent"
-            aria-label="Collapse sidebar"
+        <div className="gap-6 border-b border-border py-6">
+          <div
+            className="flex flex-row items-center justify-between gap-6"
+            style={{
+              paddingLeft: isCollapsed ? "8px" : "24px",
+              paddingRight: isCollapsed ? "8px" : "24px",
+            }}
           >
-            {isCollapsed ? (
-              <PanelLeftOpen size={32} strokeWidth={1} />
-            ) : (
-              <PanelLeftClose size={32} strokeWidth={1} />
+            {!isCollapsed && (
+              <Link href="/">
+                <Image
+                  src={logo}
+                  alt="PIH Advocacy Engage"
+                  className="block h-auto max-h-[76px] w-auto"
+                  priority
+                />
+              </Link>
             )}
-          </button>
+            <button
+              onClick={() => setIsCollapsed((prev) => !prev)}
+              type="button"
+              className="h-fit rounded-md p-0 hover:bg-accent"
+              aria-label="Collapse sidebar"
+            >
+              {isCollapsed ? (
+                <PanelLeftOpen size={32} strokeWidth={1} />
+              ) : (
+                <PanelLeftClose size={32} strokeWidth={1} />
+              )}
+            </button>
+          </div>
+          <div
+            className="mt-6 flex justify-center"
+            style={{
+              paddingLeft: isCollapsed ? "8px" : "24px",
+              paddingRight: isCollapsed ? "8px" : "24px",
+            }}
+          >
+            <span
+              className={`flex flex-row items-center justify-center gap-2 rounded bg-red-100 py-1 text-sm font-semibold text-red-950 dark:border-red-500 dark:bg-red-950 dark:text-red-100 ${isCollapsed ? "px-1.5" : "w-full text-center"}`}
+            >
+              <TriangleAlert size={16} />
+              Site in beta
+            </span>
+          </div>
         </div>
         <NavLink
           href="/meetings"
@@ -158,19 +175,6 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
         )}
       </nav>
       <div className="mt-auto flex flex-col">
-        <div
-          className="flex justify-center pb-2"
-          style={{
-            paddingLeft: isCollapsed ? "8px" : "24px",
-            paddingRight: isCollapsed ? "8px" : "24px",
-          }}
-        >
-          <span
-            className={`rounded border border-red-800 bg-red-100 py-0.5 text-sm font-semibold text-red-950 dark:border-red-500 dark:bg-red-950 dark:text-red-100 ${isCollapsed ? "px-1.5" : "w-full text-center"}`}
-          >
-            Beta
-          </span>
-        </div>
         <div
           className={`flex gap-2 pb-4 ${isCollapsed ? "flex-col items-center" : "flex-row items-center"}`}
           style={{
