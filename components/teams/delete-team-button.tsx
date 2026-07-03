@@ -98,9 +98,8 @@ export function DeleteTeamButton({
             Delete {teamName}?
           </DialogTitle>
           <DialogDescription>
-            This permanently deletes the team and removes all of its members.
-            Meetings linked to this team stay, but will no longer be associated
-            with it. This can&rsquo;t be undone.
+            This permanently deletes the team. Team-members are removed from the
+            team but accounts are not deleted.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-2">
