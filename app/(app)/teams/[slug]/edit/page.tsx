@@ -12,8 +12,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { TeamForm } from "@/components/teams/team-form";
-import { MemberEditTable } from "@/components/teams/member-edit-table";
+import { EditTeamForm } from "@/components/teams/edit-team-form";
 import type { MembershipWithProfile } from "@/components/teams/team-member-list";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
 
@@ -106,12 +105,11 @@ async function EditTeamContent({
         </BreadcrumbList>
       </Breadcrumb>
       <h1 className="mt-4 text-2xl font-bold">{team.name}</h1>
-      <div className="mt-6 flex flex-col gap-8">
-        <TeamForm orgId={ORG_ID} team={team} canDelete={canDeleteTeam} />
-        <MemberEditTable
+      <div className="mt-6">
+        <EditTeamForm
+          team={team}
+          canDelete={canDeleteTeam}
           memberships={memberships}
-          teamId={team.id}
-          teamSlug={team.slug}
           currentRole={currentRole}
         />
       </div>
