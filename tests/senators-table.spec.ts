@@ -35,7 +35,7 @@ test.describe("senators table (e2e)", () => {
     await expect(table.getByRole("link", { name: "John Green" })).toBeVisible();
 
     await page.getByRole("button", { name: "Filter by state" }).click();
-    await page.getByRole("menuitem", { name: "Montana" }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Montana" }).click();
     await page.keyboard.press("Escape");
 
     await expect(table.getByRole("link", { name: "Hank Green" })).toBeVisible();
