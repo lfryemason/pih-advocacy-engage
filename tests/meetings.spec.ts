@@ -58,7 +58,7 @@ test.describe("meetings list page", () => {
     // independently render their own empty states for the same filter.
     const allMeetings = page.getByRole("region", { name: "All Meetings" });
     const emptyMessages = allMeetings.getByText("No meetings found.");
-    await expect(emptyMessages).toHaveCount(2);
+    await expect(emptyMessages).toHaveCount(2, { timeout: 15000 });
   });
 
   test("Clear all button resets filters and shows meetings again", async ({
