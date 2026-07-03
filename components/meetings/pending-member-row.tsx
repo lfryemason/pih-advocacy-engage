@@ -67,9 +67,11 @@ export function PendingMemberRow({
   const [searchActive, setSearchActive] = useState(false);
   const commandRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{
-    top: number;
     left: number;
     width: number;
+    maxHeight: number;
+    top?: number;
+    bottom?: number;
   } | null>(null);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -186,9 +188,29 @@ export function PendingMemberRow({
     if (!showDropdown) return;
     function updatePos() {
       if (commandRef.current) {
-        const { bottom, left, width } =
+        const { top, bottom, left, width } =
           commandRef.current.getBoundingClientRect();
-        setDropdownPos({ top: bottom + 4, left, width });
+        const GAP = 4;
+        const MIN_HEIGHT = 120;
+        const spaceBelow = window.innerHeight - bottom - GAP;
+        const spaceAbove = top - GAP;
+        // Flip above the input when there isn't room below but there is above,
+        // so the dropdown doesn't render off the bottom of the viewport.
+        if (spaceBelow < MIN_HEIGHT && spaceAbove > spaceBelow) {
+          setDropdownPos({
+            bottom: window.innerHeight - top + GAP,
+            left,
+            width,
+            maxHeight: spaceAbove,
+          });
+        } else {
+          setDropdownPos({
+            top: bottom + GAP,
+            left,
+            width,
+            maxHeight: spaceBelow,
+          });
+        }
       }
     }
     updatePos();
@@ -264,13 +286,20 @@ export function PendingMemberRow({
                         position: "fixed",
                         zIndex: 50,
                         top: dropdownPos.top,
+                        bottom: dropdownPos.bottom,
                         left: dropdownPos.left,
                         width: dropdownPos.width,
                       }
                     : { display: "none" }
                 }
               >
-                <CommandList>
+                <CommandList
+                  style={
+                    dropdownPos
+                      ? { maxHeight: dropdownPos.maxHeight }
+                      : undefined
+                  }
+                >
                   {searchQuery.trim() ? (
                     <>
                       {isSearching && (

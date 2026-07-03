@@ -50,25 +50,29 @@ export function MeetingRow({
         onClick={canViewDetails ? toggle : undefined}
       >
         <TableCell>
-          {canViewDetails && (
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label={`Expand meeting with ${meeting.representative_name}`}
-              aria-expanded={isExpanded}
-              aria-controls={detailRowId}
-              onClick={(e) => {
-                e.stopPropagation();
-                toggle();
-              }}
-            >
-              {isExpanded ? (
-                <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
-              ) : (
-                <ChevronRight aria-hidden="true" className={`h-4 w-4`} />
-              )}
-            </Button>
-          )}
+          {/* Fixed-size wrapper so rows without an expand button (details
+              hidden) are the same height as rows with one. */}
+          <div className="flex size-9 items-center justify-center">
+            {canViewDetails && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Expand meeting with ${meeting.representative_name}`}
+                aria-expanded={isExpanded}
+                aria-controls={detailRowId}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle();
+                }}
+              >
+                {isExpanded ? (
+                  <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
+                ) : (
+                  <ChevronRight aria-hidden="true" className={`h-4 w-4`} />
+                )}
+              </Button>
+            )}
+          </div>
         </TableCell>
         <TableCell>{formatDate(meeting.meeting_date)}</TableCell>
         <TableCell>

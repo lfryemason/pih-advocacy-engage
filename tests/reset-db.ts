@@ -313,4 +313,36 @@ export async function resetDatabase() {
   if (meetingInsertError) {
     throw new Error(`Failed to seed meetings: ${meetingInsertError.message}`);
   }
+
+  // Mirror createMeeting()'s behavior of adding the creator as scheduling
+  // lead, so seeded meetings look like ones created through the app (the
+  // creator can view/edit their own upcoming meeting's details). No team
+  // snapshot is set, so the seed meetings start with no represented teams.
+  const seedDelegationMembers = [
+    {
+      org_id: "pihe",
+      meeting_id: SEED_MEETING_UPCOMING_ID,
+      user_id: TEST_USER_ID,
+      role: "scheduling_lead",
+      team_id: null,
+      team_name_snapshot: null,
+    },
+    {
+      org_id: "pihe",
+      meeting_id: SEED_MEETING_PAST_ID,
+      user_id: TEST_USER_ID,
+      role: "scheduling_lead",
+      team_id: null,
+      team_name_snapshot: null,
+    },
+  ];
+
+  const { error: delegationInsertError } = await supabase
+    .from("meeting_delegation_members")
+    .insert(seedDelegationMembers);
+  if (delegationInsertError) {
+    throw new Error(
+      `Failed to seed meeting delegation members: ${delegationInsertError.message}`,
+    );
+  }
 }
