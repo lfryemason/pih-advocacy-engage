@@ -44,14 +44,33 @@ export function MeetingRow({
     setIsExpanded((v) => !v);
   };
 
+  const expandAriaProps = {
+    "aria-expanded": isExpanded,
+    "aria-controls": detailRowId,
+  } as const;
+
+  const interactiveRowProps = canViewDetails
+    ? {
+        tabIndex: 0,
+        onClick: toggle,
+        onKeyDown: (e: React.KeyboardEvent<HTMLTableRowElement>) => {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          e.preventDefault();
+          toggle();
+        },
+        "aria-controls": detailRowId,
+      }
+    : {};
+
   return (
     <>
       <TableRow
         className={cn(
-          canViewDetails && "cursor-pointer hover:bg-accent",
+          canViewDetails &&
+            "cursor-pointer outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50",
           isExpanded && "bg-accent",
         )}
-        onClick={canViewDetails ? toggle : undefined}
+        {...interactiveRowProps}
       >
         <TableCell>
           <div className="flex size-9 items-center justify-center">
@@ -60,8 +79,7 @@ export function MeetingRow({
                 variant="ghost"
                 size="icon"
                 aria-label={`Expand meeting with ${meeting.representative_name}`}
-                aria-expanded={isExpanded}
-                aria-controls={detailRowId}
+                {...expandAriaProps}
                 disabled={isExpanded && isEditing}
                 onClick={(e) => {
                   e.stopPropagation();
