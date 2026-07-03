@@ -1,14 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight, CircleCheckBig } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  CircleCheckBig,
+  EyeOff,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
 import { formatDate, formatTime } from "@/lib/meetings/format";
+import { isDelegationMember } from "@/lib/meetings/permissions";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
 import { RepresentativeLink } from "@/components/meetings/representative-link";
 import { StafferDisplay } from "@/components/meetings/staffer-display";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { cn } from "@/lib/utils";
 
 export function MeetingRow({
   meeting,
@@ -23,6 +31,11 @@ export function MeetingRow({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const { userId, isAdmin } = useCurrentUser();
+  const canViewDetails =
+    isPast ||
+    isAdmin ||
+    isDelegationMember(userId, meeting.delegation_user_ids);
   const colSpan = (isPast ? 8 : 7) - (showRepColumn ? 0 : 1);
   const detailRowId = `meeting-detail-${meeting.id}`;
 
@@ -34,28 +47,35 @@ export function MeetingRow({
   return (
     <>
       <TableRow
-        className={`cursor-pointer hover:bg-accent ${isExpanded ? "bg-accent" : ""}`}
-        onClick={toggle}
+        className={cn(
+          canViewDetails && "cursor-pointer hover:bg-accent",
+          isExpanded && "bg-accent",
+        )}
+        onClick={canViewDetails ? toggle : undefined}
       >
         <TableCell>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={`Expand meeting with ${meeting.representative_name}`}
-            aria-expanded={isExpanded}
-            aria-controls={detailRowId}
-            disabled={isExpanded && isEditing}
-            onClick={(e) => {
-              e.stopPropagation();
-              toggle();
-            }}
-          >
-            {isExpanded ? (
-              <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
-            ) : (
-              <ChevronRight aria-hidden="true" className={`h-4 w-4`} />
+          <div className="flex size-9 items-center justify-center">
+            {canViewDetails && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Expand meeting with ${meeting.representative_name}`}
+                aria-expanded={isExpanded}
+                aria-controls={detailRowId}
+                disabled={isExpanded && isEditing}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle();
+                }}
+              >
+                {isExpanded ? (
+                  <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
+                ) : (
+                  <ChevronRight aria-hidden="true" className={`h-4 w-4`} />
+                )}
+              </Button>
             )}
-          </Button>
+          </div>
         </TableCell>
         <TableCell>{formatDate(meeting.meeting_date)}</TableCell>
         <TableCell>
@@ -68,7 +88,14 @@ export function MeetingRow({
             : "—"}
         </TableCell>
         <TableCell className="max-w-0 truncate">
-          {meeting.location ?? "—"}
+          {canViewDetails ? (
+            (meeting.location ?? "—")
+          ) : (
+            <EyeOff
+              aria-label="Location hidden"
+              className="h-4 w-4 text-muted-foreground"
+            />
+          )}
         </TableCell>
         {showRepColumn && (
           <TableCell className="max-w-0">

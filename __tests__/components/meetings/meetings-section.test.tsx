@@ -26,6 +26,7 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
     scheduling_lead_name: null,
     follow_up_date: null,
     champion_score: null,
+    delegation_user_ids: [],
     ...overrides,
   };
 }

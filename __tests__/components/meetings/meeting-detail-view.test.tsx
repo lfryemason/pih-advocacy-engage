@@ -25,6 +25,7 @@ function makeMeeting(overrides: Partial<MeetingDetail> = {}): MeetingDetail {
     scheduling_lead_name: null,
     follow_up_date: null,
     champion_score: null,
+    delegation_user_ids: [],
     notes: null,
     location: null,
     links: [],
