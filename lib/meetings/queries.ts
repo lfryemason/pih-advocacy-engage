@@ -605,44 +605,41 @@ export type PersonalFetchParams = {
   limit: number;
 };
 
-async function fetchMeetingsByDelegationColumn(
+async function fetchDelegationMeetingIds(
   supabase: SupabaseBrowserClient,
   column: "user_id" | "team_id",
   value: string,
-  params: PersonalFetchParams,
-): Promise<{ meetings: MeetingRow[]; count: number }> {
-  const { data: delegations, error } = await supabase
+): Promise<string[]> {
+  const { data, error } = await supabase
     .from("meeting_delegation_members")
     .select("meeting_id")
     .eq(column, value);
 
-  if (error || !delegations || delegations.length === 0) {
-    return { meetings: [], count: 0 };
-  }
+  if (error || !data) return [];
 
-  const meetingIds = (delegations as { meeting_id: string }[]).map(
+  return (data as { meeting_id: string }[]).map(
     (delegation) => delegation.meeting_id,
   );
-
-  return fetchMeetings(supabase, { ...params, meetingIds });
 }
 
-export async function fetchMyMeetings(
+// Resolves the set of meeting ids a user (or their team) is delegated to.
+// Callers should resolve this once per mount/scope change and reuse the
+// result across pagination requests rather than re-querying it on every
+// page fetch.
+export async function fetchMyDelegationMeetingIds(
   supabase: SupabaseBrowserClient,
-  params: PersonalFetchParams,
-): Promise<{ meetings: MeetingRow[]; count: number }> {
+): Promise<string[]> {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { meetings: [], count: 0 };
+  if (!user) return [];
 
-  return fetchMeetingsByDelegationColumn(supabase, "user_id", user.id, params);
+  return fetchDelegationMeetingIds(supabase, "user_id", user.id);
 }
 
-export async function fetchTeamDelegationMeetings(
+export async function fetchTeamDelegationMeetingIds(
   supabase: SupabaseBrowserClient,
-  params: PersonalFetchParams & { teamId: string },
-): Promise<{ meetings: MeetingRow[]; count: number }> {
-  const { teamId, ...rest } = params;
-  return fetchMeetingsByDelegationColumn(supabase, "team_id", teamId, rest);
+  teamId: string,
+): Promise<string[]> {
+  return fetchDelegationMeetingIds(supabase, "team_id", teamId);
 }

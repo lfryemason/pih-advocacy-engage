@@ -1,5 +1,6 @@
 "use client";
 
+import { useId } from "react";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
 import { MeetingRow } from "@/components/meetings/meeting-row";
 import {
@@ -40,7 +41,7 @@ export function MeetingsSection({
   showRepColumn?: boolean;
   variant?: MeetingsSectionVariant;
 }) {
-  const headingId = title.toLowerCase().replace(/\s+/g, "-");
+  const headingId = useId();
   const hasMore = meetings.length < totalCount;
 
   return (

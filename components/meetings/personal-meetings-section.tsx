@@ -8,8 +8,9 @@ import {
   type MeetingsSectionVariant,
 } from "@/components/meetings/meetings-section";
 import {
-  fetchMyMeetings,
-  fetchTeamDelegationMeetings,
+  fetchMeetings,
+  fetchMyDelegationMeetingIds,
+  fetchTeamDelegationMeetingIds,
   type PersonalFetchParams,
 } from "@/lib/meetings/queries";
 
@@ -47,23 +48,40 @@ export function PersonalMeetingsSection(props: Props) {
   const [loadingMorePast, setLoadingMorePast] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Resolved once per mode/teamId change and reused across every pagination
+  // request below, instead of re-querying delegation membership on each fetch.
+  const [meetingIds, setMeetingIds] = useState<string[] | null>(null);
+
   const fetchGenRef = useRef(0);
   const filtersRef = useRef(filters);
   useEffect(() => {
     filtersRef.current = filters;
   }, [filters]);
 
+  useEffect(() => {
+    let cancelled = false;
+    setMeetingIds(null);
+    const supabase = createClient();
+    const resolveIds =
+      mode === "user"
+        ? fetchMyDelegationMeetingIds(supabase)
+        : fetchTeamDelegationMeetingIds(supabase, teamId!);
+    resolveIds.then((ids) => {
+      if (!cancelled) setMeetingIds(ids);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [mode, teamId]);
+
   const fetchSection = useCallback(
     (supabase: SupabaseBrowserClient, params: PersonalFetchParams) => {
-      if (mode === "user") {
-        return fetchMyMeetings(supabase, params);
+      if (!meetingIds || meetingIds.length === 0) {
+        return Promise.resolve({ meetings: [], count: 0 });
       }
-      return fetchTeamDelegationMeetings(supabase, {
-        teamId: teamId!,
-        ...params,
-      });
+      return fetchMeetings(supabase, { ...params, meetingIds });
     },
-    [mode, teamId],
+    [meetingIds],
   );
 
   const loadInitial = useCallback(
@@ -105,9 +123,10 @@ export function PersonalMeetingsSection(props: Props) {
   const filtersKey = useMemo(() => JSON.stringify(filters), [filters]);
 
   useEffect(() => {
+    if (meetingIds === null) return;
     loadInitial(filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtersKey, loadInitial]);
+  }, [filtersKey, loadInitial, meetingIds]);
 
   const loadMore = async (section: "upcoming" | "past") => {
     const setLoadingMore =
