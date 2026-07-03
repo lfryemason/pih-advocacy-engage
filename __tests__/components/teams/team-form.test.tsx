@@ -255,14 +255,31 @@ describe("TeamForm — edit mode", () => {
 });
 
 describe("TeamForm — cancel button", () => {
-  it("is not rendered without an onCancel prop", () => {
+  // In create mode a Cancel button is opt-in via onCancel (there is no team to
+  // return to), so without the prop it should not render.
+  it("is not rendered in create mode without an onCancel prop", () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockEditClient() as unknown as ReturnType<typeof createClient>,
+    );
+    render(<TeamForm orgId="pihe" />);
+    expect(
+      screen.queryByRole("button", { name: "Cancel" }),
+    ).not.toBeInTheDocument();
+  });
+
+  // Edit mode always offers Cancel; without an onCancel override it returns to
+  // the team detail page. This is a new requirement for the edit team page.
+  it("renders Cancel in edit mode and returns to the team page on click", async () => {
     vi.mocked(createClient).mockReturnValue(
       mockEditClient() as unknown as ReturnType<typeof createClient>,
     );
     render(<TeamForm orgId="pihe" team={SEED_TEAM} />);
-    expect(
-      screen.queryByRole("button", { name: "Cancel" }),
-    ).not.toBeInTheDocument();
+    const cancelBtn = screen.getByRole("button", { name: "Cancel" });
+    expect(cancelBtn).toBeInTheDocument();
+    await userEvent.click(cancelBtn);
+    expect(mockRouterReplace).toHaveBeenCalledWith(
+      "/teams/seattle-high-school",
+    );
   });
 
   it("is rendered and calls onCancel when the prop is provided", async () => {
@@ -275,5 +292,25 @@ describe("TeamForm — cancel button", () => {
     expect(cancelBtn).toBeInTheDocument();
     await userEvent.click(cancelBtn);
     expect(onCancel).toHaveBeenCalled();
+  });
+
+  it("renders a Cancel link to cancelHref when provided", () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockCreateClient() as unknown as ReturnType<typeof createClient>,
+    );
+    render(<TeamForm orgId="pihe" cancelHref="/teams" />);
+    const cancelLink = screen.getByRole("link", { name: "Cancel" });
+    expect(cancelLink).toHaveAttribute("href", "/teams");
+  });
+
+  it("prefers onCancel over cancelHref when both are provided", () => {
+    vi.mocked(createClient).mockReturnValue(
+      mockEditClient() as unknown as ReturnType<typeof createClient>,
+    );
+    render(<TeamForm orgId="pihe" onCancel={vi.fn()} cancelHref="/teams" />);
+    expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Cancel" }),
+    ).not.toBeInTheDocument();
   });
 });

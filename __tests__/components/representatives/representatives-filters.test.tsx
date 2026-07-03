@@ -106,7 +106,7 @@ describe("RepresentativesFilters", () => {
 
     await user.click(screen.getByRole("button", { name: "Filter by state" }));
     await user.click(
-      await screen.findByRole("menuitem", { name: "Massachusetts" }),
+      await screen.findByRole("menuitemcheckbox", { name: "Massachusetts" }),
     );
 
     expect(onChange).toHaveBeenCalledWith({
@@ -127,7 +127,7 @@ describe("RepresentativesFilters", () => {
 
     await user.click(screen.getByRole("button", { name: "Filter by state" }));
     await user.click(
-      await screen.findByRole("menuitem", { name: "Massachusetts" }),
+      await screen.findByRole("menuitemcheckbox", { name: "Massachusetts" }),
     );
 
     expect(onChange).toHaveBeenCalledWith({ ...EMPTY_FILTERS, states: [] });
@@ -141,7 +141,9 @@ describe("RepresentativesFilters", () => {
     );
 
     await user.click(screen.getByRole("button", { name: "Filter by party" }));
-    await user.click(await screen.findByRole("menuitem", { name: "Democrat" }));
+    await user.click(
+      await screen.findByRole("menuitemcheckbox", { name: "Democrat" }),
+    );
 
     expect(onChange).toHaveBeenCalledWith({
       ...EMPTY_FILTERS,

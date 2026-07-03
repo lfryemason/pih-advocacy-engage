@@ -192,6 +192,12 @@ test.describe("create team page", () => {
     await page.getByRole("button", { name: "Create team" }).click();
     await expect(page).toHaveURL(/\/teams\/test-city-team$/);
   });
+
+  test("Cancel returns to the teams list", async ({ page }) => {
+    await page.goto("/teams/new");
+    await page.getByRole("link", { name: "Cancel" }).click();
+    await expect(page).toHaveURL(/\/teams$/);
+  });
 });
 
 test.describe("edit team page", () => {
