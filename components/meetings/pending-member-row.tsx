@@ -67,11 +67,10 @@ export function PendingMemberRow({
   const [searchActive, setSearchActive] = useState(false);
   const commandRef = useRef<HTMLDivElement>(null);
   const [dropdownPos, setDropdownPos] = useState<{
+    top: number | null;
+    bottom: number | null;
     left: number;
     width: number;
-    maxHeight: number;
-    top?: number;
-    bottom?: number;
   } | null>(null);
   const blurTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -190,27 +189,23 @@ export function PendingMemberRow({
       if (commandRef.current) {
         const { top, bottom, left, width } =
           commandRef.current.getBoundingClientRect();
-        const GAP = 4;
-        const MIN_HEIGHT = 120;
-        const spaceBelow = window.innerHeight - bottom - GAP;
-        const spaceAbove = top - GAP;
-        // Flip above the input when there isn't room below but there is above,
-        // so the dropdown doesn't render off the bottom of the viewport.
-        if (spaceBelow < MIN_HEIGHT && spaceAbove > spaceBelow) {
-          setDropdownPos({
-            bottom: window.innerHeight - top + GAP,
-            left,
-            width,
-            maxHeight: spaceAbove,
-          });
-        } else {
-          setDropdownPos({
-            top: bottom + GAP,
-            left,
-            width,
-            maxHeight: spaceBelow,
-          });
-        }
+        // The dropdown is portaled and position: fixed, so it can render
+        // below the visible viewport when the row sits low on a tall page.
+        // Since scrolling the page never moves a fixed element on screen,
+        // that would make it permanently unreachable — flip it above the
+        // input instead when there isn't room below (matches CommandList's
+        // max-h-64 = 256px cap).
+        const dropdownMaxHeight = 256;
+        const spaceBelow = window.innerHeight - bottom;
+        const spaceAbove = top;
+        const openAbove =
+          spaceBelow < dropdownMaxHeight && spaceAbove > spaceBelow;
+        setDropdownPos({
+          top: openAbove ? null : bottom + 4,
+          bottom: openAbove ? window.innerHeight - top + 4 : null,
+          left,
+          width,
+        });
       }
     }
     updatePos();
@@ -285,21 +280,16 @@ export function PendingMemberRow({
                     ? {
                         position: "fixed",
                         zIndex: 50,
-                        top: dropdownPos.top,
-                        bottom: dropdownPos.bottom,
                         left: dropdownPos.left,
                         width: dropdownPos.width,
+                        ...(dropdownPos.top != null
+                          ? { top: dropdownPos.top }
+                          : { bottom: dropdownPos.bottom! }),
                       }
                     : { display: "none" }
                 }
               >
-                <CommandList
-                  style={
-                    dropdownPos
-                      ? { maxHeight: dropdownPos.maxHeight }
-                      : undefined
-                  }
-                >
+                <CommandList>
                   {searchQuery.trim() ? (
                     <>
                       {isSearching && (

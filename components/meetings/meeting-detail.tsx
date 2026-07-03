@@ -54,9 +54,11 @@ function formStateFromDetail(d: MeetingDetailType): FormState {
 export function MeetingDetail({
   meeting,
   onSaved,
+  onEditingChange,
 }: {
   meeting: MeetingRow;
   onSaved: () => void;
+  onEditingChange?: (isEditing: boolean) => void;
 }) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [detail, setDetail] = useState<MeetingDetailType | null>(null);
@@ -82,7 +84,8 @@ export function MeetingDetail({
   const modeRef = useRef(mode);
   useEffect(() => {
     modeRef.current = mode;
-  }, [mode]);
+    onEditingChange?.(mode === "edit");
+  }, [mode, onEditingChange]);
 
   const loadDetails = useCallback(
     (opts?: { silent?: boolean }) => {
