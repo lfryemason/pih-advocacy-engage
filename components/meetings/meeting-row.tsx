@@ -58,7 +58,7 @@ export function MeetingRow({
           e.preventDefault();
           toggle();
         },
-        ...expandAriaProps,
+        "aria-controls": detailRowId,
       }
     : {};
 
