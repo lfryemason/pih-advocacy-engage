@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/client";
 import { fetchMeetings } from "@/lib/meetings/queries";
 import { MeetingRow, MeetingFilters } from "@/lib/meetings/types";
 import { MeetingsSection } from "@/components/meetings/meetings-section";
-import { MeetingsSkeleton } from "@/components/meetings/meetings-skeleton";
 import { MeetingsFilters } from "@/components/meetings/meetings-filters";
 import { AddMeetingDialog } from "@/components/meetings/create/add-meeting-dialog";
 
@@ -171,10 +170,13 @@ export function MeetingsPage() {
         <p role="alert" className="py-8 text-center text-destructive">
           {error}
         </p>
-      ) : applyingFilters ? (
-        <MeetingsSkeleton />
       ) : (
-        <div className="flex flex-col gap-10">
+        <div
+          className="flex flex-col gap-10"
+          {...(applyingFilters
+            ? { role: "status", "aria-label": "Updating meetings" }
+            : {})}
+        >
           <MeetingsSection
             title="Upcoming Meetings"
             meetings={upcoming.meetings}
@@ -182,6 +184,7 @@ export function MeetingsPage() {
             onShowMore={() => loadMore("upcoming")}
             disableLoadMore={loadingMore === "upcoming" || filtering}
             onRefresh={() => loadInitial(filtersRef.current)}
+            loading={applyingFilters}
           />
           <MeetingsSection
             title="Past Meetings"
@@ -191,6 +194,7 @@ export function MeetingsPage() {
             disableLoadMore={loadingMore === "past" || filtering}
             onRefresh={() => loadInitial(filtersRef.current)}
             isPast
+            loading={applyingFilters}
           />
           {loadMoreError && (
             <p role="alert" className="text-center text-sm text-destructive">
