@@ -1,6 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 import { createClient } from "@/lib/supabase/client";
 import { ORG_ID } from "@/lib/org";
 
@@ -9,17 +16,36 @@ export type CurrentUser = {
   isAdmin: boolean;
 };
 
+const CurrentUserContext = createContext<CurrentUser | null>(null);
+
+export function CurrentUserProvider({
+  userId,
+  isAdmin,
+  children,
+}: {
+  userId: string;
+  isAdmin: boolean;
+  children: ReactNode;
+}) {
+  const value = useMemo(() => ({ userId, isAdmin }), [userId, isAdmin]);
+  return (
+    <CurrentUserContext.Provider value={value}>
+      {children}
+    </CurrentUserContext.Provider>
+  );
+}
+
 // Resolves the signed-in user and whether they're an admin so the UI can gate
-// privileged actions (e.g. deleting a meeting). Middleware redirects anyone not
-// signed in to /auth/login, so a rendered page always has a user; the null
-// default just covers the first render before this lookup resolves.
+// privileged actions (e.g. deleting a meeting, viewing meeting details).
 export function useCurrentUser(): CurrentUser {
-  const [user, setUser] = useState<CurrentUser>({
+  const context = useContext(CurrentUserContext);
+  const [fetched, setFetched] = useState<CurrentUser>({
     userId: null,
     isAdmin: false,
   });
 
   useEffect(() => {
+    if (context !== null) return;
     let active = true;
 
     (async () => {
@@ -41,7 +67,7 @@ export function useCurrentUser(): CurrentUser {
           (data.role === "super_admin" ||
             (data.role === "org_admin" && data.org_id === ORG_ID));
 
-        if (active) setUser({ userId: user.id, isAdmin });
+        if (active) setFetched({ userId: user.id, isAdmin });
       } catch {
         // Leave the default so privileged actions stay hidden if the lookup fails.
       }
@@ -50,7 +76,7 @@ export function useCurrentUser(): CurrentUser {
     return () => {
       active = false;
     };
-  }, []);
+  }, [context]);
 
-  return user;
+  return context ?? fetched;
 }

@@ -41,6 +41,7 @@ type RawRow = {
   staffers: { first_name: string; last_name: string } | null;
   teams: { name: string; slug: string } | null;
   meeting_delegation_members: {
+    user_id: string;
     role: string;
     profiles: { first_name: string | null; last_name: string | null } | null;
   }[];
@@ -80,6 +81,7 @@ function mapRow(row: RawRow): MeetingRow {
       : null,
     follow_up_date: row.follow_up_date,
     champion_score: row.champion_score,
+    delegation_user_ids: row.meeting_delegation_members.map((m) => m.user_id),
   };
 }
 
@@ -97,7 +99,7 @@ const SELECT = `
   representatives!inner ( bioguide_id, official_full_name, pronouns, state, district, party ),
   staffers ( first_name, last_name ),
   teams ( name, slug ),
-  meeting_delegation_members ( role, profiles ( first_name, last_name ) )
+  meeting_delegation_members ( user_id, role, profiles ( first_name, last_name ) )
 `;
 
 export async function fetchMeetings(

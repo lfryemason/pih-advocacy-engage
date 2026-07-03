@@ -25,6 +25,7 @@ export type MeetingRow = {
   scheduling_lead_name: string | null;
   follow_up_date: string | null;
   champion_score: number | null;
+  delegation_user_ids: string[];
 };
 
 // ─── Detail-level types (used by meeting-detail, delegation-form) ─────────────
