@@ -41,6 +41,7 @@ type RawRow = {
   staffers: { first_name: string; last_name: string } | null;
   teams: { name: string; slug: string } | null;
   meeting_delegation_members: {
+    user_id: string;
     role: string;
     profiles: { first_name: string | null; last_name: string | null } | null;
   }[];
@@ -50,7 +51,7 @@ function mapRow(row: RawRow): MeetingRow {
   const rep = row.representatives;
   const staffer = row.staffers;
   const schedulingLead = row.meeting_delegation_members.find(
-    (m) => m.role === "scheduling_lead",
+    (member) => member.role === "scheduling_lead",
   );
 
   return {
@@ -80,6 +81,7 @@ function mapRow(row: RawRow): MeetingRow {
       : null,
     follow_up_date: row.follow_up_date,
     champion_score: row.champion_score,
+    delegation_user_ids: row.meeting_delegation_members.map((m) => m.user_id),
   };
 }
 
@@ -97,7 +99,7 @@ const SELECT = `
   representatives!inner ( bioguide_id, official_full_name, pronouns, state, district, party ),
   staffers ( first_name, last_name ),
   teams ( name, slug ),
-  meeting_delegation_members ( role, profiles ( first_name, last_name ) )
+  meeting_delegation_members ( user_id, role, profiles ( first_name, last_name ) )
 `;
 
 export async function fetchMeetings(
@@ -109,6 +111,7 @@ export async function fetchMeetings(
     offset,
     limit,
     teamId,
+    meetingIds,
   }: {
     filters: MeetingFilters;
     representativeId?: string;
@@ -116,6 +119,7 @@ export async function fetchMeetings(
     offset: number;
     limit: number;
     teamId?: string;
+    meetingIds?: string[];
   },
 ): Promise<{ meetings: MeetingRow[]; count: number }> {
   const today = localDateString();
@@ -123,7 +127,7 @@ export async function fetchMeetings(
   let query = supabase
     .from("meetings")
     .select(SELECT, { count: "exact" })
-    .order("meeting_date", { ascending: section === "upcoming" });
+    .order("meeting_date", { ascending: false });
 
   if (section === "upcoming") {
     query = query.gte("meeting_date", today);
@@ -139,15 +143,21 @@ export async function fetchMeetings(
     query = query.eq("primary_team_id", teamId);
   }
 
+  if (meetingIds && meetingIds.length > 0) {
+    query = query.in("id", meetingIds);
+  }
+
   if (filters.states.length > 0) {
     query = query.filter(
       "representatives.state",
       "in",
-      `(${filters.states.map((s) => `"${s}"`).join(",")})`,
+      `(${filters.states.map((stateCode) => `"${stateCode}"`).join(",")})`,
     );
   }
   if (filters.districts.length > 0) {
-    const numbers = filters.districts.filter((d) => d !== "at-large");
+    const numbers = filters.districts.filter(
+      (district) => district !== "at-large",
+    );
     const includesAtLarge = filters.districts.includes("at-large");
     if (numbers.length > 0 && includesAtLarge) {
       query = query.or(`district.in.(${numbers.join(",")}),district.is.null`, {
@@ -167,7 +177,7 @@ export async function fetchMeetings(
     query = query.filter(
       "representatives.party",
       "in",
-      `(${filters.parties.map((p) => `"${p}"`).join(",")})`,
+      `(${filters.parties.map((party) => `"${party}"`).join(",")})`,
     );
   }
   if (filters.representativeIds.length > 0) {
@@ -565,4 +575,71 @@ export async function syncDelegationMembers(
       ),
     ),
   ]);
+}
+
+export async function fetchMyTeams(
+  supabase: SupabaseBrowserClient,
+): Promise<{ team_id: string; team_name: string }[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data, error } = await supabase
+    .from("team_memberships")
+    .select("team_id, teams(name)")
+    .eq("user_id", user.id);
+
+  if (error || !data) return [];
+
+  type RawMembership = { team_id: string; teams: { name: string } | null };
+  return (data as unknown as RawMembership[])
+    .filter((m) => m.teams?.name)
+    .map((m) => ({ team_id: m.team_id, team_name: m.teams!.name }));
+}
+
+export type PersonalFetchParams = {
+  filters: MeetingFilters;
+  section: "upcoming" | "past";
+  offset: number;
+  limit: number;
+};
+
+async function fetchDelegationMeetingIds(
+  supabase: SupabaseBrowserClient,
+  column: "user_id" | "team_id",
+  value: string,
+): Promise<string[]> {
+  const { data, error } = await supabase
+    .from("meeting_delegation_members")
+    .select("meeting_id")
+    .eq(column, value);
+
+  if (error || !data) return [];
+
+  return (data as { meeting_id: string }[]).map(
+    (delegation) => delegation.meeting_id,
+  );
+}
+
+// Resolves the set of meeting ids a user (or their team) is delegated to.
+// Callers should resolve this once per mount/scope change and reuse the
+// result across pagination requests rather than re-querying it on every
+// page fetch.
+export async function fetchMyDelegationMeetingIds(
+  supabase: SupabaseBrowserClient,
+): Promise<string[]> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  return fetchDelegationMeetingIds(supabase, "user_id", user.id);
+}
+
+export async function fetchTeamDelegationMeetingIds(
+  supabase: SupabaseBrowserClient,
+  teamId: string,
+): Promise<string[]> {
+  return fetchDelegationMeetingIds(supabase, "team_id", teamId);
 }

@@ -152,7 +152,7 @@ function MeetingsTable({
                     <TableCell className="max-w-0">
                       <Link
                         href={`/representatives/${meeting.representative_bioguide_id}`}
-                        className="block truncate text-primary-dark underline-offset-4 hover:underline"
+                        className="block truncate text-foreground underline-offset-4 hover:underline"
                       >
                         {meeting.representative_district === null
                           ? "Sen. "

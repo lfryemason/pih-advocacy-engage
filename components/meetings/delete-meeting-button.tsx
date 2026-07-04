@@ -59,7 +59,7 @@ export function DeleteMeetingButton({
           type="button"
           variant="outline"
           disabled={disabled}
-          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive-dark dark:text-destructive-light dark:hover:text-destructive-light"
         >
           Delete
         </Button>

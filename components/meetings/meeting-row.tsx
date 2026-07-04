@@ -1,14 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { ChevronDown, ChevronRight, CircleCheckBig } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  CircleCheckBig,
+  EyeOff,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
-import { formatDate, formatTime, LINK_CN } from "@/lib/meetings/format";
+import { formatDate, formatTime } from "@/lib/meetings/format";
+import { isDelegationMember } from "@/lib/meetings/permissions";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
-import { Pronouns } from "@/components/pronouns";
+import { RepresentativeLink } from "@/components/meetings/representative-link";
+import { StafferDisplay } from "@/components/meetings/staffer-display";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { cn } from "@/lib/utils";
 
 export function MeetingRow({
   meeting,
@@ -22,35 +30,70 @@ export function MeetingRow({
   onRefresh?: () => void;
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const { userId, isAdmin } = useCurrentUser();
+  const canViewDetails =
+    isPast ||
+    isAdmin ||
+    isDelegationMember(userId, meeting.delegation_user_ids);
   const colSpan = (isPast ? 8 : 7) - (showRepColumn ? 0 : 1);
   const detailRowId = `meeting-detail-${meeting.id}`;
 
-  const toggle = () => setIsExpanded((v) => !v);
+  const toggle = () => {
+    if (isExpanded && isEditing) return;
+    setIsExpanded((v) => !v);
+  };
+
+  const expandAriaProps = {
+    "aria-expanded": isExpanded,
+    "aria-controls": detailRowId,
+  } as const;
+
+  const interactiveRowProps = canViewDetails
+    ? {
+        tabIndex: 0,
+        onClick: toggle,
+        onKeyDown: (e: React.KeyboardEvent<HTMLTableRowElement>) => {
+          if (e.key !== "Enter" && e.key !== " ") return;
+          e.preventDefault();
+          toggle();
+        },
+        "aria-controls": detailRowId,
+      }
+    : {};
 
   return (
     <>
       <TableRow
-        className={`cursor-pointer hover:bg-accent ${isExpanded ? "bg-accent" : ""}`}
-        onClick={toggle}
+        className={cn(
+          canViewDetails &&
+            "cursor-pointer outline-none hover:bg-accent focus-visible:ring-[3px] focus-visible:ring-ring/50",
+          isExpanded && "bg-accent",
+        )}
+        {...interactiveRowProps}
       >
         <TableCell>
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label={`Expand meeting with ${meeting.representative_name}`}
-            aria-expanded={isExpanded}
-            aria-controls={detailRowId}
-            onClick={(e) => {
-              e.stopPropagation();
-              toggle();
-            }}
-          >
-            {isExpanded ? (
-              <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
-            ) : (
-              <ChevronRight aria-hidden="true" className={`h-4 w-4`} />
+          <div className="flex size-9 items-center justify-center">
+            {canViewDetails && (
+              <Button
+                variant="ghost"
+                size="icon"
+                aria-label={`Expand meeting with ${meeting.representative_name}`}
+                {...expandAriaProps}
+                disabled={isExpanded && isEditing}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggle();
+                }}
+              >
+                {isExpanded ? (
+                  <ChevronDown aria-hidden="true" className={`h-4 w-4`} />
+                ) : (
+                  <ChevronRight aria-hidden="true" className={`h-4 w-4`} />
+                )}
+              </Button>
             )}
-          </Button>
+          </div>
         </TableCell>
         <TableCell>{formatDate(meeting.meeting_date)}</TableCell>
         <TableCell>
@@ -63,35 +106,24 @@ export function MeetingRow({
             : "—"}
         </TableCell>
         <TableCell className="max-w-0 truncate">
-          {meeting.location ?? "—"}
+          {canViewDetails ? (
+            (meeting.location ?? "—")
+          ) : (
+            <EyeOff
+              aria-label="Location hidden"
+              className="h-4 w-4 text-muted-foreground"
+            />
+          )}
         </TableCell>
         {showRepColumn && (
           <TableCell className="max-w-0">
             <div className="truncate">
-              <Link
-                href={`/representatives/${meeting.representative_bioguide_id}`}
-                className={LINK_CN}
-                onClick={(e) => e.stopPropagation()}
-              >
-                {meeting.representative_district === null ? "Sen. " : "Rep. "}
-                {meeting.representative_name}
-              </Link>{" "}
-              <Pronouns pronouns={meeting.representative_pronouns} /> —{" "}
-              {meeting.representative_state} (
-              {meeting.representative_party[0] ?? "?"})
+              <RepresentativeLink meeting={meeting} />
             </div>
           </TableCell>
         )}
         <TableCell className="max-w-0 truncate">
-          {meeting.congressional_contact_id === null ? (
-            <em>
-              {meeting.representative_district === null
-                ? "Senator"
-                : "Representative"}
-            </em>
-          ) : (
-            meeting.congressional_contact_name
-          )}
+          <StafferDisplay meeting={meeting} />
         </TableCell>
         <TableCell className="max-w-0 truncate">
           {meeting.scheduling_lead_name ?? "—"}
@@ -114,7 +146,11 @@ export function MeetingRow({
       >
         {isExpanded && (
           <TableCell colSpan={colSpan} className="whitespace-normal p-0">
-            <MeetingDetail meeting={meeting} onSaved={onRefresh} />
+            <MeetingDetail
+              meeting={meeting}
+              onSaved={onRefresh}
+              onEditingChange={setIsEditing}
+            />
           </TableCell>
         )}
       </TableRow>

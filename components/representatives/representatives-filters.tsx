@@ -1,14 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Check, ChevronDown, X } from "lucide-react";
+import { ChevronDown, X } from "lucide-react";
 import { debounce, xor } from "es-toolkit";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { US_STATES, StateCode } from "@/lib/us-districts";
@@ -89,24 +89,18 @@ export function RepresentativesFilters({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent className="max-h-64">
-          {US_STATES.map((state) => {
-            const checked = filters.states.includes(state.code);
-            return (
-              <DropdownMenuItem
-                key={state.code}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  set({ states: xor(filters.states, [state.code]) });
-                }}
-                className="pr-2"
-              >
-                <span className="mr-2 flex h-4 w-4 items-center justify-center">
-                  {checked && <Check className="h-4 w-4" />}
-                </span>
-                {state.name}
-              </DropdownMenuItem>
-            );
-          })}
+          {US_STATES.map((state) => (
+            <DropdownMenuCheckboxItem
+              key={state.code}
+              checked={filters.states.includes(state.code)}
+              onSelect={(e) => {
+                e.preventDefault();
+                set({ states: xor(filters.states, [state.code]) });
+              }}
+            >
+              {state.name}
+            </DropdownMenuCheckboxItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -123,24 +117,18 @@ export function RepresentativesFilters({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent>
-          {PARTIES.map((party) => {
-            const checked = filters.parties.includes(party);
-            return (
-              <DropdownMenuItem
-                key={party}
-                onSelect={(e) => {
-                  e.preventDefault();
-                  set({ parties: xor(filters.parties, [party]) });
-                }}
-                className="pr-2"
-              >
-                <span className="mr-2 flex h-4 w-4 items-center justify-center">
-                  {checked && <Check className="h-4 w-4" />}
-                </span>
-                {party}
-              </DropdownMenuItem>
-            );
-          })}
+          {PARTIES.map((party) => (
+            <DropdownMenuCheckboxItem
+              key={party}
+              checked={filters.parties.includes(party)}
+              onSelect={(e) => {
+                e.preventDefault();
+                set({ parties: xor(filters.parties, [party]) });
+              }}
+            >
+              {party}
+            </DropdownMenuCheckboxItem>
+          ))}
         </DropdownMenuContent>
       </DropdownMenu>
 

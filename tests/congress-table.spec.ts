@@ -76,7 +76,7 @@ test.describe("congress table (e2e)", () => {
     ).toBeVisible();
 
     await page.getByRole("button", { name: "Filter by party" }).click();
-    await page.getByRole("menuitem", { name: "Republican" }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Republican" }).click();
     await page.keyboard.press("Escape");
 
     await expect(
