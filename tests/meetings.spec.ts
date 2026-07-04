@@ -92,6 +92,7 @@ test.describe("meetings list page", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     // Wait for the initial list so we isolate the filter-triggered refetch.
     await expect(page.getByText("Adam Smith").first()).toBeVisible();
 
