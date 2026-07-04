@@ -54,6 +54,7 @@ export function MeetingsPage() {
   const [past, setPast] = useState<SectionState>({ meetings: [], count: 0 });
   const [initialLoading, setInitialLoading] = useState(true);
   const [filtering, setFiltering] = useState(false);
+  const [applyingFilters, setApplyingFilters] = useState(false);
   const [loadingMore, setLoadingMore] = useState<"upcoming" | "past" | null>(
     null,
   );
@@ -119,7 +120,8 @@ export function MeetingsPage() {
   useEffect(() => {
     const f = filtersFromParams(searchParams);
     setFilters(f);
-    loadInitial(f);
+    setApplyingFilters(true);
+    loadInitial(f).finally(() => setApplyingFilters(false));
   }, [searchParams, loadInitial]);
 
   const handleFiltersChange = (f: MeetingFilters) => {
@@ -209,7 +211,12 @@ export function MeetingsPage() {
               {error}
             </p>
           ) : (
-            <>
+            <div
+              className="flex flex-col gap-10"
+              {...(applyingFilters
+                ? { role: "status", "aria-label": "Updating meetings" }
+                : {})}
+            >
               <MeetingsSection
                 title="Upcoming Meetings"
                 meetings={upcoming.meetings}
@@ -217,6 +224,7 @@ export function MeetingsPage() {
                 onShowMore={() => loadMore("upcoming")}
                 disableLoadMore={loadingMore === "upcoming" || filtering}
                 onRefresh={() => loadInitial(filtersRef.current)}
+                loading={applyingFilters}
               />
               <MeetingsSection
                 title="Past Meetings"
@@ -226,6 +234,7 @@ export function MeetingsPage() {
                 disableLoadMore={loadingMore === "past" || filtering}
                 onRefresh={() => loadInitial(filtersRef.current)}
                 isPast
+                loading={applyingFilters}
               />
               {loadMoreError && (
                 <p
@@ -235,7 +244,7 @@ export function MeetingsPage() {
                   {loadMoreError}
                 </p>
               )}
-            </>
+            </div>
           )}
         </CollapsibleMeetingsGroup>
       </div>
