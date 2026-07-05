@@ -167,14 +167,6 @@ export function PersonalMeetingsSection(props: Props) {
     loadInitial(filtersRef.current);
   }, [loadInitial]);
 
-  if (loading) {
-    return (
-      <p role="status" className="py-8 text-center text-muted-foreground">
-        Loading…
-      </p>
-    );
-  }
-
   if (error) {
     return (
       <p role="alert" className="py-8 text-center text-destructive">
@@ -193,6 +185,7 @@ export function PersonalMeetingsSection(props: Props) {
         disableLoadMore={loadingMoreUpcoming}
         onRefresh={handleRefresh}
         variant={variant}
+        loading={loading}
       />
       <MeetingsSection
         title="Past Meetings"
@@ -203,6 +196,7 @@ export function PersonalMeetingsSection(props: Props) {
         onRefresh={handleRefresh}
         isPast
         variant={variant}
+        loading={loading}
       />
     </div>
   );
