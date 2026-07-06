@@ -9,6 +9,11 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
 import { formatDate, formatTime } from "@/lib/meetings/format";
 import { isDelegationMember } from "@/lib/meetings/permissions";
@@ -109,10 +114,19 @@ export function MeetingRow({
           {canViewDetails ? (
             (meeting.location ?? "—")
           ) : (
-            <EyeOff
-              aria-label="Location hidden"
-              className="h-4 w-4 text-muted-foreground"
-            />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <EyeOff
+                  aria-label="Location hidden"
+                  tabIndex={0}
+                  className="h-4 w-4 text-muted-foreground"
+                />
+              </TooltipTrigger>
+              <TooltipContent className="text-sm">
+                Location is only shown to delegation members. Contact the
+                scheduler/follow-up to be added to the meeting.
+              </TooltipContent>
+            </Tooltip>
           )}
         </TableCell>
         {showRepColumn && (

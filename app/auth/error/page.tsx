@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export const metadata: Metadata = { title: "Authentication Error" };
 import { Suspense } from "react";
+import { requireGuest } from "@/lib/auth/guards";
 
 // Map internal reason codes to user-facing copy. We intentionally don't render
 // raw backend error strings — the caller passes a known code, never a message.
@@ -26,11 +27,12 @@ async function ErrorContent({
   return <p className="text-sm text-muted-foreground">{message}</p>;
 }
 
-export default function Page({
+export default async function Page({
   searchParams,
 }: {
   searchParams: Promise<{ reason?: string }>;
 }) {
+  await requireGuest();
   return (
     <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
       <div className="w-full max-w-sm">
