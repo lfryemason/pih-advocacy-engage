@@ -89,6 +89,72 @@ export type Database = {
           },
         ];
       };
+      meeting_tag_assignments: {
+        Row: {
+          created_at: string;
+          meeting_id: string;
+          org_id: string;
+          tag_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          meeting_id: string;
+          org_id: string;
+          tag_id: string;
+        };
+        Update: {
+          created_at?: string;
+          meeting_id?: string;
+          org_id?: string;
+          tag_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "meeting_tag_assignments_meeting_id_fkey";
+            columns: ["meeting_id"];
+            isOneToOne: false;
+            referencedRelation: "meetings";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "meeting_tag_assignments_tag_id_fkey";
+            columns: ["tag_id"];
+            isOneToOne: false;
+            referencedRelation: "meeting_tags";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      meeting_tags: {
+        Row: {
+          color: string;
+          created_at: string;
+          display_name: string;
+          icon_name: string | null;
+          id: string;
+          org_id: string;
+          updated_at: string;
+        };
+        Insert: {
+          color: string;
+          created_at?: string;
+          display_name: string;
+          icon_name?: string | null;
+          id?: string;
+          org_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          color?: string;
+          created_at?: string;
+          display_name?: string;
+          icon_name?: string | null;
+          id?: string;
+          org_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       meetings: {
         Row: {
           champion_score: number | null;
