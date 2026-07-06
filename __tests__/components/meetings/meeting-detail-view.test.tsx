@@ -26,6 +26,7 @@ function makeMeeting(overrides: Partial<MeetingDetail> = {}): MeetingDetail {
     follow_up_date: null,
     follow_up_completed: false,
     champion_score: null,
+    delegation_user_ids: [],
     notes: null,
     location: null,
     links: [],
@@ -88,7 +89,7 @@ describe("MeetingDetailView — location", () => {
     expect(screen.getByText("Capitol Hill, Room 101")).toBeInTheDocument();
   });
 
-  it("omits location section when null", () => {
+  it("shows the Location header with an em dash when null", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ location: null })}
@@ -96,8 +97,9 @@ describe("MeetingDetailView — location", () => {
       />,
     );
     expect(
-      screen.queryByText(/Location/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+      screen.getByText(/Location/i, { selector: "p" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Location").nextSibling).toHaveTextContent("—");
   });
 });
 
@@ -123,16 +125,15 @@ describe("MeetingDetailView — notes with accent bar", () => {
     expect(notesEl.closest("div")).toHaveClass("border-l-4");
   });
 
-  it("omits notes section when null", () => {
+  it("shows the Notes header with an em dash when null", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ notes: null })}
         onEdit={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByText(/Notes/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Notes")).toBeInTheDocument();
+    expect(screen.getByText("Notes").nextSibling).toHaveTextContent("—");
   });
 });
 
@@ -157,16 +158,15 @@ describe("MeetingDetailView — links", () => {
     expect(briefingLink).toHaveAttribute("href", "https://example.com/brief");
   });
 
-  it("omits links section when empty", () => {
+  it("shows the Links header with an em dash when empty", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ links: [] })}
         onEdit={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByText(/Links/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Links")).toBeInTheDocument();
+    expect(screen.getByText("Links").nextSibling).toHaveTextContent("—");
   });
 });
 
@@ -238,6 +238,46 @@ describe("MeetingDetailView — delegation", () => {
     expect(screen.getByText(/alice@example\.com/)).toBeInTheDocument();
   });
 
+  it("shows all scheduling leads when more than one is assigned", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: "alice@example.com",
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+            {
+              id: "dm-2",
+              user_id: "u-2",
+              first_name: "Carol",
+              last_name: "Diaz",
+              display_name: "Carol Diaz",
+              email: "carol@example.com",
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Alice Smith")).toBeInTheDocument();
+    expect(screen.getByText("Carol Diaz")).toBeInTheDocument();
+    expect(screen.getByText(/alice@example\.com/)).toBeInTheDocument();
+    expect(screen.getByText(/carol@example\.com/)).toBeInTheDocument();
+  });
+
   it("does not show email for attendee roles", () => {
     render(
       <MeetingDetailView
@@ -263,14 +303,40 @@ describe("MeetingDetailView — delegation", () => {
     expect(screen.queryByText(/bob@example\.com/)).not.toBeInTheDocument();
   });
 
-  it("shows None when delegation is empty", () => {
+  it("shows the Delegation header with an em dash when empty", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ delegation_members: [] })}
         onEdit={vi.fn()}
       />,
     );
-    expect(screen.getByText("None")).toBeInTheDocument();
+    expect(screen.getByText("Delegation")).toBeInTheDocument();
+    expect(screen.getByText("Delegation").nextSibling).toHaveTextContent("—");
+  });
+
+  it("shows the Delegation header with an em dash when the only member is the scheduling lead", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: null,
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Delegation").nextSibling).toHaveTextContent("—");
   });
 });
 
@@ -352,7 +418,7 @@ describe("MeetingDetailView — represented teams", () => {
     expect(screen.getAllByText("Global Health")).toHaveLength(1);
   });
 
-  it("omits the section when no members have a team snapshot", () => {
+  it("shows the header with an em dash when no members have a team snapshot", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({
@@ -374,21 +440,23 @@ describe("MeetingDetailView — represented teams", () => {
         onEdit={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByText(/Represented teams/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Represented teams")).toBeInTheDocument();
+    expect(screen.getByText("Represented teams").nextSibling).toHaveTextContent(
+      "—",
+    );
   });
 
-  it("omits the section when delegation is empty", () => {
+  it("shows the header with an em dash when delegation is empty", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({ delegation_members: [] })}
         onEdit={vi.fn()}
       />,
     );
-    expect(
-      screen.queryByText(/Represented teams/i, { selector: "p" }),
-    ).not.toBeInTheDocument();
+    expect(screen.getByText("Represented teams")).toBeInTheDocument();
+    expect(screen.getByText("Represented teams").nextSibling).toHaveTextContent(
+      "—",
+    );
   });
 });
 

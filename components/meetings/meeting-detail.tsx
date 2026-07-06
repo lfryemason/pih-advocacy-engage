@@ -56,9 +56,11 @@ function formStateFromDetail(d: MeetingDetailType): FormState {
 export function MeetingDetail({
   meeting,
   onSaved,
+  onEditingChange,
 }: {
   meeting: MeetingRow;
   onSaved: () => void;
+  onEditingChange?: (isEditing: boolean) => void;
 }) {
   const [mode, setMode] = useState<"view" | "edit">("view");
   const [detail, setDetail] = useState<MeetingDetailType | null>(null);
@@ -84,6 +86,17 @@ export function MeetingDetail({
   const modeRef = useRef(mode);
   useEffect(() => {
     modeRef.current = mode;
+    onEditingChange?.(mode === "edit");
+  }, [mode, onEditingChange]);
+
+  const panelRef = useRef<HTMLDivElement>(null);
+  const isFirstModeRenderRef = useRef(true);
+  useEffect(() => {
+    if (isFirstModeRenderRef.current) {
+      isFirstModeRenderRef.current = false;
+      return;
+    }
+    panelRef.current?.focus();
   }, [mode]);
 
   const loadDetails = useCallback(
@@ -236,24 +249,32 @@ export function MeetingDetail({
   // Guard: detail must be loaded before showing either panel
   if (!detail) return null;
 
-  if (mode === "view") {
-    return <MeetingDetailView meeting={detail} onEdit={handleEnterEdit} />;
-  }
-
   return (
-    <MeetingDetailEdit
-      meetingId={meeting.id}
-      form={form}
-      onFormChange={updateForm}
-      links={links}
-      onLinksChange={setLinks}
-      onSubmit={handleSubmit}
-      onCancel={handleCancel}
-      onDeleted={onSaved}
-      saveError={saveError}
-      isSaving={isSaving}
-      delegationInitialMembers={detail.delegation_members}
-      onDelegationChange={setPendingDelegation}
-    />
+    <div
+      ref={panelRef}
+      tabIndex={-1}
+      role="group"
+      className="outline-none"
+      aria-label={mode === "view" ? "Meeting details" : "Edit meeting"}
+    >
+      {mode === "view" ? (
+        <MeetingDetailView meeting={detail} onEdit={handleEnterEdit} />
+      ) : (
+        <MeetingDetailEdit
+          meetingId={meeting.id}
+          form={form}
+          onFormChange={updateForm}
+          links={links}
+          onLinksChange={setLinks}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
+          onDeleted={onSaved}
+          saveError={saveError}
+          isSaving={isSaving}
+          delegationInitialMembers={detail.delegation_members}
+          onDelegationChange={setPendingDelegation}
+        />
+      )}
+    </div>
   );
 }

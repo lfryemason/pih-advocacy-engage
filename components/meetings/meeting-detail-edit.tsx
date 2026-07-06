@@ -10,6 +10,7 @@ import {
   LocalDelegationMember,
 } from "@/lib/meetings/types";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { isDelegationMember } from "@/lib/meetings/permissions";
 import { useStaffers } from "@/lib/meetings/use-staffers";
 import { DelegationForm } from "@/components/meetings/delegation-form";
 import { Button } from "@/components/ui/button";
@@ -55,14 +56,7 @@ type Props = {
 
 type ColumnProps = Props & { staffers: StafferOption[]; canDelete: boolean };
 
-function LeftColumn({
-  meetingId,
-  form,
-  onFormChange,
-  links,
-  staffers,
-  onLinksChange,
-}: ColumnProps) {
+function LeftColumn({ meetingId, form, onFormChange, staffers }: ColumnProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -104,17 +98,6 @@ function LeftColumn({
             </option>
           ))}
         </Select>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <p className={SECTION_LABEL_CLASSNAME}>
-          <Label htmlFor={`edit-team-${meetingId}`}>Primary PIH Team</Label>
-        </p>
-        <TeamCombobox
-          id={`edit-team-${meetingId}`}
-          value={form.primaryTeamId}
-          onChange={(id) => onFormChange({ primaryTeamId: id })}
-        />
       </div>
 
       <div className="flex gap-4">
@@ -182,8 +165,6 @@ function LeftColumn({
           aria-label="Notes"
         />
       </div>
-
-      <EditMeetingLinks links={links} onChange={onLinksChange} />
     </div>
   );
 }
@@ -193,6 +174,8 @@ function RightColumn({
   canDelete,
   form,
   onFormChange,
+  links,
+  onLinksChange,
   onCancel,
   onDeleted,
   saveError,
@@ -256,10 +239,23 @@ function RightColumn({
         />
       </div>
 
+      <div className="flex flex-col gap-2">
+        <p className={SECTION_LABEL_CLASSNAME}>
+          <Label htmlFor={`edit-team-${meetingId}`}>Primary PIH Team</Label>
+        </p>
+        <TeamCombobox
+          id={`edit-team-${meetingId}`}
+          value={form.primaryTeamId}
+          onChange={(id) => onFormChange({ primaryTeamId: id })}
+        />
+      </div>
+
       <DelegationForm
         initialMembers={delegationInitialMembers}
         onChange={onDelegationChange}
       />
+
+      <EditMeetingLinks links={links} onChange={onLinksChange} />
 
       <div className="mt-auto pt-2">
         {saveError && (
@@ -310,13 +306,10 @@ export function MeetingDetailEdit(props: Props) {
   // Admins/super admins, or any current scheduling lead of this meeting, may
   // delete it — mirroring the RLS delete policy. The lead is whoever currently
   // holds that delegation role, so reassigning it hands off delete rights.
-  const canDelete =
-    isAdmin ||
-    (userId !== null &&
-      delegationInitialMembers.some(
-        (member) =>
-          member.role === "scheduling_lead" && member.user_id === userId,
-      ));
+  const schedulingLeadIds = delegationInitialMembers
+    .filter((member) => member.role === "scheduling_lead")
+    .map((member) => member.user_id);
+  const canDelete = isAdmin || isDelegationMember(userId, schedulingLeadIds);
 
   const columnProps: ColumnProps = { ...props, staffers, canDelete };
 

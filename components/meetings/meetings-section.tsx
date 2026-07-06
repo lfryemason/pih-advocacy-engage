@@ -1,44 +1,100 @@
 "use client";
 
+import { useId } from "react";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
 import { MeetingRow } from "@/components/meetings/meeting-row";
 import {
   Table,
   TableBody,
+  TableCell,
   TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const SKELETON_ROWS = 5;
+
+export type MeetingsSectionVariant = "default" | "pink" | "teal";
+
+const HEADER_COLOR: Record<MeetingsSectionVariant, string> = {
+  default: "",
+  pink: "[&_tr]:bg-secondary-magenta [&_tr]:hover:bg-secondary-magenta [&_th]:text-secondary-magenta-foreground",
+  teal: "[&_tr]:bg-secondary-teal [&_tr]:hover:bg-secondary-teal [&_th]:text-secondary-teal-foreground",
+};
 
 export function MeetingsSection({
   title,
-  meetings,
-  totalCount,
-  onShowMore,
-  disableLoadMore,
+  meetings = [],
+  totalCount = 0,
+  onShowMore = () => {},
+  disableLoadMore = false,
   onRefresh = () => {},
   isPast = false,
   showRepColumn = true,
+  loading = false,
+  variant = "default",
 }: {
   title: string;
-  meetings: MeetingRowType[];
-  totalCount: number;
-  onShowMore: () => void;
-  disableLoadMore: boolean;
+  meetings?: MeetingRowType[];
+  totalCount?: number;
+  onShowMore?: () => void;
+  disableLoadMore?: boolean;
   onRefresh?: () => void;
   isPast?: boolean;
   showRepColumn?: boolean;
+  loading?: boolean;
+  variant?: MeetingsSectionVariant;
 }) {
-  const headingId = title.toLowerCase().replace(/\s+/g, "-");
+  const headingId = useId();
   const hasMore = meetings.length < totalCount;
+  const columnCount = 6 + (showRepColumn ? 1 : 0);
+
+  const header = (
+    <TableHeader className={HEADER_COLOR[variant]}>
+      <TableRow>
+        <TableHead className="w-10">
+          <span className="sr-only">Actions</span>
+        </TableHead>
+        <TableHead className="w-28">Date</TableHead>
+        <TableHead className="w-24">Time</TableHead>
+        <TableHead className="w-52">Location</TableHead>
+        {showRepColumn && (
+          <TableHead className="w-56">Member of Congress</TableHead>
+        )}
+        <TableHead className="w-36">Staff Contact</TableHead>
+        {isPast ? (
+          <TableHead className="text-center">Follow-up</TableHead>
+        ) : (
+          <TableHead className="w-36">Scheduler</TableHead>
+        )}
+      </TableRow>
+    </TableHeader>
+  );
 
   return (
-    <section aria-labelledby={headingId}>
-      <h2 id={headingId} className="mb-3 text-2xl font-bold">
+    <div aria-labelledby={headingId}>
+      <h2 id={headingId} className={`mb-3 text-lg font-semibold`}>
         {title}
       </h2>
-      {totalCount === 0 ? (
+      {loading ? (
+        <Table>
+          <caption className="sr-only">{title}</caption>
+          {header}
+          <TableBody>
+            {Array.from({ length: SKELETON_ROWS }).map((_, row) => (
+              <TableRow key={row}>
+                {Array.from({ length: columnCount }).map((_, col) => (
+                  <TableCell key={col}>
+                    <Skeleton className="h-5 w-full" />
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      ) : totalCount === 0 ? (
         <p className="py-8 text-center text-muted-foreground">
           No meetings found.
         </p>
@@ -46,25 +102,7 @@ export function MeetingsSection({
         <>
           <Table>
             <caption className="sr-only">{title}</caption>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10">
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-                <TableHead className="w-28">Date</TableHead>
-                <TableHead className="w-24">Time</TableHead>
-                <TableHead className="w-52">Location</TableHead>
-                {showRepColumn && (
-                  <TableHead className="w-56">Member of Congress</TableHead>
-                )}
-                <TableHead className="w-36">Staff Contact</TableHead>
-                {isPast ? (
-                  <TableHead className="text-center">Follow-up</TableHead>
-                ) : (
-                  <TableHead className="w-36">Scheduler</TableHead>
-                )}
-              </TableRow>
-            </TableHeader>
+            {header}
             <TableBody>
               {meetings.map((meeting) => (
                 <MeetingRow
@@ -92,6 +130,6 @@ export function MeetingsSection({
           )}
         </>
       )}
-    </section>
+    </div>
   );
 }

@@ -2,6 +2,17 @@ import { test, expect, type Page } from "@playwright/test";
 import { AUTH_STATE_PATH } from "./global-setup";
 import { resetDatabase } from "./reset-db";
 
+async function expandAllMeetings(page: Page) {
+  await page.getByRole("button", { name: "All Meetings" }).click();
+}
+
+// The seed test user is a delegate on every seeded meeting, so seeded rows
+// legitimately appear under both "My Meetings" and "All Meetings" once the
+// latter is expanded. Scope to "All Meetings" to keep locators unambiguous.
+function allMeetingsRegion(page: Page) {
+  return page.getByRole("region", { name: "All Meetings" });
+}
+
 test.use({ storageState: AUTH_STATE_PATH });
 test.beforeEach(resetDatabase);
 
@@ -20,21 +31,26 @@ test.describe("meetings list page", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     await expect(
-      page.getByLabel("Upcoming Meetings").getByText("Adam Smith"),
+      allMeetingsRegion(page)
+        .getByLabel("Upcoming Meetings")
+        .getByText("Adam Smith"),
     ).toBeVisible();
   });
 
   test("shows seed past meeting in the Past section", async ({ page }) => {
     await page.goto("/meetings");
-    // Both sections contain Adam Smith; verify at least one row is in the past table
-    await expect(page.getByText("Jan 15, 2020")).toBeVisible();
+    await expandAllMeetings(page);
+    // Multiple sections contain Adam Smith; verify at least one row is in the past table
+    await expect(page.getByText("Jan 15, 2020").first()).toBeVisible();
   });
 
   test("filter by state WA shows meetings for WA representative", async ({
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
     await expect(page.getByText("Adam Smith").first()).toBeVisible();
@@ -44,16 +60,24 @@ test.describe("meetings list page", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
-    const emptyMessages = page.getByText("No meetings found.");
-    await expect(emptyMessages).toHaveCount(2);
+    // The dropdown stays open after checking an item; close it so the rest
+    // of the page (hidden via aria-hidden while it's open) is queryable again.
+    await page.keyboard.press("Escape");
+    // Scope to the "All Meetings" region — "My Meetings" and "Team Meetings"
+    // independently render their own empty states for the same filter.
+    const emptyMessages =
+      allMeetingsRegion(page).getByText("No meetings found.");
+    await expect(emptyMessages).toHaveCount(2, { timeout: 15000 });
   });
 
   test("Clear all button resets filters and shows meetings again", async ({
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
     await page.keyboard.press("Escape");
@@ -64,9 +88,37 @@ test.describe("meetings list page", () => {
     );
   });
 
+  test("shows a loading skeleton while a filter is being applied", async ({
+    page,
+  }) => {
+    await page.goto("/meetings");
+    await expandAllMeetings(page);
+    // Wait for the initial list so we isolate the filter-triggered refetch.
+    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+
+    // Delay the refetch so the transient skeleton is observable.
+    await page.route(/\/rest\/v1\/meetings/, async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await route.continue();
+    });
+
+    await page.getByRole("button", { name: "Filter by state" }).click();
+    await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
+    // Close the (modal) dropdown so the page behind it is no longer aria-hidden.
+    await page.keyboard.press("Escape");
+
+    const status = page.getByRole("status", { name: "Updating meetings" });
+    await expect(status).toBeVisible();
+
+    // Once the refetch resolves, the skeleton gives way to the results.
+    await expect(status).toBeHidden();
+    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+  });
+
   test("expand button toggles chevron aria-expanded", async ({ page }) => {
     await page.goto("/meetings");
-    const expandBtn = page
+    await expandAllMeetings(page);
+    const expandBtn = allMeetingsRegion(page)
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await expect(expandBtn).toHaveAttribute("aria-expanded", "false");
@@ -87,6 +139,7 @@ test.describe("create meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     // Open dialog
     await page.getByRole("button", { name: /Add Meeting/i }).click();
@@ -114,7 +167,9 @@ test.describe("create meeting", () => {
     // Dialog should close and list should refresh
     await expect(page.getByRole("dialog")).not.toBeVisible();
     await expect(
-      page.getByLabel("Upcoming Meetings").getByText("Dec 25, 2099"),
+      allMeetingsRegion(page)
+        .getByLabel("Upcoming Meetings")
+        .getByText("Dec 25, 2099"),
     ).toBeVisible();
   });
 
@@ -158,6 +213,7 @@ test.describe("create meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     await page.getByRole("button", { name: /Add Meeting/i }).click();
     await page.getByLabel(/^Date$/).fill("2099-11-01");
@@ -179,7 +235,9 @@ test.describe("create meeting", () => {
 
     await expect(page.getByRole("dialog")).not.toBeVisible();
     await expect(
-      page.getByLabel("Upcoming Meetings").getByText("Nov 1, 2099"),
+      allMeetingsRegion(page)
+        .getByLabel("Upcoming Meetings")
+        .getByText("Nov 1, 2099"),
     ).toBeVisible();
   });
 });
@@ -189,8 +247,9 @@ test.describe("edit meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
-    const expandBtn = page
+    const expandBtn = allMeetingsRegion(page)
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await expandBtn.click();
@@ -206,8 +265,9 @@ test.describe("edit meeting", () => {
 
   test("clicking Edit Meeting shows the edit form", async ({ page }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
-    const expandBtn = page
+    const expandBtn = allMeetingsRegion(page)
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await expandBtn.click();
@@ -223,8 +283,9 @@ test.describe("edit meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
-    const expandBtn = page
+    const expandBtn = allMeetingsRegion(page)
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await expandBtn.click();
@@ -255,9 +316,10 @@ test.describe("edit meeting", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     // Expand a past meeting row and enter edit mode
-    const pastSection = page.getByLabel("Past Meetings");
+    const pastSection = allMeetingsRegion(page).getByLabel("Past Meetings");
     const pastExpandBtn = pastSection
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
@@ -285,15 +347,19 @@ test.describe("edit meeting", () => {
 
     // Meeting should now appear in Upcoming
     await expect(
-      page.getByLabel("Upcoming Meetings").getByText("Jul 4, 2099"),
+      allMeetingsRegion(page)
+        .getByLabel("Upcoming Meetings")
+        .getByText("Jul 4, 2099"),
     ).toBeVisible();
   });
 
   test("edit date to past moves meeting to Past section", async ({ page }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     // Expand an upcoming meeting row and enter edit mode
-    const upcomingSection = page.getByLabel("Upcoming Meetings");
+    const upcomingSection =
+      allMeetingsRegion(page).getByLabel("Upcoming Meetings");
     const upcomingExpandBtn = upcomingSection
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
@@ -316,12 +382,15 @@ test.describe("edit meeting", () => {
     ).not.toBeVisible();
 
     await expect(
-      page.getByLabel("Past Meetings").getByText("Jan 15, 2020"),
+      allMeetingsRegion(page)
+        .getByLabel("Past Meetings")
+        .getByText("Jan 15, 2020"),
     ).toBeVisible();
   });
 
   test("delete removes the meeting from the list", async ({ page }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
     // Create a meeting with a distinctive date so the assertions can't collide
     // with seed data, then delete it. The creator is seeded as the meeting's
@@ -340,7 +409,7 @@ test.describe("edit meeting", () => {
     await page.getByRole("button", { name: "Add meeting" }).click();
     await expect(page.getByRole("dialog")).not.toBeVisible();
 
-    const upcoming = page.getByLabel("Upcoming Meetings");
+    const upcoming = allMeetingsRegion(page).getByLabel("Upcoming Meetings");
     await expect(upcoming.getByText("Aug 15, 2099")).toBeVisible();
 
     // Expand the row, enter edit mode, and delete it.
@@ -375,8 +444,9 @@ test.describe("US4 — Delegation members", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
-    const expandBtn = page
+    const expandBtn = allMeetingsRegion(page)
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await expandBtn.click();
@@ -405,8 +475,9 @@ test.describe("US4 — Delegation members", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
-    const expandBtn = page
+    const expandBtn = allMeetingsRegion(page)
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await expandBtn.click();
@@ -441,8 +512,9 @@ test.describe("US4 — Delegation members", () => {
     page,
   }) => {
     await page.goto("/meetings");
+    await expandAllMeetings(page);
 
-    const expandBtn = page
+    const expandBtn = allMeetingsRegion(page)
       .getByRole("button", { name: /Expand meeting with/ })
       .first();
     await expandBtn.click();

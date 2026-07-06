@@ -313,4 +313,32 @@ export async function resetDatabase() {
   if (meetingInsertError) {
     throw new Error(`Failed to seed meetings: ${meetingInsertError.message}`);
   }
+
+  const seedDelegationMembers = [
+    {
+      org_id: "pihe",
+      meeting_id: SEED_MEETING_UPCOMING_ID,
+      user_id: TEST_USER_ID,
+      role: "scheduling_lead",
+      team_id: null,
+      team_name_snapshot: null,
+    },
+    {
+      org_id: "pihe",
+      meeting_id: SEED_MEETING_PAST_ID,
+      user_id: TEST_USER_ID,
+      role: "scheduling_lead",
+      team_id: null,
+      team_name_snapshot: null,
+    },
+  ];
+
+  const { error: delegationInsertError } = await supabase
+    .from("meeting_delegation_members")
+    .insert(seedDelegationMembers);
+  if (delegationInsertError) {
+    throw new Error(
+      `Failed to seed meeting delegation members: ${delegationInsertError.message}`,
+    );
+  }
 }
