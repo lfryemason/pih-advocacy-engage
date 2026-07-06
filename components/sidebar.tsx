@@ -126,20 +126,14 @@ export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
               )}
             </button>
           </div>
-          <div
-            className="mt-6 flex justify-center"
-            style={{
-              paddingLeft: isCollapsed ? "8px" : "24px",
-              paddingRight: isCollapsed ? "8px" : "24px",
-            }}
-          >
-            <span
-              className={`flex flex-row items-center justify-center gap-2 rounded bg-red-100 py-1 text-sm font-semibold text-red-950 dark:border-red-500 dark:bg-red-950 dark:text-red-100 ${isCollapsed ? "px-1.5" : "w-full text-center"}`}
-            >
-              <TriangleAlert size={16} />
-              Site in beta
-            </span>
-          </div>
+          {!isCollapsed && (
+            <div className="mt-6 flex justify-center px-6">
+              <span className="flex w-full flex-row items-center justify-center gap-2 rounded bg-red-100 py-1 text-center text-sm font-semibold text-red-950 dark:border-red-500 dark:bg-red-950 dark:text-red-100">
+                <TriangleAlert size={16} />
+                Site in beta
+              </span>
+            </div>
+          )}
         </div>
         <NavLink
           href="/meetings"

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentRole, type CurrentRole } from "./role";
+import { createClient } from "@/lib/supabase/server";
 
 export class ForbiddenError extends Error {
   constructor(message = "Forbidden") {
@@ -39,4 +40,14 @@ export async function getIsAdmin(orgId: string): Promise<boolean> {
   if (!current) return false;
   if (current.role === "super_admin") return true;
   return current.role === "org_admin" && current.org_id === orgId;
+}
+
+/**
+ * For auth pages that only make sense when logged out (login, sign-up,
+ * forgot-password, etc).
+ */
+export async function requireGuest(): Promise<void> {
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (data?.user) redirect("/");
 }

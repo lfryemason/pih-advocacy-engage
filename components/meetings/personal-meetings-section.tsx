@@ -26,16 +26,18 @@ type Props =
       mode: "user";
       filters: MeetingFilters;
       variant?: MeetingsSectionVariant;
+      refreshKey?: number;
     }
   | {
       mode: "team";
       teamId: string;
       filters: MeetingFilters;
       variant?: MeetingsSectionVariant;
+      refreshKey?: number;
     };
 
 export function PersonalMeetingsSection(props: Props) {
-  const { mode, filters, variant = "default" } = props;
+  const { mode, filters, variant = "default", refreshKey } = props;
   const teamId = mode === "team" ? props.teamId : undefined;
 
   const [upcoming, setUpcoming] = useState<SectionState>({
@@ -72,7 +74,7 @@ export function PersonalMeetingsSection(props: Props) {
     return () => {
       cancelled = true;
     };
-  }, [mode, teamId]);
+  }, [mode, teamId, refreshKey]);
 
   const fetchSection = useCallback(
     (supabase: SupabaseBrowserClient, params: PersonalFetchParams) => {
@@ -126,7 +128,7 @@ export function PersonalMeetingsSection(props: Props) {
     if (meetingIds === null) return;
     loadInitial(filters);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filtersKey, loadInitial, meetingIds]);
+  }, [filtersKey, loadInitial, meetingIds, refreshKey]);
 
   const loadMore = async (section: "upcoming" | "past") => {
     const setLoadingMore =
