@@ -86,13 +86,13 @@ beforeEach(() => {
 });
 
 describe("TeamForm — required markers", () => {
-  it("renders asterisks on Name, State, and Type labels only", () => {
+  it("renders asterisks on Name and Type labels only", () => {
     vi.mocked(createClient).mockReturnValue(
       mockEditClient() as unknown as ReturnType<typeof createClient>,
     );
     const { container } = render(<TeamForm orgId="pihe" />);
     const markers = container.querySelectorAll(".text-destructive");
-    expect(markers).toHaveLength(3);
+    expect(markers).toHaveLength(2);
   });
 
   it("does not render an asterisk on Description or Founded date", () => {
@@ -112,9 +112,7 @@ describe("TeamForm — validation", () => {
     );
     render(<TeamForm orgId="pihe" />);
     await userEvent.click(screen.getByRole("button", { name: "Create team" }));
-    expect(
-      screen.getByText("Name, state, and type are required."),
-    ).toBeInTheDocument();
+    expect(screen.getByText("Name and type are required.")).toBeInTheDocument();
   });
 
   it("does not mutate teams when validation fails", async () => {
@@ -125,6 +123,25 @@ describe("TeamForm — validation", () => {
     render(<TeamForm orgId="pihe" />);
     await userEvent.click(screen.getByRole("button", { name: "Create team" }));
     expect(client.from).not.toHaveBeenCalled();
+  });
+
+  it("allows submitting without a state", async () => {
+    const client = mockCreateClient();
+    vi.mocked(createClient).mockReturnValue(
+      client as unknown as ReturnType<typeof createClient>,
+    );
+    render(<TeamForm orgId="pihe" />);
+
+    await userEvent.type(screen.getByLabelText(/Name/), "Stateless Team");
+    await userEvent.selectOptions(screen.getByLabelText(/Type/), "city");
+    await userEvent.click(screen.getByRole("button", { name: "Create team" }));
+
+    await waitFor(() => {
+      const teamsFrom = (
+        client.from as ReturnType<typeof vi.fn>
+      ).mock.calls.find(([t]) => t === "teams");
+      expect(teamsFrom).toBeTruthy();
+    });
   });
 });
 

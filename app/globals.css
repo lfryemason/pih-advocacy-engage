@@ -17,6 +17,7 @@
    *   Turquoise:             #5AB7C4 → 187.4 47.3% 56.1%
    */
   :root {
+    color-scheme: light;
     --background: 0 0% 100%;
     --foreground: 0 0% 15.7%; /* #282828 */
     --card: 25 100% 95%;
@@ -115,6 +116,7 @@
     --secondary-yellow-accent: 0 0% 10%;
   }
   .dark {
+    color-scheme: dark;
     --background: 0 0% 16%;
     --foreground: 0 0% 100%;
     --card: 0 0% 3.9%;
