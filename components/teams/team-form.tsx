@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -16,23 +16,25 @@ import { DeleteTeamButton } from "@/components/teams/delete-team-button";
 
 type Team = Tables<"teams">;
 
-export function TeamForm({
+// Shared by TeamForm and EditTeamForm (which needs the Save button and
+// members table to sit between the fields and the rest of the page, outside
+// this hook's <form> element).
+export function useTeamForm({
   orgId,
   team,
   onDone,
   onCancel,
   cancelHref,
-  canDelete = false,
 }: {
   orgId: string;
   team?: Team;
   onDone?: () => void;
   onCancel?: () => void;
   cancelHref?: string;
-  canDelete?: boolean;
 }) {
   const router = useRouter();
   const isEdit = team !== undefined;
+  const formId = useId();
   // Editing always offers a way back to the team page; cancelling a create is
   // opt-in via onCancel/cancelHref (e.g. when embedded in a dialog, or linked
   // from a server-rendered page that can't pass a callback).
@@ -142,125 +144,162 @@ export function TeamForm({
 
   const districtOptions = getDistrictOptions(state);
 
+  const fields = (
+    <>
+      <div className="grid gap-2">
+        <Label htmlFor="team-name">
+          Name{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
+          </span>
+        </Label>
+        <Input
+          id="team-name"
+          value={name}
+          required
+          aria-required="true"
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="team-state">
+          State{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
+          </span>
+        </Label>
+        <Select
+          id="team-state"
+          value={state}
+          required
+          aria-required="true"
+          onChange={handleStateChange}
+        >
+          <option value="">Select a state</option>
+          {US_STATES.map((s) => (
+            <option key={s.code} value={s.code}>
+              {s.name}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div className="grid gap-2">
+        <span className="text-sm font-medium leading-none">
+          Congressional Districts
+        </span>
+        {districtOptions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {state
+              ? "No districts available for this state."
+              : "Select a state first."}
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {districtOptions.map((d) => (
+              <label
+                key={d.value}
+                className="flex items-center gap-1.5 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  value={d.value}
+                  checked={districts.includes(d.value)}
+                  onChange={() => handleDistrictToggle(d.value)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                {d.label}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="team-type">
+          Type{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
+          </span>
+        </Label>
+        <Select
+          id="team-type"
+          value={type}
+          required
+          aria-required="true"
+          onChange={(e) => setType(e.target.value)}
+        >
+          <option value="">Select a type</option>
+          {Object.entries(TYPE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="team-description">Description</Label>
+        <textarea
+          id="team-description"
+          aria-label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          className={cn(textareaClass, "resize-none")}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="team-founded-date">Founded date</Label>
+        <Input
+          id="team-founded-date"
+          type="date"
+          value={foundedDate}
+          onChange={(e) => setFoundedDate(e.target.value)}
+        />
+      </div>
+      {error && (
+        <p role="alert" className="text-sm text-red-500">
+          {error}
+        </p>
+      )}
+    </>
+  );
+
+  return {
+    formId,
+    fields,
+    handleSubmit,
+    isEdit,
+    isSaving,
+    showCancel,
+    handleCancel,
+    onCancel,
+    cancelHref,
+  };
+}
+
+export function TeamForm({
+  orgId,
+  team,
+  onDone,
+  onCancel,
+  cancelHref,
+  canDelete = false,
+}: {
+  orgId: string;
+  team?: Team;
+  onDone?: () => void;
+  onCancel?: () => void;
+  cancelHref?: string;
+  canDelete?: boolean;
+}) {
+  const { fields, handleSubmit, isEdit, isSaving, showCancel, handleCancel } =
+    useTeamForm({ orgId, team, onDone, onCancel, cancelHref });
+
   return (
     <form onSubmit={handleSubmit} noValidate className="flex max-w-lg flex-col">
       <h2 className="text-lg font-semibold">Team settings</h2>
       <p className="mt-1 text-xs text-muted-foreground">* Required</p>
       <div className="mt-2 flex max-w-lg flex-col gap-6">
-        <div className="grid gap-2">
-          <Label htmlFor="team-name">
-            Name{" "}
-            <span aria-hidden="true" className="text-destructive">
-              *
-            </span>
-          </Label>
-          <Input
-            id="team-name"
-            value={name}
-            required
-            aria-required="true"
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="team-state">
-            State{" "}
-            <span aria-hidden="true" className="text-destructive">
-              *
-            </span>
-          </Label>
-          <Select
-            id="team-state"
-            value={state}
-            required
-            aria-required="true"
-            onChange={handleStateChange}
-          >
-            <option value="">Select a state</option>
-            {US_STATES.map((s) => (
-              <option key={s.code} value={s.code}>
-                {s.name}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <span className="text-sm font-medium leading-none">
-            Congressional Districts
-          </span>
-          {districtOptions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {state
-                ? "No districts available for this state."
-                : "Select a state first."}
-            </p>
-          ) : (
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              {districtOptions.map((d) => (
-                <label
-                  key={d.value}
-                  className="flex items-center gap-1.5 text-sm"
-                >
-                  <input
-                    type="checkbox"
-                    value={d.value}
-                    checked={districts.includes(d.value)}
-                    onChange={() => handleDistrictToggle(d.value)}
-                    className="h-4 w-4 rounded border-input accent-primary"
-                  />
-                  {d.label}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="team-type">
-            Type{" "}
-            <span aria-hidden="true" className="text-destructive">
-              *
-            </span>
-          </Label>
-          <Select
-            id="team-type"
-            value={type}
-            required
-            aria-required="true"
-            onChange={(e) => setType(e.target.value)}
-          >
-            <option value="">Select a type</option>
-            {Object.entries(TYPE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="team-description">Description</Label>
-          <textarea
-            id="team-description"
-            aria-label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            className={cn(textareaClass, "resize-none")}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="team-founded-date">Founded date</Label>
-          <Input
-            id="team-founded-date"
-            type="date"
-            value={foundedDate}
-            onChange={(e) => setFoundedDate(e.target.value)}
-          />
-        </div>
-        {error && (
-          <p role="alert" className="text-sm text-red-500">
-            {error}
-          </p>
-        )}
+        {fields}
         <div className="flex items-center gap-2">
           {team && canDelete && (
             <DeleteTeamButton
