@@ -16,7 +16,7 @@ export async function UsersList() {
   ] = await Promise.all([
     supabase
       .from("profiles")
-      .select("user_id, first_name, last_name, email")
+      .select("user_id, first_name, last_name, email, is_placeholder")
       .eq("org_id", ORG_ID)
       .order("last_name", { ascending: true })
       .order("first_name", { ascending: true }),
@@ -66,6 +66,7 @@ export async function UsersList() {
       "(no name)",
     email: profile.email,
     isAdmin: adminUserIds.has(profile.user_id),
+    isPending: profile.is_placeholder,
     teams: teamsByUser.get(profile.user_id) ?? [],
   }));
 
