@@ -11,7 +11,7 @@ type TeamRow = {
   id: string;
   name: string;
   slug: string;
-  state: string;
+  state: string | null;
   type: string;
   team_memberships: { role: string; user_id: string }[];
 };
@@ -48,7 +48,8 @@ export async function TeamsTable() {
     slug: team.slug,
     type: team.type,
     typeLabel: TYPE_LABELS[team.type as keyof typeof TYPE_LABELS] ?? team.type,
-    state: US_STATES.find((s) => s.code === team.state)?.name ?? team.state,
+    state:
+      US_STATES.find((s) => s.code === team.state)?.name ?? team.state ?? "—",
     leads: distinctUsers(team.team_memberships, (role) =>
       LEAD_ROLE_SET.has(role),
     ),

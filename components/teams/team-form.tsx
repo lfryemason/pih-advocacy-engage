@@ -78,8 +78,8 @@ export function useTeamForm({
     setError(null);
 
     const nameTrimmed = name.trim();
-    if (!nameTrimmed || !state || !type) {
-      setError("Name, state, and type are required.");
+    if (!nameTrimmed || !type) {
+      setError("Name and type are required.");
       return;
     }
 
@@ -88,7 +88,7 @@ export function useTeamForm({
 
     const payload = {
       name: nameTrimmed,
-      state,
+      state: state || null,
       type,
       description: description.trim() || null,
       founded_date: foundedDate || null,
@@ -162,19 +162,8 @@ export function useTeamForm({
         />
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="team-state">
-          State{" "}
-          <span aria-hidden="true" className="text-destructive">
-            *
-          </span>
-        </Label>
-        <Select
-          id="team-state"
-          value={state}
-          required
-          aria-required="true"
-          onChange={handleStateChange}
-        >
+        <Label htmlFor="team-state">State</Label>
+        <Select id="team-state" value={state} onChange={handleStateChange}>
           <option value="">Select a state</option>
           {US_STATES.map((s) => (
             <option key={s.code} value={s.code}>

@@ -470,7 +470,7 @@ export type Database = {
           name: string;
           org_id: string;
           slug: string;
-          state: string;
+          state: string | null;
           type: string;
           updated_at: string;
         };
@@ -483,7 +483,7 @@ export type Database = {
           name: string;
           org_id: string;
           slug: string;
-          state: string;
+          state?: string | null;
           type: string;
           updated_at?: string;
         };
@@ -496,7 +496,7 @@ export type Database = {
           name?: string;
           org_id?: string;
           slug?: string;
-          state?: string;
+          state?: string | null;
           type?: string;
           updated_at?: string;
         };

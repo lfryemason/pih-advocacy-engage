@@ -104,22 +104,24 @@ export function TeamPageClient({
               Founded {team.founded_date}
             </p>
           )}
-          <p className="mt-1 text-muted-foreground">
-            {US_STATES.find((s) => s.code === team.state)?.name ?? team.state}
-            {team.congressional_districts.length > 0 && (
-              <>
-                {" — "}
-                {team.congressional_districts
-                  .map((d: string) => {
-                    const opt = getDistrictOptions(team.state).find(
-                      (o) => o.value === d,
-                    );
-                    return opt?.label ?? d;
-                  })
-                  .join(", ")}
-              </>
-            )}
-          </p>
+          {team.state && (
+            <p className="mt-1 text-muted-foreground">
+              {US_STATES.find((s) => s.code === team.state)?.name ?? team.state}
+              {team.congressional_districts.length > 0 && (
+                <>
+                  {" — "}
+                  {team.congressional_districts
+                    .map((d: string) => {
+                      const opt = getDistrictOptions(team.state ?? "").find(
+                        (o) => o.value === d,
+                      );
+                      return opt?.label ?? d;
+                    })
+                    .join(", ")}
+                </>
+              )}
+            </p>
+          )}
           {coaches.length > 0 && (
             <p className="mt-1 text-muted-foreground">
               {coaches.length === 1 ? "Coach" : "Coaches"}:{" "}
@@ -175,7 +177,7 @@ export function TeamPageClient({
         meetingCounts={meetingCounts}
       />
       <TeamRepList
-        state={team.state}
+        state={team.state ?? ""}
         congressionalDistricts={team.congressional_districts}
       />
       <TeamMeetingsSection teamId={team.id} />
