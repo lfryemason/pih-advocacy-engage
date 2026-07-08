@@ -8,20 +8,22 @@ test.beforeEach(resetDatabase);
 
 /*
  * Regression test for: native <select> popups rendering unreadable
- * (e.g. white-on-white) in Chrome on Windows when both the OS and the site
- * are in dark mode.
+ * (e.g. white-on-white) in Chrome on Windows when the site is in dark mode.
  *
- * Chromium keys the native option-list popup's colors off `color-scheme`,
- * but only if the <select> itself resolves to a real, non-transparent
- * background/text color — a `background-color: transparent` select gives
- * Chromium nothing to match the popup to, so it falls back to UA defaults
- * that can conflict with the inherited (theme) text color.
+ * Firefox and light mode are fine; only Chromium on Windows breaks. The reason
+ * is that Windows Chromium draws the option-list popup with a native OS menu
+ * that does NOT follow `color-scheme` for the option rows. With the select's
+ * text forced to the (light) foreground color and the options left with no
+ * explicit background, the popup rows fall back to the native light menu
+ * background — light text on a light row. The reliable fix across Chromium
+ * versions is to set an explicit background AND color on the <option>s
+ * themselves, which is what the shared <Select> now does.
  *
  * The popup itself is a native OS/browser widget, not part of the page's
  * render tree, so it can't be captured with page.screenshot() (confirmed:
- * clicking/opening a <select> never appears in a Playwright screenshot,
- * even headless on Linux). So instead we assert directly on the computed
- * style responsible for the bug.
+ * opening a <select> never appears in a Playwright screenshot, even headless
+ * on Linux). So instead we assert directly on the <option> computed style
+ * responsible for the bug.
  */
 for (const theme of themes) {
   test.describe(`select dropdown colors (${theme})`, () => {
@@ -31,23 +33,33 @@ for (const theme of themes) {
       await setTheme(page, theme);
     });
 
-    test("State and Congressional District selects have an opaque, theme-matched background", async ({
+    test("State and Congressional District options have an opaque, readable background", async ({
       page,
     }) => {
       for (const label of ["State", "Congressional District"]) {
         const select = page.getByLabel(label);
-        const { backgroundColor, color } = await select.evaluate((el) => {
-          const style = getComputedStyle(el);
-          return { backgroundColor: style.backgroundColor, color: style.color };
-        });
-
-        expect(backgroundColor, `${label} select background`).not.toBe(
-          "rgba(0, 0, 0, 0)",
+        const options = await select.evaluate((el) =>
+          Array.from((el as HTMLSelectElement).options).map((opt) => {
+            const style = getComputedStyle(opt);
+            return {
+              backgroundColor: style.backgroundColor,
+              color: style.color,
+            };
+          }),
         );
-        expect(
-          backgroundColor,
-          `${label} select background must differ from its text color`,
-        ).not.toBe(color);
+
+        expect(options.length, `${label} should have options`).toBeGreaterThan(
+          0,
+        );
+        for (const { backgroundColor, color } of options) {
+          expect(backgroundColor, `${label} option background`).not.toBe(
+            "rgba(0, 0, 0, 0)",
+          );
+          expect(
+            backgroundColor,
+            `${label} option background must differ from its text color`,
+          ).not.toBe(color);
+        }
       }
     });
   });

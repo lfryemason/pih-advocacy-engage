@@ -18,7 +18,7 @@ const Select = React.forwardRef<
           onKeyDown?.(event);
         }}
         className={cn(
-          "flex h-9 w-full appearance-none rounded-md border border-input bg-background px-3 py-1 pr-8 text-base text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm",
+          "flex h-9 w-full appearance-none rounded-md border border-input bg-background px-3 py-1 pr-8 text-base text-foreground shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-50 md:text-sm [&_option]:bg-background [&_option]:text-foreground",
           className,
         )}
         {...props}
