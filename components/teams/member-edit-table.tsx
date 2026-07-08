@@ -211,7 +211,7 @@ export const MemberEditTable = forwardRef<
                 return (
                   <TableRow
                     key={key}
-                    className={cn(isPendingRemoval && "opacity-50")}
+                    className={cn(isPendingRemoval && "text-muted-foreground")}
                   >
                     <TableCell>
                       <span className={cn(isPendingRemoval && "line-through")}>
