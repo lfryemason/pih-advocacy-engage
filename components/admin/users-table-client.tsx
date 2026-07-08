@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { FilterCombobox } from "@/components/ui/combobox";
+import { PendingBadge } from "@/components/teams/pending-badge";
 import {
   Table,
   TableBody,
@@ -21,6 +22,7 @@ export type AdminUserRow = {
   fullName: string;
   email: string;
   isAdmin: boolean;
+  isPending: boolean;
   teams: { name: string; slug: string }[];
 };
 
@@ -125,6 +127,7 @@ export function UsersTableClient({
                         <span className="sr-only">(admin)</span>
                       </>
                     )}
+                    {user.isPending && <PendingBadge />}
                   </span>
                 </TableCell>
                 <TableCell>{user.email}</TableCell>

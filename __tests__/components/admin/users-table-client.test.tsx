@@ -17,6 +17,7 @@ function makeUser(overrides: Partial<AdminUserRow> = {}): AdminUserRow {
     fullName: "Jane Doe",
     email: "jane@example.com",
     isAdmin: false,
+    isPending: false,
     teams: [],
     ...overrides,
   };
@@ -28,6 +29,7 @@ function makeUsers(count: number): AdminUserRow[] {
     fullName: `User ${String(index + 1).padStart(3, "0")}`,
     email: `user${index + 1}@example.com`,
     isAdmin: false,
+    isPending: false,
     teams: [],
   }));
 }
