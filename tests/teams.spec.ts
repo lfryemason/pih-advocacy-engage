@@ -241,7 +241,7 @@ test.describe("edit team page", () => {
     await expect(page).toHaveURL(/\/teams\/seattle-high-school$/);
   });
 
-  test("changing a member role from team_coordinator to member persists after refresh", async ({
+  test("changing a member role is not saved until Save is clicked", async ({
     page,
   }) => {
     await page.goto("/teams/seattle-high-school/edit");
@@ -249,10 +249,30 @@ test.describe("edit team page", () => {
       .getByRole("row", { name: /Test/ })
       .getByRole("combobox");
     await roleSelect.selectOption("member");
-    await expect(roleSelect).toBeDisabled();
-    await expect(roleSelect).toBeEnabled();
-    await page.reload();
     await expect(roleSelect).toHaveValue("member");
+
+    // Reloading without saving discards the pending role change.
+    await page.reload();
+    await expect(
+      page.getByRole("row", { name: /Test/ }).getByRole("combobox"),
+    ).toHaveValue("team_coordinator");
+  });
+
+  test("changing a member role persists after clicking Save", async ({
+    page,
+  }) => {
+    await page.goto("/teams/seattle-high-school/edit");
+    await page
+      .getByRole("row", { name: /Test/ })
+      .getByRole("combobox")
+      .selectOption("member");
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page).toHaveURL(/\/teams\/seattle-high-school$/);
+
+    await page.goto("/teams/seattle-high-school/edit");
+    await expect(
+      page.getByRole("row", { name: /Test/ }).getByRole("combobox"),
+    ).toHaveValue("member");
   });
 
   test("role dropdown includes Team Coordinator and not Team Lead", async ({
@@ -282,18 +302,69 @@ test.describe("edit team page", () => {
     ).toHaveCount(1);
   });
 
-  test("removing a member removes them from the table", async ({ page }) => {
+  test("removing a member stages the removal until Save is clicked", async ({
+    page,
+  }) => {
     // Join portland-university first so there's a second member to remove
     await page.goto("/teams/portland-university");
     await page.getByRole("button", { name: "Join team" }).click();
     await expect(page.getByRole("link", { name: "Edit" })).toBeVisible();
 
     await page.goto("/teams/portland-university/edit");
+    const row = page.getByRole("row", { name: /Test/ });
+    await expect(row).toBeVisible();
+
+    await row.getByRole("button", { name: /^Remove/ }).click();
+    await expect(row.getByRole("button", { name: "Undo" })).toBeVisible();
+
+    // Not persisted yet — reloading still shows the member.
+    await page.reload();
     await expect(page.getByRole("row", { name: /Test/ })).toBeVisible();
+  });
 
-    page.once("dialog", (dialog) => dialog.accept());
-    await page.getByRole("button", { name: /^Remove/ }).click();
+  test("Undo restores a member staged for removal", async ({ page }) => {
+    await page.goto("/teams/portland-university");
+    await page.getByRole("button", { name: "Join team" }).click();
+    await page.goto("/teams/portland-university/edit");
 
+    const row = page.getByRole("row", { name: /Test/ });
+    await row.getByRole("button", { name: /^Remove/ }).click();
+    await row.getByRole("button", { name: "Undo" }).click();
+
+    await expect(row.getByRole("button", { name: /^Remove/ })).toBeVisible();
+  });
+
+  test("Cancel discards a staged member removal", async ({ page }) => {
+    await page.goto("/teams/portland-university");
+    await page.getByRole("button", { name: "Join team" }).click();
+    await page.goto("/teams/portland-university/edit");
+
+    await page
+      .getByRole("row", { name: /Test/ })
+      .getByRole("button", { name: /^Remove/ })
+      .click();
+    await page.getByRole("button", { name: "Cancel" }).click();
+    await expect(page).toHaveURL(/\/teams\/portland-university$/);
+
+    await page.goto("/teams/portland-university/edit");
+    await expect(page.getByRole("row", { name: /Test/ })).toBeVisible();
+  });
+
+  test("saving a staged removal removes the member from the table", async ({
+    page,
+  }) => {
+    await page.goto("/teams/portland-university");
+    await page.getByRole("button", { name: "Join team" }).click();
+    await page.goto("/teams/portland-university/edit");
+
+    await page
+      .getByRole("row", { name: /Test/ })
+      .getByRole("button", { name: /^Remove/ })
+      .click();
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page).toHaveURL(/\/teams\/portland-university$/);
+
+    await page.goto("/teams/portland-university/edit");
     await expect(page.getByRole("row", { name: /Test/ })).toHaveCount(0);
   });
 });
