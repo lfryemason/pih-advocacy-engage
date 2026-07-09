@@ -1,14 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useId } from "react";
+import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { FormActionBar } from "@/components/form-action-bar";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
-export function ProfileForm() {
+// `children` (the Delete account section) renders between the fields and the
+// sticky action bar so the bar stays the true bottom-of-page element.
+export function ProfileForm({ children }: { children?: React.ReactNode }) {
+  const router = useRouter();
+  const formId = useId();
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
@@ -80,80 +86,113 @@ export function ProfileForm() {
     }
   };
 
+  const actionBar = (
+    <FormActionBar>
+      <div className="ml-auto flex gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => router.back()}
+          disabled={isLoading}
+        >
+          Cancel
+        </Button>
+        <Button
+          type="submit"
+          form={formId}
+          disabled={isLoading || isLoadingUser}
+        >
+          {isLoading ? "Saving..." : "Save"}
+        </Button>
+      </div>
+    </FormActionBar>
+  );
+
   if (isLoadingUser) {
-    return <p className="mt-6 text-sm text-muted-foreground">Loading...</p>;
+    return (
+      <>
+        <p className="mt-6 text-sm text-muted-foreground">Loading...</p>
+        {children}
+        {actionBar}
+      </>
+    );
   }
 
   const districtOptions = getDistrictOptions(state);
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex max-w-lg flex-col gap-6">
-      <div className="grid gap-2">
-        <Label htmlFor="first-name">First Name</Label>
-        <Input
-          id="first-name"
-          type="text"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="last-name">Last Name</Label>
-        <Input
-          id="last-name"
-          type="text"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="pronouns">Pronouns</Label>
-        <Input
-          id="pronouns"
-          type="text"
-          placeholder="e.g. they/them"
-          value={pronouns}
-          onChange={(e) => setPronouns(e.target.value)}
-        />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="email">Email</Label>
-        <Input id="email" type="email" value={email} disabled />
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="state">State</Label>
-        <Select id="state" value={state} onChange={handleStateChange}>
-          <option value="">Select a state</option>
-          {US_STATES.map((s) => (
-            <option key={s.code} value={s.code}>
-              {s.name}
+    <>
+      <form
+        id={formId}
+        onSubmit={handleSubmit}
+        className="mt-6 flex max-w-lg flex-col gap-6"
+      >
+        <div className="grid gap-2">
+          <Label htmlFor="first-name">First Name</Label>
+          <Input
+            id="first-name"
+            type="text"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="last-name">Last Name</Label>
+          <Input
+            id="last-name"
+            type="text"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="pronouns">Pronouns</Label>
+          <Input
+            id="pronouns"
+            type="text"
+            placeholder="e.g. they/them"
+            value={pronouns}
+            onChange={(e) => setPronouns(e.target.value)}
+          />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" value={email} disabled />
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="state">State</Label>
+          <Select id="state" value={state} onChange={handleStateChange}>
+            <option value="">Select a state</option>
+            {US_STATES.map((s) => (
+              <option key={s.code} value={s.code}>
+                {s.name}
+              </option>
+            ))}
+          </Select>
+        </div>
+        <div className="grid gap-2">
+          <Label htmlFor="district">Congressional District</Label>
+          <Select
+            id="district"
+            value={district}
+            onChange={(e) => setDistrict(e.target.value)}
+            disabled={!state}
+          >
+            <option value="">
+              {state ? "Select a district" : "Select a state first"}
             </option>
-          ))}
-        </Select>
-      </div>
-      <div className="grid gap-2">
-        <Label htmlFor="district">Congressional District</Label>
-        <Select
-          id="district"
-          value={district}
-          onChange={(e) => setDistrict(e.target.value)}
-          disabled={!state}
-        >
-          <option value="">
-            {state ? "Select a district" : "Select a state first"}
-          </option>
-          {districtOptions.map((d) => (
-            <option key={d.value} value={d.value}>
-              {d.label}
-            </option>
-          ))}
-        </Select>
-      </div>
-      {error && <p className="text-sm text-red-500">{error}</p>}
-      {success && <p className="text-sm text-green-600">{success}</p>}
-      <Button type="submit" disabled={isLoading} className="w-fit">
-        {isLoading ? "Saving..." : "Save"}
-      </Button>
-    </form>
+            {districtOptions.map((d) => (
+              <option key={d.value} value={d.value}>
+                {d.label}
+              </option>
+            ))}
+          </Select>
+        </div>
+        {error && <p className="text-sm text-red-500">{error}</p>}
+        {success && <p className="text-sm text-green-600">{success}</p>}
+      </form>
+      {children}
+      {actionBar}
+    </>
   );
 }

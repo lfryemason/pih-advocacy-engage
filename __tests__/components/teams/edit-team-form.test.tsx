@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EditTeamForm } from "@/components/teams/edit-team-form";
@@ -10,7 +10,10 @@ vi.mock("@/lib/supabase/client", () => ({
   createClient: vi.fn(),
 }));
 
+// The staging hook imports these; a removal/role change doesn't reach them.
 vi.mock("@/lib/teams/placeholder-actions", () => ({
+  createPlaceholderTeammate: vi.fn(),
+  updatePlaceholderTeammate: vi.fn(),
   deletePlaceholderTeammate: vi.fn(),
 }));
 
@@ -58,10 +61,11 @@ function mockClient({
   const teamsUpdateEq = vi.fn().mockResolvedValue({ error: teamUpdateError });
   const teamsUpdate = vi.fn().mockReturnValue({ eq: teamsUpdateEq });
 
-  const membershipEq3 = vi.fn().mockResolvedValue({ error: memberDeleteError });
-  const membershipEq2 = vi.fn().mockReturnValue({ eq: membershipEq3 });
-  const membershipEq1 = vi.fn().mockReturnValue({ eq: membershipEq2 });
-  const membershipDelete = vi.fn().mockReturnValue({ eq: membershipEq1 });
+  // Removals now collapse into delete().eq(team_id).in(user_id).eq(role).
+  const eqRole = vi.fn().mockResolvedValue({ error: memberDeleteError });
+  const inUser = vi.fn().mockReturnValue({ eq: eqRole });
+  const eqTeam = vi.fn().mockReturnValue({ in: inUser });
+  const membershipDelete = vi.fn().mockReturnValue({ eq: eqTeam });
 
   const client = {
     from: vi.fn().mockImplementation((table: string) => {
@@ -77,8 +81,13 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
-describe("EditTeamForm — Save commits members before team fields", () => {
-  it("commits a staged member removal and saves team fields, then navigates away", async () => {
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
+describe("EditTeamForm — Save commits members and team fields together", () => {
+  it("commits a staged removal and the team update, then navigates away", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
     const { client, teamsUpdate, membershipDelete } = mockClient();
     vi.mocked(createClient).mockReturnValue(
       client as unknown as ReturnType<typeof createClient>,
@@ -106,10 +115,42 @@ describe("EditTeamForm — Save commits members before team fields", () => {
     });
   });
 
-  it("does not save team fields when committing member changes fails", async () => {
-    const { client, teamsUpdate, membershipDelete } = mockClient({
-      memberDeleteError: new Error("boom"),
+  it("commits a staged role change via change_member_role", async () => {
+    const { client } = mockClient();
+    vi.mocked(createClient).mockReturnValue(
+      client as unknown as ReturnType<typeof createClient>,
+    );
+    render(
+      <EditTeamForm
+        team={SEED_TEAM}
+        canDelete={false}
+        memberships={[MEMBER]}
+        currentRole={null}
+      />,
+    );
+
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Role for Sam Patel" }),
+      "advocacy_lead",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => {
+      expect(client.rpc).toHaveBeenCalledWith("change_member_role", {
+        p_team_id: "team-123",
+        p_user_id: "user-2",
+        p_old_role: "member",
+        p_new_role: "advocacy_lead",
+      });
+      expect(mockRouterReplace).toHaveBeenCalledWith(
+        "/teams/seattle-high-school",
+      );
     });
+  });
+
+  it("surfaces an error and does not navigate when a member change fails", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    const { client } = mockClient({ memberDeleteError: new Error("boom") });
     vi.mocked(createClient).mockReturnValue(
       client as unknown as ReturnType<typeof createClient>,
     );
@@ -128,16 +169,15 @@ describe("EditTeamForm — Save commits members before team fields", () => {
     await userEvent.click(screen.getByRole("button", { name: "Save" }));
 
     await waitFor(() => {
-      expect(membershipDelete).toHaveBeenCalled();
       expect(screen.getByRole("alert")).toHaveTextContent("boom");
     });
-    expect(teamsUpdate).not.toHaveBeenCalled();
     expect(mockRouterReplace).not.toHaveBeenCalled();
   });
 });
 
 describe("EditTeamForm — Cancel discards staged member changes", () => {
   it("navigates away without committing a staged removal", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
     const { client, teamsUpdate, membershipDelete } = mockClient();
     vi.mocked(createClient).mockReturnValue(
       client as unknown as ReturnType<typeof createClient>,

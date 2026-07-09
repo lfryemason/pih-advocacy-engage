@@ -1,25 +1,25 @@
-import { createRef } from "react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import {
-  MemberEditTable,
-  type MemberEditTableHandle,
-} from "@/components/teams/member-edit-table";
+import { MemberEditTable } from "@/components/teams/member-edit-table";
+import { useMemberStaging } from "@/components/teams/use-member-staging";
 import { createClient } from "@/lib/supabase/client";
 import type { MembershipWithProfile } from "@/lib/teams";
 
+// The table is now presentational: it stages role changes / removals through
+// the hook and writes nothing until the parent commits. So these tests just
+// confirm the staged UI, never that Supabase is touched (commit lives in the
+// EditTeamForm tests).
 vi.mock("@/lib/supabase/client", () => ({
   createClient: vi.fn(),
 }));
 
+// Server-only module reached through the staging hook; mocked so it doesn't
+// pull `server-only` into the jsdom environment.
 vi.mock("@/lib/teams/placeholder-actions", () => ({
+  createPlaceholderTeammate: vi.fn(),
+  updatePlaceholderTeammate: vi.fn(),
   deletePlaceholderTeammate: vi.fn(),
-}));
-
-const mockRouterRefresh = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: mockRouterRefresh }),
 }));
 
 const COORDINATOR: MembershipWithProfile = {
@@ -46,44 +46,35 @@ const MEMBER: MembershipWithProfile = {
   },
 };
 
-function mockSupabaseClient({
-  deleteError = null,
-  rpcError = null,
-}: {
-  deleteError?: Error | null;
-  rpcError?: Error | null;
-} = {}) {
-  // The component chains three .eq() calls after .delete() (team_id, user_id,
-  // role); only the last one resolves.
-  const eq3 = vi.fn().mockResolvedValue({ error: deleteError });
-  const eq2 = vi.fn().mockReturnValue({ eq: eq3 });
-  const eq1 = vi.fn().mockReturnValue({ eq: eq2 });
-  const deleteFn = vi.fn().mockReturnValue({ eq: eq1 });
-  const client = {
-    from: vi.fn().mockReturnValue({ delete: deleteFn }),
-    rpc: vi.fn().mockResolvedValue({ error: rpcError }),
-  };
-  return { client, deleteFn, eq1, eq2, eq3 };
+// Renders the table wired to a real staging hook, the way EditTeamForm does.
+function Harness({ memberships }: { memberships: MembershipWithProfile[] }) {
+  const staging = useMemberStaging({
+    memberships,
+    teamId: "team-1",
+    teamSlug: "my-team",
+  });
+  return (
+    <MemberEditTable
+      memberships={memberships}
+      currentRole={null}
+      staging={staging}
+      isSaving={false}
+    />
+  );
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
 });
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe("MemberEditTable — removal staging", () => {
-  it("marks a member pending removal without calling supabase", async () => {
-    const { client } = mockSupabaseClient();
-    vi.mocked(createClient).mockReturnValue(
-      client as unknown as ReturnType<typeof createClient>,
-    );
-    render(
-      <MemberEditTable
-        memberships={[COORDINATOR, MEMBER]}
-        teamId="team-1"
-        teamSlug="my-team"
-        currentRole={null}
-      />,
-    );
+  it("marks a member pending removal without touching Supabase", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<Harness memberships={[COORDINATOR, MEMBER]} />);
 
     await userEvent.click(
       screen.getByRole("button", { name: /Remove Test Admin/ }),
@@ -93,22 +84,28 @@ describe("MemberEditTable — removal staging", () => {
     expect(
       screen.queryByRole("button", { name: /Remove Test Admin/ }),
     ).not.toBeInTheDocument();
-    expect(client.from).not.toHaveBeenCalled();
-    expect(mockRouterRefresh).not.toHaveBeenCalled();
+    expect(createClient).not.toHaveBeenCalled();
+  });
+
+  it("does not stage the removal when the confirmation is dismissed", async () => {
+    vi.spyOn(window, "confirm").mockReturnValue(false);
+    render(<Harness memberships={[COORDINATOR]} />);
+
+    await userEvent.click(
+      screen.getByRole("button", { name: /Remove Test Admin/ }),
+    );
+
+    expect(
+      screen.getByRole("button", { name: /Remove Test Admin/ }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Undo" }),
+    ).not.toBeInTheDocument();
   });
 
   it("Undo restores the Remove button and clears the pending state", async () => {
-    vi.mocked(createClient).mockReturnValue(
-      mockSupabaseClient().client as unknown as ReturnType<typeof createClient>,
-    );
-    render(
-      <MemberEditTable
-        memberships={[COORDINATOR]}
-        teamId="team-1"
-        teamSlug="my-team"
-        currentRole={null}
-      />,
-    );
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<Harness memberships={[COORDINATOR]} />);
 
     await userEvent.click(
       screen.getByRole("button", { name: /Remove Test Admin/ }),
@@ -125,129 +122,13 @@ describe("MemberEditTable — removal staging", () => {
 });
 
 describe("MemberEditTable — role change staging", () => {
-  it("updates the dropdown value locally without calling supabase", async () => {
-    const { client } = mockSupabaseClient();
-    vi.mocked(createClient).mockReturnValue(
-      client as unknown as ReturnType<typeof createClient>,
-    );
-    render(
-      <MemberEditTable
-        memberships={[COORDINATOR]}
-        teamId="team-1"
-        teamSlug="my-team"
-        currentRole={null}
-      />,
-    );
+  it("updates the dropdown value locally without touching Supabase", async () => {
+    render(<Harness memberships={[COORDINATOR]} />);
 
     const roleSelect = screen.getByRole("combobox");
     await userEvent.selectOptions(roleSelect, "member");
 
     expect(roleSelect).toHaveValue("member");
-    expect(client.rpc).not.toHaveBeenCalled();
-  });
-});
-
-describe("MemberEditTable — commitPendingChanges", () => {
-  it("resolves true and does not touch supabase when nothing is pending", async () => {
-    const ref = createRef<MemberEditTableHandle>();
-    render(
-      <MemberEditTable
-        ref={ref}
-        memberships={[COORDINATOR]}
-        teamId="team-1"
-        teamSlug="my-team"
-        currentRole={null}
-      />,
-    );
-
-    await expect(ref.current!.commitPendingChanges()).resolves.toBe(true);
     expect(createClient).not.toHaveBeenCalled();
-  });
-
-  it("deletes a staged removal and refreshes on success", async () => {
-    const { client, deleteFn, eq1, eq2, eq3 } = mockSupabaseClient();
-    vi.mocked(createClient).mockReturnValue(
-      client as unknown as ReturnType<typeof createClient>,
-    );
-    const ref = createRef<MemberEditTableHandle>();
-    render(
-      <MemberEditTable
-        ref={ref}
-        memberships={[COORDINATOR]}
-        teamId="team-1"
-        teamSlug="my-team"
-        currentRole={null}
-      />,
-    );
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /Remove Test Admin/ }),
-    );
-
-    await expect(ref.current!.commitPendingChanges()).resolves.toBe(true);
-
-    expect(client.from).toHaveBeenCalledWith("team_memberships");
-    expect(deleteFn).toHaveBeenCalled();
-    expect(eq1).toHaveBeenCalledWith("team_id", "team-1");
-    expect(eq2).toHaveBeenCalledWith("user_id", "user-1");
-    expect(eq3).toHaveBeenCalledWith("role", "team_coordinator");
-    expect(mockRouterRefresh).toHaveBeenCalled();
-  });
-
-  it("calls change_member_role for a staged role change", async () => {
-    const { client } = mockSupabaseClient();
-    vi.mocked(createClient).mockReturnValue(
-      client as unknown as ReturnType<typeof createClient>,
-    );
-    const ref = createRef<MemberEditTableHandle>();
-    render(
-      <MemberEditTable
-        ref={ref}
-        memberships={[COORDINATOR]}
-        teamId="team-1"
-        teamSlug="my-team"
-        currentRole={null}
-      />,
-    );
-
-    await userEvent.selectOptions(screen.getByRole("combobox"), "member");
-    await expect(ref.current!.commitPendingChanges()).resolves.toBe(true);
-
-    expect(client.rpc).toHaveBeenCalledWith("change_member_role", {
-      p_team_id: "team-1",
-      p_user_id: "user-1",
-      p_old_role: "team_coordinator",
-      p_new_role: "member",
-    });
-    expect(mockRouterRefresh).toHaveBeenCalled();
-  });
-
-  it("surfaces an error and keeps the change pending for retry", async () => {
-    const { client } = mockSupabaseClient({ deleteError: new Error("boom") });
-    vi.mocked(createClient).mockReturnValue(
-      client as unknown as ReturnType<typeof createClient>,
-    );
-    const ref = createRef<MemberEditTableHandle>();
-    render(
-      <MemberEditTable
-        ref={ref}
-        memberships={[COORDINATOR]}
-        teamId="team-1"
-        teamSlug="my-team"
-        currentRole={null}
-      />,
-    );
-
-    await userEvent.click(
-      screen.getByRole("button", { name: /Remove Test Admin/ }),
-    );
-    await expect(ref.current!.commitPendingChanges()).resolves.toBe(false);
-
-    await waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("boom");
-    });
-    // The removal is still pending — Undo is still offered.
-    expect(screen.getByRole("button", { name: "Undo" })).toBeInTheDocument();
-    expect(mockRouterRefresh).not.toHaveBeenCalled();
   });
 });

@@ -305,6 +305,8 @@ test.describe("edit team page", () => {
   test("removing a member stages the removal until Save is clicked", async ({
     page,
   }) => {
+    // Removing now asks for confirmation before staging.
+    page.on("dialog", (d) => d.accept());
     // Join portland-university first so there's a second member to remove
     await page.goto("/teams/portland-university");
     await page.getByRole("button", { name: "Join team" }).click();
@@ -323,6 +325,7 @@ test.describe("edit team page", () => {
   });
 
   test("Undo restores a member staged for removal", async ({ page }) => {
+    page.on("dialog", (d) => d.accept());
     await page.goto("/teams/portland-university");
     await page.getByRole("button", { name: "Join team" }).click();
     await page.goto("/teams/portland-university/edit");
@@ -335,6 +338,7 @@ test.describe("edit team page", () => {
   });
 
   test("Cancel discards a staged member removal", async ({ page }) => {
+    page.on("dialog", (d) => d.accept());
     await page.goto("/teams/portland-university");
     await page.getByRole("button", { name: "Join team" }).click();
     await page.goto("/teams/portland-university/edit");
@@ -353,6 +357,7 @@ test.describe("edit team page", () => {
   test("saving a staged removal removes the member from the table", async ({
     page,
   }) => {
+    page.on("dialog", (d) => d.accept());
     await page.goto("/teams/portland-university");
     await page.getByRole("button", { name: "Join team" }).click();
     await page.goto("/teams/portland-university/edit");

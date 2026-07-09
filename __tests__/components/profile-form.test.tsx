@@ -8,6 +8,11 @@ vi.mock("@/lib/supabase/client", () => ({
   createClient: vi.fn(),
 }));
 
+// ProfileForm's Cancel now navigates via the router.
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ back: vi.fn(), push: vi.fn(), replace: vi.fn() }),
+}));
+
 const mockGetUser = vi.fn();
 const mockProfileUpdate = vi.fn();
 

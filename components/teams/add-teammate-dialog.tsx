@@ -1,15 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { Pencil, UserPlus } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import {
-  createPlaceholderTeammate,
-  updatePlaceholderTeammate,
-} from "@/lib/teams/placeholder-actions";
 import { validatePlaceholderFields } from "@/lib/teams/placeholder-validate";
 import { ROLE_OPTIONS, type TeamRole } from "@/lib/teams";
+import type { StagedTeammate } from "@/components/teams/use-member-staging";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -25,20 +21,30 @@ import { Select } from "@/components/ui/select";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
 /**
- * Create a placeholder teammate, or edit one when `editUserId` is set. Email is
- * read-only in edit mode because the claim flow matches on it.
+ * Collects the fields for a teammate and reports them to the parent via
+ * `onStage`; it writes nothing itself so the changes ride along with the team
+ * form's Save. Three uses:
+ *   - Add a brand-new placeholder (no `loadUserId`/`initial`): shows the role
+ *     picker and an editable email.
+ *   - Edit a committed placeholder (`loadUserId`): loads the profile for
+ *     prefill; email is read-only because the claim flow matches on it.
+ *   - Edit a not-yet-created placeholder (`initial`): prefilled locally; email
+ *     stays editable since nothing is created yet.
+ * The role is edited inline from the table row, so the picker only shows when
+ * adding.
  */
 export function AddTeammateDialog({
-  teamId,
-  teamSlug,
-  editUserId,
+  onStage,
+  loadUserId,
+  initial,
 }: {
-  teamId: string;
-  teamSlug: string;
-  editUserId?: string;
+  onStage: (data: StagedTeammate) => void;
+  loadUserId?: string;
+  initial?: StagedTeammate;
 }) {
-  const router = useRouter();
-  const isEdit = editUserId !== undefined;
+  const isEdit = loadUserId !== undefined || initial !== undefined;
+  const emailDisabled = loadUserId !== undefined;
+  const showRole = !isEdit;
 
   const [open, setOpen] = useState(false);
   const [email, setEmail] = useState("");
@@ -47,41 +53,51 @@ export function AddTeammateDialog({
   const [pronouns, setPronouns] = useState("");
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
-  const [role, setRole] = useState<TeamRole>("member");
+  const [role, setRole] = useState<TeamRole>(initial?.role ?? "member");
   const [error, setError] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
   useEffect(() => {
-    if (!open || !isEdit) return;
-    let cancelled = false;
-    setIsLoadingProfile(true);
-    const supabase = createClient();
-    supabase
-      .from("profiles")
-      .select(
-        "email, first_name, last_name, pronouns, state, congressional_district",
-      )
-      .eq("user_id", editUserId)
-      .single()
-      .then(({ data, error: fetchError }) => {
-        if (cancelled) return;
-        if (fetchError || !data) {
-          setError("Failed to load teammate.");
-        } else {
-          setEmail(data.email);
-          setFirstName(data.first_name ?? "");
-          setLastName(data.last_name ?? "");
-          setPronouns(data.pronouns ?? "");
-          setState(data.state ?? "");
-          setDistrict(data.congressional_district ?? "");
-        }
-        setIsLoadingProfile(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [open, isEdit, editUserId]);
+    if (!open) return;
+    if (loadUserId) {
+      let cancelled = false;
+      setIsLoadingProfile(true);
+      const supabase = createClient();
+      supabase
+        .from("profiles")
+        .select(
+          "email, first_name, last_name, pronouns, state, congressional_district",
+        )
+        .eq("user_id", loadUserId)
+        .single()
+        .then(({ data, error: fetchError }) => {
+          if (cancelled) return;
+          if (fetchError || !data) {
+            setError("Failed to load teammate.");
+          } else {
+            setEmail(data.email);
+            setFirstName(data.first_name ?? "");
+            setLastName(data.last_name ?? "");
+            setPronouns(data.pronouns ?? "");
+            setState(data.state ?? "");
+            setDistrict(data.congressional_district ?? "");
+          }
+          setIsLoadingProfile(false);
+        });
+      return () => {
+        cancelled = true;
+      };
+    }
+    if (initial) {
+      setEmail(initial.email);
+      setRole(initial.role);
+      setFirstName(initial.fields.firstName);
+      setLastName(initial.fields.lastName);
+      setPronouns(initial.fields.pronouns);
+      setState(initial.fields.state);
+      setDistrict(initial.fields.district);
+    }
+  }, [open, loadUserId, initial]);
 
   const resetForm = () => {
     setEmail("");
@@ -90,7 +106,7 @@ export function AddTeammateDialog({
     setPronouns("");
     setState("");
     setDistrict("");
-    setRole("member");
+    setRole(initial?.role ?? "member");
     setError(null);
   };
 
@@ -105,49 +121,35 @@ export function AddTeammateDialog({
     setDistrict("");
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-    const validationError = validatePlaceholderFields(
-      email,
-      firstName,
-      lastName,
-      role,
-    );
+    // Email/name/role are validated whenever the email is editable (add or a
+    // not-yet-created placeholder); a committed placeholder edit only needs a
+    // name, since the server action re-validates the rest anyway.
+    const validationError = emailDisabled
+      ? !firstName.trim() && !lastName.trim()
+        ? "A first or last name is required."
+        : null
+      : validatePlaceholderFields(email, firstName, lastName, role);
     if (validationError) {
       setError(validationError);
       return;
     }
 
-    setIsSaving(true);
-    const payload = {
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
-      pronouns: pronouns.trim(),
-      state,
-      district,
-    };
-    const result = isEdit
-      ? await updatePlaceholderTeammate({
-          userId: editUserId,
-          teamSlug,
-          ...payload,
-        })
-      : await createPlaceholderTeammate({
-          teamId,
-          email: email.trim(),
-          role,
-          ...payload,
-        });
-    setIsSaving(false);
-
-    if (result.ok) {
-      handleOpenChange(false);
-      router.refresh();
-    } else {
-      setError(result.error);
-    }
+    onStage({
+      email: email.trim(),
+      role,
+      fields: {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        pronouns: pronouns.trim(),
+        state,
+        district,
+      },
+    });
+    handleOpenChange(false);
   };
 
   const districtOptions = getDistrictOptions(state);
@@ -177,8 +179,8 @@ export function AddTeammateDialog({
           <DialogTitle>{isEdit ? "Edit teammate" : "Add teammate"}</DialogTitle>
           <DialogDescription>
             {isEdit
-              ? "Update this placeholder teammate's details. The email can't be changed — it's how they'll claim the account."
-              : "Add someone who hasn't signed up yet. They can claim this account later by signing up with the same email."}
+              ? "Update this placeholder teammate's details. Changes are saved when you save the team."
+              : "Add someone who hasn't signed up yet. They can claim this account later by signing up with the same email. Added when you save the team."}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -195,7 +197,7 @@ export function AddTeammateDialog({
                 type="email"
                 placeholder="m@example.com"
                 required
-                disabled={isEdit}
+                disabled={emailDisabled}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -267,7 +269,7 @@ export function AddTeammateDialog({
                 ))}
               </Select>
             </div>
-            {!isEdit && (
+            {showRole && (
               <div className="grid gap-2">
                 <Label htmlFor={`${idPrefix}-role`}>Team Role</Label>
                 <Select
@@ -293,16 +295,11 @@ export function AddTeammateDialog({
                 type="button"
                 variant="outline"
                 onClick={() => handleOpenChange(false)}
-                disabled={isSaving}
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSaving || isLoadingProfile}>
-                {isSaving
-                  ? "Saving…"
-                  : isEdit
-                    ? "Save changes"
-                    : "Add teammate"}
+              <Button type="submit" disabled={isLoadingProfile}>
+                {isEdit ? "Save changes" : "Add teammate"}
               </Button>
             </div>
           </div>
