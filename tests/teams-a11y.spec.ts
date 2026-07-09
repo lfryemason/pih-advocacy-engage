@@ -60,6 +60,8 @@ test("team edit page with add-teammate dialog open has no accessibility violatio
 test("team edit page with a member staged for removal has no accessibility violations", async ({
   page,
 }) => {
+  // Removing asks for confirmation before staging.
+  page.on("dialog", (d) => d.accept());
   await page.goto("/teams/seattle-high-school/edit");
   await page.waitForLoadState("networkidle");
   await page
