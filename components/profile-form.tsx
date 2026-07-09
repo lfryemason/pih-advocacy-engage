@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, useId } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,10 +9,9 @@ import { Select } from "@/components/ui/select";
 import { FormActionBar } from "@/components/form-action-bar";
 import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 
-// `children` (the Delete account section) renders between the fields and the
-// sticky action bar so the bar stays the true bottom-of-page element.
+// `children` (the Delete account action) sits on the left of the sticky action
+// bar, opposite Save, per the profile page mock.
 export function ProfileForm({ children }: { children?: React.ReactNode }) {
-  const router = useRouter();
   const formId = useId();
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [email, setEmail] = useState("");
@@ -88,15 +86,8 @@ export function ProfileForm({ children }: { children?: React.ReactNode }) {
 
   const actionBar = (
     <FormActionBar>
+      {children}
       <div className="ml-auto flex gap-2">
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-          disabled={isLoading}
-        >
-          Cancel
-        </Button>
         <Button
           type="submit"
           form={formId}
@@ -112,7 +103,6 @@ export function ProfileForm({ children }: { children?: React.ReactNode }) {
     return (
       <>
         <p className="mt-6 text-sm text-muted-foreground">Loading...</p>
-        {children}
         {actionBar}
       </>
     );
@@ -191,7 +181,6 @@ export function ProfileForm({ children }: { children?: React.ReactNode }) {
         {error && <p className="text-sm text-red-500">{error}</p>}
         {success && <p className="text-sm text-green-600">{success}</p>}
       </form>
-      {children}
       {actionBar}
     </>
   );
