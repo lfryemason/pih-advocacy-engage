@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentRole, type CurrentRole } from "./role";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentRole, getCurrentUser, type CurrentRole } from "./role";
 
 export class ForbiddenError extends Error {
   constructor(message = "Forbidden") {
@@ -47,7 +46,6 @@ export async function getIsAdmin(orgId: string): Promise<boolean> {
  * forgot-password, etc).
  */
 export async function requireGuest(): Promise<void> {
-  const supabase = await createClient();
-  const { data } = await supabase.auth.getUser();
-  if (data?.user) redirect("/");
+  const user = await getCurrentUser();
+  if (user) redirect("/");
 }
