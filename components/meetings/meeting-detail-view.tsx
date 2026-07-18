@@ -121,7 +121,12 @@ export function MeetingDetailView({
                 </Field>
               )}
               {showFollowUp && (
-                <Field label="Follow-up" isEmpty={!meeting.follow_up_date}>
+                <Field
+                  label="Follow-up"
+                  isEmpty={
+                    !meeting.follow_up_date && !meeting.follow_up_completed
+                  }
+                >
                   <p className="mt-1 text-sm">
                     {meeting.follow_up_completed
                       ? "Completed"

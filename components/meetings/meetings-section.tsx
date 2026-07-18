@@ -49,7 +49,7 @@ export function MeetingsSection({
 }) {
   const headingId = useId();
   const hasMore = meetings.length < totalCount;
-  const columnCount = 6 + (showRepColumn ? 1 : 0);
+  const columnCount = 6 + (showRepColumn ? 1 : 0) + (isPast ? 1 : 0);
 
   const header = (
     <TableHeader className={HEADER_COLOR[variant]}>
@@ -64,11 +64,8 @@ export function MeetingsSection({
           <TableHead className="w-56">Member of Congress</TableHead>
         )}
         <TableHead className="w-36">Staff Contact</TableHead>
-        {isPast ? (
-          <TableHead className="text-center">Follow-up</TableHead>
-        ) : (
-          <TableHead className="w-36">Scheduler</TableHead>
-        )}
+        <TableHead className="w-36">Scheduler</TableHead>
+        {isPast && <TableHead className="text-center">Follow-up</TableHead>}
       </TableRow>
     </TableHeader>
   );
