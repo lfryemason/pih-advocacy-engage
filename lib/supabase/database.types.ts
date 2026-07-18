@@ -534,6 +534,13 @@ export type Database = {
         };
         Returns: undefined;
       };
+      change_user_role: {
+        Args: {
+          p_new_role: Database["public"]["Enums"]["app_role"];
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
       delete_own_account: {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
@@ -543,7 +550,7 @@ export type Database = {
       is_super_admin: { Args: never; Returns: boolean };
     };
     Enums: {
-      app_role: "member" | "org_admin" | "super_admin";
+      app_role: "member" | "org_admin" | "super_admin" | "facilitator";
       delegation_role:
         | "meeting_facilitator"
         | "note_taker"
@@ -685,7 +692,7 @@ export const Constants = {
   },
   public: {
     Enums: {
-      app_role: ["member", "org_admin", "super_admin"],
+      app_role: ["member", "org_admin", "super_admin", "facilitator"],
       delegation_role: [
         "meeting_facilitator",
         "note_taker",
