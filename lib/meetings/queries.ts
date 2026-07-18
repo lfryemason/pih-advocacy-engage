@@ -28,7 +28,7 @@ type RawRow = {
   representative_id: string;
   congressional_contact_id: string | null;
   primary_team_id: string | null;
-  location: string | null;
+  location: unknown;
   follow_up_date: string | null;
   follow_up_completed: boolean;
   champion_score: number | null;
@@ -75,7 +75,7 @@ function mapRow(row: RawRow): MeetingRow {
     primary_team_id: row.primary_team_id,
     primary_team_name: row.teams?.name ?? null,
     primary_team_slug: row.teams?.slug ?? null,
-    location: row.location,
+    location: parseMeetingLocation(row.location),
     scheduling_lead_name: schedulingLead?.profiles
       ? [schedulingLead.profiles.first_name, schedulingLead.profiles.last_name]
           .filter(Boolean)
