@@ -80,9 +80,9 @@ export function DeleteTeamButton({
       <DialogTrigger asChild>
         <Button
           type="button"
-          variant="outline"
+          variant="link"
           disabled={disabled}
-          className="border-destructive text-destructive hover:bg-destructive/10 hover:text-destructive"
+          className="px-0 text-destructive hover:text-destructive"
         >
           Delete team
         </Button>

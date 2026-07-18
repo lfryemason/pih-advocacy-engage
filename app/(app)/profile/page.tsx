@@ -11,8 +11,9 @@ export default function Profile() {
       <p className="mt-1 text-sm text-muted-foreground">
         Your Engage account details
       </p>
-      <ProfileForm />
-      <DeleteAccountSection />
+      <ProfileForm>
+        <DeleteAccountSection />
+      </ProfileForm>
     </div>
   );
 }
