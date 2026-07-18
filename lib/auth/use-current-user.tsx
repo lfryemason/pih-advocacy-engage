@@ -14,6 +14,7 @@ import { ORG_ID } from "@/lib/org";
 export type CurrentUser = {
   userId: string | null;
   isAdmin: boolean;
+  isFacilitator: boolean;
 };
 
 const CurrentUserContext = createContext<CurrentUser | null>(null);
@@ -21,13 +22,18 @@ const CurrentUserContext = createContext<CurrentUser | null>(null);
 export function CurrentUserProvider({
   userId,
   isAdmin,
+  isFacilitator,
   children,
 }: {
   userId: string;
   isAdmin: boolean;
+  isFacilitator: boolean;
   children: ReactNode;
 }) {
-  const value = useMemo(() => ({ userId, isAdmin }), [userId, isAdmin]);
+  const value = useMemo(
+    () => ({ userId, isAdmin, isFacilitator }),
+    [userId, isAdmin, isFacilitator],
+  );
   return (
     <CurrentUserContext.Provider value={value}>
       {children}
@@ -35,13 +41,15 @@ export function CurrentUserProvider({
   );
 }
 
-// Resolves the signed-in user and whether they're an admin so the UI can gate
-// privileged actions (e.g. deleting a meeting, viewing meeting details).
+// Resolves the signed-in user and whether they're an admin/facilitator so the
+// UI can gate privileged actions (e.g. deleting a meeting, viewing meeting
+// details).
 export function useCurrentUser(): CurrentUser {
   const context = useContext(CurrentUserContext);
   const [fetched, setFetched] = useState<CurrentUser>({
     userId: null,
     isAdmin: false,
+    isFacilitator: false,
   });
 
   useEffect(() => {
@@ -66,8 +74,10 @@ export function useCurrentUser(): CurrentUser {
           !!data &&
           (data.role === "super_admin" ||
             (data.role === "org_admin" && data.org_id === ORG_ID));
+        const isFacilitator =
+          !!data && data.role === "facilitator" && data.org_id === ORG_ID;
 
-        if (active) setFetched({ userId: user.id, isAdmin });
+        if (active) setFetched({ userId: user.id, isAdmin, isFacilitator });
       } catch {
         // Leave the default so privileged actions stay hidden if the lookup fails.
       }

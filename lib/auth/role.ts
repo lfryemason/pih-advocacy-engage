@@ -1,9 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import type { Database } from "@/lib/supabase/database.types";
 import type { User } from "@supabase/supabase-js";
-
-export type UserRole = Database["public"]["Enums"]["app_role"];
+import type { UserRole } from "./app-role";
 
 export type CurrentRole = {
   user_id: string;
