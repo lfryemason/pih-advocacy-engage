@@ -3,6 +3,6 @@ import { ForgotPasswordForm } from "@/components/forgot-password-form";
 
 export const metadata: Metadata = { title: "Forgot Password" };
 
-export default function Page() {
+export default async function Page() {
   return <ForgotPasswordForm />;
 }

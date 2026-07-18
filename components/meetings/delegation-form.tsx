@@ -151,10 +151,12 @@ export function DelegationForm({
                 lastName={member.last_name}
                 aria-hidden="true"
               />
-              <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium">{member.display_name}</p>
+              <div className="min-w-16 flex-1">
+                <p className="truncate text-sm font-medium">
+                  {member.display_name}
+                </p>
                 {member.display_teams.length > 0 && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="truncate text-xs text-muted-foreground">
                     {member.display_teams
                       .map((team) => team.team_name)
                       .join(", ")}

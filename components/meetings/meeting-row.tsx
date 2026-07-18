@@ -9,6 +9,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { TableCell, TableRow } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
 import { formatDate, formatTime } from "@/lib/meetings/format";
 import { isDelegationMember } from "@/lib/meetings/permissions";
@@ -31,10 +37,11 @@ export function MeetingRow({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { userId, isAdmin } = useCurrentUser();
+  const { userId, isAdmin, isFacilitator } = useCurrentUser();
   const canViewDetails =
     isPast ||
     isAdmin ||
+    isFacilitator ||
     isDelegationMember(userId, meeting.delegation_user_ids);
   const colSpan = 6 + (showRepColumn ? 1 : 0) + (isPast ? 1 : 0);
   const detailRowId = `meeting-detail-${meeting.id}`;
@@ -109,10 +116,21 @@ export function MeetingRow({
           {canViewDetails ? (
             (meeting.location ?? "—")
           ) : (
-            <EyeOff
-              aria-label="Location hidden"
-              className="h-4 w-4 text-muted-foreground"
-            />
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <EyeOff
+                    aria-label="Location hidden"
+                    tabIndex={0}
+                    className="h-4 w-4 text-muted-foreground"
+                  />
+                </TooltipTrigger>
+                <TooltipContent className="text-sm">
+                  Location is only shown to delegation members. Contact the
+                  scheduler/follow-up to be added to the meeting.
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </TableCell>
         {showRepColumn && (

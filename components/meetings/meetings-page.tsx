@@ -66,6 +66,7 @@ export function MeetingsPage() {
   const [myTeams, setMyTeams] = useState<
     { team_id: string; team_name: string }[]
   >([]);
+  const [personalRefreshKey, setPersonalRefreshKey] = useState(0);
 
   // Always reflects the latest committed filters so loadMore doesn't close over stale values
   const filtersRef = useRef(filters);
@@ -124,6 +125,11 @@ export function MeetingsPage() {
     loadInitial(f).finally(() => setApplyingFilters(false));
   }, [searchParams, loadInitial]);
 
+  const refreshAll = useCallback(() => {
+    loadInitial(filtersRef.current);
+    setPersonalRefreshKey((key) => key + 1);
+  }, [loadInitial]);
+
   const handleFiltersChange = (f: MeetingFilters) => {
     router.replace(pathname + filtersToSearch(f), { scroll: false });
   };
@@ -167,7 +173,7 @@ export function MeetingsPage() {
     <div className="flex flex-col p-8">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Meetings</h1>
-        <AddMeetingDialog onCreated={() => loadInitial(filtersRef.current)} />
+        <AddMeetingDialog onCreated={refreshAll} />
       </div>
       <MeetingsFilters
         filters={filters}
@@ -180,6 +186,7 @@ export function MeetingsPage() {
             mode="user"
             filters={filters}
             variant="pink"
+            refreshKey={personalRefreshKey}
           />
         </CollapsibleMeetingsGroup>
         {myTeams.length > 0 && (
@@ -195,6 +202,7 @@ export function MeetingsPage() {
                     teamId={team.team_id}
                     filters={filters}
                     variant="teal"
+                    refreshKey={personalRefreshKey}
                   />
                 </div>
               </div>
@@ -223,7 +231,7 @@ export function MeetingsPage() {
                 totalCount={upcoming.count}
                 onShowMore={() => loadMore("upcoming")}
                 disableLoadMore={loadingMore === "upcoming" || filtering}
-                onRefresh={() => loadInitial(filtersRef.current)}
+                onRefresh={refreshAll}
                 loading={applyingFilters}
               />
               <MeetingsSection
@@ -232,7 +240,7 @@ export function MeetingsPage() {
                 totalCount={past.count}
                 onShowMore={() => loadMore("past")}
                 disableLoadMore={loadingMore === "past" || filtering}
-                onRefresh={() => loadInitial(filtersRef.current)}
+                onRefresh={refreshAll}
                 isPast
                 loading={applyingFilters}
               />

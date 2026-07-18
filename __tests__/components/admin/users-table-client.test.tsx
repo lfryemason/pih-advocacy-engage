@@ -1,10 +1,15 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import {
   UsersTableClient,
   type AdminUserRow,
 } from "@/components/admin/users-table-client";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
 
 const ALL_TEAMS = [
   { name: "Alpha Team", slug: "alpha-team" },
@@ -16,7 +21,8 @@ function makeUser(overrides: Partial<AdminUserRow> = {}): AdminUserRow {
     user_id: "user-1",
     fullName: "Jane Doe",
     email: "jane@example.com",
-    isAdmin: false,
+    role: "member",
+    isPending: false,
     teams: [],
     ...overrides,
   };
@@ -27,7 +33,8 @@ function makeUsers(count: number): AdminUserRow[] {
     user_id: `user-${index + 1}`,
     fullName: `User ${String(index + 1).padStart(3, "0")}`,
     email: `user${index + 1}@example.com`,
-    isAdmin: false,
+    role: "member",
+    isPending: false,
     teams: [],
   }));
 }
@@ -57,8 +64,16 @@ describe("UsersTableClient — rendering", () => {
     render(
       <UsersTableClient
         users={[
-          makeUser({ user_id: "u1", fullName: "Admin User", isAdmin: true }),
-          makeUser({ user_id: "u2", fullName: "Regular User", isAdmin: false }),
+          makeUser({
+            user_id: "u1",
+            fullName: "Admin User",
+            role: "org_admin",
+          }),
+          makeUser({
+            user_id: "u2",
+            fullName: "Regular User",
+            role: "member",
+          }),
         ]}
         allTeams={[]}
       />,
@@ -67,6 +82,27 @@ describe("UsersTableClient — rendering", () => {
     const regularCell = screen.getByText("Regular User").closest("td");
     expect(adminCell?.querySelector("svg")).toBeInTheDocument();
     expect(regularCell?.querySelector("svg")).not.toBeInTheDocument();
+  });
+
+  it("disables the role select for the signed-in admin's own row but not for other rows", () => {
+    render(
+      <TooltipProvider>
+        <UsersTableClient
+          users={[
+            makeUser({ user_id: "u1", fullName: "Current Admin" }),
+            makeUser({ user_id: "u2", fullName: "Other User" }),
+          ]}
+          currentUserId="u1"
+          allTeams={[]}
+        />
+      </TooltipProvider>,
+    );
+    expect(
+      screen.getByRole("combobox", { name: "Role for Current Admin" }),
+    ).toBeDisabled();
+    expect(
+      screen.getByRole("combobox", { name: "Role for Other User" }),
+    ).not.toBeDisabled();
   });
 
   it("renders team links for users with teams", () => {
@@ -191,7 +227,7 @@ describe("UsersTableClient — team filter", () => {
 
   it("filters to users on a specific team", async () => {
     render(<UsersTableClient users={users} allTeams={ALL_TEAMS} />);
-    await userEvent.click(screen.getByRole("combobox"));
+    await userEvent.click(screen.getByRole("combobox", { name: "Team" }));
     await userEvent.click(screen.getByRole("option", { name: "Alpha Team" }));
     expect(screen.getByText("Alice Adams")).toBeInTheDocument();
     expect(screen.queryByText("Bob Brown")).not.toBeInTheDocument();
@@ -200,7 +236,7 @@ describe("UsersTableClient — team filter", () => {
 
   it('filters to users with no team when "No team" is selected', async () => {
     render(<UsersTableClient users={users} allTeams={ALL_TEAMS} />);
-    await userEvent.click(screen.getByRole("combobox"));
+    await userEvent.click(screen.getByRole("combobox", { name: "Team" }));
     await userEvent.click(screen.getByRole("option", { name: "No team" }));
     expect(screen.queryByText("Alice Adams")).not.toBeInTheDocument();
     expect(screen.queryByText("Bob Brown")).not.toBeInTheDocument();
@@ -209,9 +245,9 @@ describe("UsersTableClient — team filter", () => {
 
   it('shows all users when the filter is cleared to "All teams"', async () => {
     render(<UsersTableClient users={users} allTeams={ALL_TEAMS} />);
-    await userEvent.click(screen.getByRole("combobox"));
+    await userEvent.click(screen.getByRole("combobox", { name: "Team" }));
     await userEvent.click(screen.getByRole("option", { name: "Alpha Team" }));
-    await userEvent.click(screen.getByRole("combobox"));
+    await userEvent.click(screen.getByRole("combobox", { name: "Team" }));
     await userEvent.click(screen.getByRole("option", { name: "All teams" }));
     expect(screen.getByText("Alice Adams")).toBeInTheDocument();
     expect(screen.getByText("Bob Brown")).toBeInTheDocument();
@@ -281,7 +317,7 @@ describe("UsersTableClient — pagination", () => {
     render(<UsersTableClient users={users} allTeams={ALL_TEAMS} />);
     await userEvent.click(screen.getByRole("button", { name: "Next" }));
     expect(screen.getByText("Zara Zoom")).toBeInTheDocument();
-    await userEvent.click(screen.getByRole("combobox"));
+    await userEvent.click(screen.getByRole("combobox", { name: "Team" }));
     await userEvent.click(screen.getByRole("option", { name: "Alpha Team" }));
     expect(screen.getByText("1–1 of 1 user")).toBeInTheDocument();
     expect(screen.getByText("Zara Zoom")).toBeInTheDocument();

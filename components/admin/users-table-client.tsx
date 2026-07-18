@@ -2,11 +2,13 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { ShieldUser } from "lucide-react";
+import { Info, ShieldUser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 import { FilterCombobox } from "@/components/ui/combobox";
+import { PendingBadge } from "@/components/teams/pending-badge";
 import {
   Table,
   TableBody,
@@ -15,12 +17,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { createClient } from "@/lib/supabase/client";
+import { APP_ROLE_OPTIONS, type AssignableAppRole } from "@/lib/auth/app-role";
+import { useRoleChangeAction } from "@/lib/auth/use-role-change-action";
 
 export type AdminUserRow = {
   user_id: string;
   fullName: string;
   email: string;
-  isAdmin: boolean;
+  role: AssignableAppRole;
+  isPending: boolean;
   teams: { name: string; slug: string }[];
 };
 
@@ -29,14 +40,32 @@ const NO_TEAM_VALUE = "__no_team__";
 
 export function UsersTableClient({
   users,
+  currentUserId = null,
   allTeams,
 }: {
   users: AdminUserRow[];
+  currentUserId?: string | null;
   allTeams: { name: string; slug: string }[];
 }) {
   const [nameSearch, setNameSearch] = useState("");
   const [teamFilter, setTeamFilter] = useState("");
   const [page, setPage] = useState(1);
+  const {
+    isPending: isRoleChangePending,
+    error: actionError,
+    changeRole,
+  } = useRoleChangeAction();
+
+  const handleRoleChange = (user: AdminUserRow, newRole: AssignableAppRole) =>
+    changeRole(
+      user.user_id,
+      () =>
+        createClient().rpc("change_user_role", {
+          p_user_id: user.user_id,
+          p_new_role: newRole,
+        }),
+      (message) => `Failed to update role for ${user.fullName}: ${message}`,
+    );
 
   const filtered = useMemo(() => {
     const query = nameSearch.trim().toLowerCase();
@@ -93,19 +122,26 @@ export function UsersTableClient({
         </div>
       </div>
 
+      {actionError && (
+        <p role="alert" className="text-sm text-destructive">
+          {actionError}
+        </p>
+      )}
+
       <Table>
         <caption className="sr-only">Users</caption>
         <TableHeader className="[&_th]:text-primary-foreground [&_tr]:bg-primary [&_tr]:hover:bg-primary">
           <TableRow>
             <TableHead>Name</TableHead>
             <TableHead>Email</TableHead>
+            <TableHead>Role</TableHead>
             <TableHead>Teams</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {paginated.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={3} className="text-muted-foreground">
+              <TableCell colSpan={4} className="text-muted-foreground">
                 No users match your filters.
               </TableCell>
             </TableRow>
@@ -115,7 +151,7 @@ export function UsersTableClient({
                 <TableCell className="font-medium">
                   <span className="flex items-center gap-1.5">
                     {user.fullName}
-                    {user.isAdmin && (
+                    {user.role === "org_admin" && (
                       <>
                         <ShieldUser
                           size={14}
@@ -125,9 +161,51 @@ export function UsersTableClient({
                         <span className="sr-only">(admin)</span>
                       </>
                     )}
+                    {user.isPending && <PendingBadge />}
                   </span>
                 </TableCell>
                 <TableCell>{user.email}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-1.5">
+                    <Select
+                      aria-label={`Role for ${user.fullName}`}
+                      value={user.role}
+                      disabled={
+                        isRoleChangePending(user.user_id) ||
+                        user.user_id === currentUserId
+                      }
+                      onChange={(event) =>
+                        handleRoleChange(
+                          user,
+                          event.target.value as AssignableAppRole,
+                        )
+                      }
+                      className="min-w-36"
+                    >
+                      {APP_ROLE_OPTIONS.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </Select>
+                    {user.user_id === currentUserId && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            aria-label="You can't change your own role"
+                            className="shrink-0 text-muted-foreground"
+                          >
+                            <Info size={14} aria-hidden="true" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          You can&apos;t change your own role
+                        </TooltipContent>
+                      </Tooltip>
+                    )}
+                  </div>
+                </TableCell>
                 <TableCell>
                   {user.teams.length === 0 ? (
                     <span className="text-muted-foreground">—</span>

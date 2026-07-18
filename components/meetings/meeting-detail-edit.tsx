@@ -316,7 +316,7 @@ export function MeetingDetailEdit(props: Props) {
   return (
     <div className="p-4">
       <form onSubmit={props.onSubmit}>
-        <div className="grid gap-6 @[600px]:grid-cols-2">
+        <div className="grid gap-6 @[800px]:grid-cols-2">
           <LeftColumn {...columnProps} />
           <RightColumn {...columnProps} />
         </div>

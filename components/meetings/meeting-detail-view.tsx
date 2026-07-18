@@ -221,7 +221,9 @@ export function MeetingDetailView({
               {meeting.links.map((link) => (
                 <li key={`${link.label}::${link.url}`}>
                   <a
-                    href={link.url}
+                    href={
+                      URL.canParse(link.url) ? link.url : `https://${link.url}`
+                    }
                     target="_blank"
                     rel="noopener noreferrer"
                     className={cn(

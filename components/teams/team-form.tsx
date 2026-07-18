@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -13,26 +13,29 @@ import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 import { cn } from "@/lib/utils";
 import { TYPE_LABELS } from "@/lib/teams";
 import { DeleteTeamButton } from "@/components/teams/delete-team-button";
+import { FormActionBar } from "@/components/form-action-bar";
 
 type Team = Tables<"teams">;
 
-export function TeamForm({
+// Shared by TeamForm and EditTeamForm (which needs the Save button and
+// members table to sit between the fields and the rest of the page, outside
+// this hook's <form> element).
+export function useTeamForm({
   orgId,
   team,
   onDone,
   onCancel,
   cancelHref,
-  canDelete = false,
 }: {
   orgId: string;
   team?: Team;
   onDone?: () => void;
   onCancel?: () => void;
   cancelHref?: string;
-  canDelete?: boolean;
 }) {
   const router = useRouter();
   const isEdit = team !== undefined;
+  const formId = useId();
   // Editing always offers a way back to the team page; cancelling a create is
   // opt-in via onCancel/cancelHref (e.g. when embedded in a dialog, or linked
   // from a server-rendered page that can't pass a callback).
@@ -71,28 +74,41 @@ export function TeamForm({
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  type TeamPayload = {
+    name: string;
+    state: string | null;
+    type: string;
+    description: string | null;
+    founded_date: string | null;
+    congressional_districts: string[];
+  };
+
+  // Trim + validate the team fields, returning the payload or null. Kept
+  // separate from the write so EditTeamForm can run it *before* committing any
+  // staged member changes.
+  const validate = (): TeamPayload | null => {
     setError(null);
-
     const nameTrimmed = name.trim();
-    if (!nameTrimmed || !state || !type) {
-      setError("Name, state, and type are required.");
-      return;
+    if (!nameTrimmed || !type) {
+      setError("Name and type are required.");
+      return null;
     }
-
-    const supabase = createClient();
-    setIsSaving(true);
-
-    const payload = {
+    return {
       name: nameTrimmed,
-      state,
+      state: state || null,
       type,
       description: description.trim() || null,
       founded_date: foundedDate || null,
       congressional_districts: districts,
     };
+  };
 
+  // Write the team without navigating, so callers can coordinate it with other
+  // saves (e.g. member changes) and decide when to leave the page.
+  const commitTeam = async (
+    payload: TeamPayload,
+  ): Promise<{ ok: true; slug: string } | { ok: false; error: string }> => {
+    const supabase = createClient();
     try {
       if (isEdit) {
         const { error: updateError } = await supabase
@@ -100,40 +116,56 @@ export function TeamForm({
           .update(payload)
           .eq("id", team.id);
         if (updateError) throw updateError;
-        if (onDone) {
-          router.refresh();
-          onDone();
-        } else {
-          router.refresh();
-          router.replace(`/teams/${team.slug}`);
-        }
-      } else {
-        const { data, error: insertError } = await supabase
-          .from("teams")
-          .insert({ ...payload, org_id: orgId })
-          .select("id, slug")
-          .single();
-        if (insertError) throw insertError;
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const { error: membershipError } = await supabase
-            .from("team_memberships")
-            .insert({
-              team_id: data.id,
-              user_id: user.id,
-              org_id: orgId,
-              role: "team_coordinator",
-            });
-          if (membershipError) throw membershipError;
-        }
-        router.replace(`/teams/${data.slug}`);
+        return { ok: true, slug: team.slug };
       }
+      const { data, error: insertError } = await supabase
+        .from("teams")
+        .insert({ ...payload, org_id: orgId })
+        .select("id, slug")
+        .single();
+      if (insertError) throw insertError;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { error: membershipError } = await supabase
+          .from("team_memberships")
+          .insert({
+            team_id: data.id,
+            user_id: user.id,
+            org_id: orgId,
+            role: "team_coordinator",
+          });
+        if (membershipError) throw membershipError;
+      }
+      return { ok: true, slug: data.slug };
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to save team");
-    } finally {
-      setIsSaving(false);
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : "Failed to save team",
+      };
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = validate();
+    if (!payload) return;
+
+    setIsSaving(true);
+    const result = await commitTeam(payload);
+    setIsSaving(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
+    if (isEdit) {
+      router.refresh();
+      if (onDone) onDone();
+      else router.replace(`/teams/${team.slug}`);
+    } else {
+      router.replace(`/teams/${result.slug}`);
     }
   };
 
@@ -142,155 +174,195 @@ export function TeamForm({
 
   const districtOptions = getDistrictOptions(state);
 
-  return (
-    <form onSubmit={handleSubmit} noValidate className="flex max-w-lg flex-col">
-      <h2 className="text-lg font-semibold">Team settings</h2>
-      <p className="mt-1 text-xs text-muted-foreground">* Required</p>
-      <div className="mt-2 flex max-w-lg flex-col gap-6">
-        <div className="grid gap-2">
-          <Label htmlFor="team-name">
-            Name{" "}
-            <span aria-hidden="true" className="text-destructive">
-              *
-            </span>
-          </Label>
-          <Input
-            id="team-name"
-            value={name}
-            required
-            aria-required="true"
-            onChange={(e) => setName(e.target.value)}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="team-state">
-            State{" "}
-            <span aria-hidden="true" className="text-destructive">
-              *
-            </span>
-          </Label>
-          <Select
-            id="team-state"
-            value={state}
-            required
-            aria-required="true"
-            onChange={handleStateChange}
-          >
-            <option value="">Select a state</option>
-            {US_STATES.map((s) => (
-              <option key={s.code} value={s.code}>
-                {s.name}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <span className="text-sm font-medium leading-none">
-            Congressional Districts
+  const fields = (
+    <>
+      <div className="grid gap-2">
+        <Label htmlFor="team-name">
+          Name{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
           </span>
-          {districtOptions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              {state
-                ? "No districts available for this state."
-                : "Select a state first."}
-            </p>
-          ) : (
-            <div className="flex flex-wrap gap-x-4 gap-y-2">
-              {districtOptions.map((d) => (
-                <label
-                  key={d.value}
-                  className="flex items-center gap-1.5 text-sm"
-                >
-                  <input
-                    type="checkbox"
-                    value={d.value}
-                    checked={districts.includes(d.value)}
-                    onChange={() => handleDistrictToggle(d.value)}
-                    className="h-4 w-4 rounded border-input accent-primary"
-                  />
-                  {d.label}
-                </label>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="team-type">
-            Type{" "}
-            <span aria-hidden="true" className="text-destructive">
-              *
-            </span>
-          </Label>
-          <Select
-            id="team-type"
-            value={type}
-            required
-            aria-required="true"
-            onChange={(e) => setType(e.target.value)}
-          >
-            <option value="">Select a type</option>
-            {Object.entries(TYPE_LABELS).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </Select>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="team-description">Description</Label>
-          <textarea
-            id="team-description"
-            aria-label="Description"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
-            className={cn(textareaClass, "resize-none")}
-          />
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="team-founded-date">Founded date</Label>
-          <Input
-            id="team-founded-date"
-            type="date"
-            value={foundedDate}
-            onChange={(e) => setFoundedDate(e.target.value)}
-          />
-        </div>
-        {error && (
-          <p role="alert" className="text-sm text-red-500">
-            {error}
-          </p>
-        )}
-        <div className="flex items-center gap-2">
-          {team && canDelete && (
-            <DeleteTeamButton
-              teamId={team.id}
-              teamName={team.name}
-              disabled={isSaving}
-            />
-          )}
-          <div className="ml-auto flex gap-2">
-            {showCancel &&
-              (cancelHref && !onCancel ? (
-                <Button asChild variant="outline">
-                  <Link href={cancelHref}>Cancel</Link>
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                >
-                  Cancel
-                </Button>
-              ))}
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
-            </Button>
-          </div>
-        </div>
+        </Label>
+        <Input
+          id="team-name"
+          value={name}
+          required
+          aria-required="true"
+          onChange={(e) => setName(e.target.value)}
+        />
       </div>
-    </form>
+      <div className="grid gap-2">
+        <Label htmlFor="team-state">State</Label>
+        <Select id="team-state" value={state} onChange={handleStateChange}>
+          <option value="">Select a state</option>
+          {US_STATES.map((s) => (
+            <option key={s.code} value={s.code}>
+              {s.name}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div className="grid gap-2">
+        <span className="text-sm font-medium leading-none">
+          Congressional Districts
+        </span>
+        {districtOptions.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            {state
+              ? "No districts available for this state."
+              : "Select a state first."}
+          </p>
+        ) : (
+          <div className="flex flex-wrap gap-x-4 gap-y-2">
+            {districtOptions.map((d) => (
+              <label
+                key={d.value}
+                className="flex items-center gap-1.5 text-sm"
+              >
+                <input
+                  type="checkbox"
+                  value={d.value}
+                  checked={districts.includes(d.value)}
+                  onChange={() => handleDistrictToggle(d.value)}
+                  className="h-4 w-4 rounded border-input accent-primary"
+                />
+                {d.label}
+              </label>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="team-type">
+          Type{" "}
+          <span aria-hidden="true" className="text-destructive">
+            *
+          </span>
+        </Label>
+        <Select
+          id="team-type"
+          value={type}
+          required
+          aria-required="true"
+          onChange={(e) => setType(e.target.value)}
+        >
+          <option value="">Select a type</option>
+          {Object.entries(TYPE_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
+        </Select>
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="team-description">Description</Label>
+        <textarea
+          id="team-description"
+          aria-label="Description"
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={3}
+          className={cn(textareaClass, "resize-none")}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor="team-founded-date">Founded date</Label>
+        <Input
+          id="team-founded-date"
+          type="date"
+          value={foundedDate}
+          onChange={(e) => setFoundedDate(e.target.value)}
+        />
+      </div>
+      {error && (
+        <p role="alert" className="text-sm text-red-500">
+          {error}
+        </p>
+      )}
+    </>
+  );
+
+  return {
+    formId,
+    fields,
+    handleSubmit,
+    validate,
+    commitTeam,
+    isEdit,
+    isSaving,
+    showCancel,
+    handleCancel,
+    onCancel,
+    cancelHref,
+  };
+}
+
+export function TeamForm({
+  orgId,
+  team,
+  onDone,
+  onCancel,
+  cancelHref,
+  canDelete = false,
+}: {
+  orgId: string;
+  team?: Team;
+  onDone?: () => void;
+  onCancel?: () => void;
+  cancelHref?: string;
+  canDelete?: boolean;
+}) {
+  const {
+    formId,
+    fields,
+    handleSubmit,
+    isEdit,
+    isSaving,
+    showCancel,
+    handleCancel,
+  } = useTeamForm({ orgId, team, onDone, onCancel, cancelHref });
+
+  return (
+    <div className="flex flex-col">
+      <form
+        id={formId}
+        onSubmit={handleSubmit}
+        noValidate
+        className="flex max-w-lg flex-col"
+      >
+        <h2 className="text-lg font-semibold">Team settings</h2>
+        <p className="mt-1 text-xs text-muted-foreground">* Required</p>
+        <div className="mt-2 flex max-w-lg flex-col gap-6">{fields}</div>
+      </form>
+      <FormActionBar>
+        {team && canDelete && (
+          <DeleteTeamButton
+            teamId={team.id}
+            teamName={team.name}
+            disabled={isSaving}
+          />
+        )}
+        <div className="ml-auto flex gap-2">
+          {showCancel &&
+            (cancelHref && !onCancel ? (
+              <Button asChild variant="outline">
+                <Link href={cancelHref}>Cancel</Link>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isSaving}
+              >
+                Cancel
+              </Button>
+            ))}
+          <Button type="submit" form={formId} disabled={isSaving}>
+            {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
+          </Button>
+        </div>
+      </FormActionBar>
+    </div>
   );
 }

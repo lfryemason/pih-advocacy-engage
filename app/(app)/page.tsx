@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentUser } from "@/lib/auth/role";
 import { SuspenseWithDefaultFallback } from "@/components/suspense-with-default-fallback";
 import { BetaBanner } from "@/components/homepage/beta-banner";
 import { ResourceLinks } from "@/components/homepage/resource-links";
@@ -8,10 +8,9 @@ import { ResourceLinks } from "@/components/homepage/resource-links";
 export const metadata: Metadata = { title: "Home" };
 
 async function HomeContent() {
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.getUser();
+  const user = await getCurrentUser();
 
-  if (error || !data?.user) {
+  if (!user) {
     redirect("/auth/login");
   }
 

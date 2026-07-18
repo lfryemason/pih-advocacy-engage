@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getCurrentRole, type CurrentRole } from "./role";
+import { getCurrentRole, getCurrentUser, type CurrentRole } from "./role";
 
 export class ForbiddenError extends Error {
   constructor(message = "Forbidden") {
@@ -39,4 +39,19 @@ export async function getIsAdmin(orgId: string): Promise<boolean> {
   if (!current) return false;
   if (current.role === "super_admin") return true;
   return current.role === "org_admin" && current.org_id === orgId;
+}
+
+export async function getIsFacilitator(orgId: string): Promise<boolean> {
+  const current = await getCurrentRole();
+  if (!current) return false;
+  return current.role === "facilitator" && current.org_id === orgId;
+}
+
+/**
+ * For auth pages that only make sense when logged out (login, sign-up,
+ * forgot-password, etc).
+ */
+export async function requireGuest(): Promise<void> {
+  const user = await getCurrentUser();
+  if (user) redirect("/");
 }
