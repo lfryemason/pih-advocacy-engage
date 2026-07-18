@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ORG_ID } from "@/lib/org";
+import { getCurrentUser } from "@/lib/auth/role";
 import type { AssignableAppRole } from "@/lib/auth/app-role";
 import {
   UsersTableClient,
@@ -10,15 +11,13 @@ export async function UsersList() {
   const supabase = await createClient();
 
   const [
-    {
-      data: { user: currentUser },
-    },
+    currentUser,
     { data: profiles, error },
     { data: memberships },
     { data: teams },
     { data: roles, error: rolesError },
   ] = await Promise.all([
-    supabase.auth.getUser(),
+    getCurrentUser(),
     supabase
       .from("profiles")
       .select("user_id, first_name, last_name, email, is_placeholder")

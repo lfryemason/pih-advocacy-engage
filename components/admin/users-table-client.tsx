@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Info, ShieldUser } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/tooltip";
 import { createClient } from "@/lib/supabase/client";
 import { APP_ROLE_OPTIONS, type AssignableAppRole } from "@/lib/auth/app-role";
+import { useRoleChangeAction } from "@/lib/auth/use-role-change-action";
 
 export type AdminUserRow = {
   user_id: string;
@@ -47,41 +47,25 @@ export function UsersTableClient({
   currentUserId?: string | null;
   allTeams: { name: string; slug: string }[];
 }) {
-  const router = useRouter();
   const [nameSearch, setNameSearch] = useState("");
   const [teamFilter, setTeamFilter] = useState("");
   const [page, setPage] = useState(1);
-  const [changingUserIds, setChangingUserIds] = useState<Set<string>>(
-    new Set(),
-  );
-  const [actionError, setActionError] = useState<string | null>(null);
+  const {
+    isPending: isRoleChangePending,
+    error: actionError,
+    changeRole,
+  } = useRoleChangeAction();
 
-  const handleRoleChange = async (
-    user: AdminUserRow,
-    newRole: AssignableAppRole,
-  ) => {
-    setChangingUserIds((previousIds) => new Set(previousIds).add(user.user_id));
-    setActionError(null);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.rpc("change_user_role", {
-        p_user_id: user.user_id,
-        p_new_role: newRole,
-      });
-      if (error) throw error;
-      router.refresh();
-    } catch (error) {
-      setActionError(
-        `Failed to update role for ${user.fullName}: ${error instanceof Error ? error.message : "unknown error"}`,
-      );
-    } finally {
-      setChangingUserIds((previousIds) => {
-        const nextIds = new Set(previousIds);
-        nextIds.delete(user.user_id);
-        return nextIds;
-      });
-    }
-  };
+  const handleRoleChange = (user: AdminUserRow, newRole: AssignableAppRole) =>
+    changeRole(
+      user.user_id,
+      () =>
+        createClient().rpc("change_user_role", {
+          p_user_id: user.user_id,
+          p_new_role: newRole,
+        }),
+      (message) => `Failed to update role for ${user.fullName}: ${message}`,
+    );
 
   const filtered = useMemo(() => {
     const query = nameSearch.trim().toLowerCase();
@@ -187,7 +171,7 @@ export function UsersTableClient({
                       aria-label={`Role for ${user.fullName}`}
                       value={user.role}
                       disabled={
-                        changingUserIds.has(user.user_id) ||
+                        isRoleChangePending(user.user_id) ||
                         user.user_id === currentUserId
                       }
                       onChange={(event) =>

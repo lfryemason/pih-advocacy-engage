@@ -5,10 +5,17 @@ import { MeetingRow as MeetingRowComponent } from "@/components/meetings/meeting
 import { MeetingRow } from "@/lib/meetings/types";
 
 const mockUseCurrentUser = vi.hoisted(() =>
-  vi.fn((): { userId: string | null; isAdmin: boolean } => ({
-    userId: null,
-    isAdmin: false,
-  })),
+  vi.fn(
+    (): {
+      userId: string | null;
+      isAdmin: boolean;
+      isFacilitator: boolean;
+    } => ({
+      userId: null,
+      isAdmin: false,
+      isFacilitator: false,
+    }),
+  ),
 );
 
 vi.mock("@/lib/auth/use-current-user", () => ({
@@ -62,7 +69,11 @@ function renderRow(
 
 describe("MeetingRow — view gating", () => {
   it("hides the expand chevron and location for a non-admin, non-delegation user on an upcoming meeting", () => {
-    mockUseCurrentUser.mockReturnValue({ userId: "user-1", isAdmin: false });
+    mockUseCurrentUser.mockReturnValue({
+      userId: "user-1",
+      isAdmin: false,
+      isFacilitator: false,
+    });
     renderRow({ meeting: makeRow({ delegation_user_ids: ["someone-else"] }) });
 
     expect(
@@ -73,7 +84,26 @@ describe("MeetingRow — view gating", () => {
   });
 
   it("shows the chevron and location for an admin on an upcoming meeting", () => {
-    mockUseCurrentUser.mockReturnValue({ userId: "user-1", isAdmin: true });
+    mockUseCurrentUser.mockReturnValue({
+      userId: "user-1",
+      isAdmin: true,
+      isFacilitator: false,
+    });
+    renderRow({ meeting: makeRow({ delegation_user_ids: [] }) });
+
+    expect(
+      screen.getByRole("button", { name: /Expand meeting/ }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("123 Main St")).toBeInTheDocument();
+    expect(screen.queryByLabelText("Location hidden")).not.toBeInTheDocument();
+  });
+
+  it("shows the chevron and location for a facilitator on an upcoming meeting", () => {
+    mockUseCurrentUser.mockReturnValue({
+      userId: "user-1",
+      isAdmin: false,
+      isFacilitator: true,
+    });
     renderRow({ meeting: makeRow({ delegation_user_ids: [] }) });
 
     expect(
@@ -84,7 +114,11 @@ describe("MeetingRow — view gating", () => {
   });
 
   it("shows the chevron and location for a delegation member on an upcoming meeting", () => {
-    mockUseCurrentUser.mockReturnValue({ userId: "user-1", isAdmin: false });
+    mockUseCurrentUser.mockReturnValue({
+      userId: "user-1",
+      isAdmin: false,
+      isFacilitator: false,
+    });
     renderRow({
       meeting: makeRow({ delegation_user_ids: ["user-1", "user-2"] }),
     });
@@ -96,7 +130,11 @@ describe("MeetingRow — view gating", () => {
   });
 
   it("always shows the chevron and location for past meetings, regardless of admin/delegation status", () => {
-    mockUseCurrentUser.mockReturnValue({ userId: "user-1", isAdmin: false });
+    mockUseCurrentUser.mockReturnValue({
+      userId: "user-1",
+      isAdmin: false,
+      isFacilitator: false,
+    });
     renderRow({
       meeting: makeRow({ delegation_user_ids: [] }),
       isPast: true,
@@ -109,7 +147,11 @@ describe("MeetingRow — view gating", () => {
   });
 
   it("expands to show meeting details when an authorized user clicks the chevron", async () => {
-    mockUseCurrentUser.mockReturnValue({ userId: "user-1", isAdmin: true });
+    mockUseCurrentUser.mockReturnValue({
+      userId: "user-1",
+      isAdmin: true,
+      isFacilitator: false,
+    });
     renderRow({ meeting: makeRow({ id: "meeting-42" }) });
 
     await userEvent.click(
@@ -120,7 +162,11 @@ describe("MeetingRow — view gating", () => {
   });
 
   it("does not expand when a gated user clicks the row", async () => {
-    mockUseCurrentUser.mockReturnValue({ userId: "user-1", isAdmin: false });
+    mockUseCurrentUser.mockReturnValue({
+      userId: "user-1",
+      isAdmin: false,
+      isFacilitator: false,
+    });
     renderRow({
       meeting: makeRow({ id: "meeting-42", delegation_user_ids: [] }),
     });

@@ -3,8 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import type { User } from "@supabase/supabase-js";
 import type { UserRole } from "./app-role";
 
-export type { UserRole };
-
 export type CurrentRole = {
   user_id: string;
   role: UserRole;

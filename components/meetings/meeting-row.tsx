@@ -37,10 +37,11 @@ export function MeetingRow({
 }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const { userId, isAdmin } = useCurrentUser();
+  const { userId, isAdmin, isFacilitator } = useCurrentUser();
   const canViewDetails =
     isPast ||
     isAdmin ||
+    isFacilitator ||
     isDelegationMember(userId, meeting.delegation_user_ids);
   const colSpan = (isPast ? 8 : 7) - (showRepColumn ? 0 : 1);
   const detailRowId = `meeting-detail-${meeting.id}`;

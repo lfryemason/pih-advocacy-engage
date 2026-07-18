@@ -41,6 +41,12 @@ export async function getIsAdmin(orgId: string): Promise<boolean> {
   return current.role === "org_admin" && current.org_id === orgId;
 }
 
+export async function getIsFacilitator(orgId: string): Promise<boolean> {
+  const current = await getCurrentRole();
+  if (!current) return false;
+  return current.role === "facilitator" && current.org_id === orgId;
+}
+
 /**
  * For auth pages that only make sense when logged out (login, sign-up,
  * forgot-password, etc).

@@ -24,6 +24,7 @@ import { PendingBadge } from "@/components/teams/pending-badge";
 import { deletePlaceholderTeammate } from "@/lib/teams/placeholder-actions";
 import { ORG_ID } from "@/lib/org";
 import type { CurrentRole } from "@/lib/auth/role";
+import { useRoleChangeAction } from "@/lib/auth/use-role-change-action";
 import { Info, Trash2, X } from "lucide-react";
 
 export function MemberEditTable({
@@ -46,37 +47,35 @@ export function MemberEditTable({
     memberships.some((m) => m.user_id === currentRole.user_id);
   const canAddTeammate = isTeamMember || isAdmin;
   const canDeletePlaceholders = isAdmin;
-  const [changing, setChanging] = useState<string | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const {
+    isPending: isRoleChangePending,
+    error: roleChangeError,
+    changeRole,
+    clearError: clearRoleChangeError,
+  } = useRoleChangeAction();
+  const displayedError = actionError ?? roleChangeError;
 
-  const handleRoleChange = async (
+  const handleRoleChange = (
     userId: string,
     currentRole: string,
     newRole: string,
   ) => {
     if (newRole === currentRole) return;
-    const key = `${userId}-${currentRole}`;
-    setChanging(key);
     setActionError(null);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.rpc("change_member_role", {
-        p_team_id: teamId,
-        p_user_id: userId,
-        p_old_role: currentRole,
-        p_new_role: newRole,
-      });
-      if (error) throw error;
-      router.refresh();
-    } catch (err) {
-      setActionError(
-        err instanceof Error ? err.message : "Failed to update role",
-      );
-    } finally {
-      setChanging(null);
-    }
+    changeRole(
+      `${userId}-${currentRole}`,
+      () =>
+        createClient().rpc("change_member_role", {
+          p_team_id: teamId,
+          p_user_id: userId,
+          p_old_role: currentRole,
+          p_new_role: newRole,
+        }),
+      () => "Failed to update role",
+    );
   };
 
   const handleRemove = async (membership: MembershipWithProfile) => {
@@ -88,6 +87,7 @@ export function MemberEditTable({
     const key = `${membership.user_id}-${membership.role}`;
     setRemoving(key);
     setActionError(null);
+    clearRoleChangeError();
     try {
       const supabase = createClient();
       const { error } = await supabase
@@ -119,6 +119,7 @@ export function MemberEditTable({
     const key = `${membership.user_id}-${membership.role}`;
     setDeleting(key);
     setActionError(null);
+    clearRoleChangeError();
     const result = await deletePlaceholderTeammate({
       userId: membership.user_id,
       teamSlug,
@@ -139,9 +140,9 @@ export function MemberEditTable({
           <AddTeammateDialog teamId={teamId} teamSlug={teamSlug} />
         )}
       </div>
-      {actionError && (
+      {displayedError && (
         <p role="alert" className="mt-2 text-sm text-destructive">
-          {actionError}
+          {displayedError}
         </p>
       )}
       <div className="mt-2">
@@ -179,7 +180,9 @@ export function MemberEditTable({
                         <Select
                           aria-label={`Role for ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"}`}
                           value={m.role}
-                          disabled={changing === key || removing === key}
+                          disabled={
+                            isRoleChangePending(key) || removing === key
+                          }
                           onChange={(e) =>
                             handleRoleChange(m.user_id, m.role, e.target.value)
                           }
@@ -222,7 +225,9 @@ export function MemberEditTable({
                           variant="ghost"
                           size="sm"
                           className="px-1 text-muted-foreground hover:text-destructive"
-                          disabled={removing === key || changing === key}
+                          disabled={
+                            removing === key || isRoleChangePending(key)
+                          }
                           aria-label={`Remove ${[m.profiles?.first_name, m.profiles?.last_name].filter(Boolean).join(" ") || "member"} from team`}
                           onClick={() => handleRemove(m)}
                         >
