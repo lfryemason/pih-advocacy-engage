@@ -126,11 +126,12 @@ function MeetingsTable({
                   <TableHead>Date</TableHead>
                   <TableHead>Member of Congress</TableHead>
                   <TableHead>Staff Member</TableHead>
-                  <TableHead>Scheduler/Follow-up</TableHead>
-                  {isPast && (
+                  {isPast ? (
                     <TableHead className="text-center">
                       Follow-up Email
                     </TableHead>
+                  ) : (
+                    <TableHead>Scheduler</TableHead>
                   )}
                 </TableRow>
               </TableHeader>
@@ -171,17 +172,18 @@ function MeetingsTable({
                         meeting.congressional_contact_name
                       )}
                     </TableCell>
-                    <TableCell className="max-w-0 truncate">
-                      {meeting.scheduling_lead_name ?? "—"}
-                    </TableCell>
-                    {isPast && (
+                    {isPast ? (
                       <TableCell className="text-center">
-                        {meeting.follow_up_date ? (
+                        {meeting.follow_up_completed ? (
                           <CircleCheckBig
-                            aria-label="Follow-up sent"
+                            aria-label="Follow-up completed"
                             className="m-auto h-4 w-4 text-green-600"
                           />
                         ) : null}
+                      </TableCell>
+                    ) : (
+                      <TableCell className="max-w-0 truncate">
+                        {meeting.scheduling_lead_name ?? "—"}
                       </TableCell>
                     )}
                   </TableRow>

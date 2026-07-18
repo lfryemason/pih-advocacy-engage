@@ -50,7 +50,8 @@ export function MeetingDetailView({
 }) {
   const isPast = meeting.meeting_date < localDateString();
   const showChampion = isPast || meeting.champion_score != null;
-  const showFollowUp = isPast || meeting.follow_up_date != null;
+  const showFollowUp =
+    isPast || meeting.follow_up_date != null || meeting.follow_up_completed;
   const schedulingLeads = meeting.delegation_members.filter(
     (m) => m.role === "scheduling_lead",
   );
@@ -120,10 +121,18 @@ export function MeetingDetailView({
                 </Field>
               )}
               {showFollowUp && (
-                <Field label="Follow-up" isEmpty={!meeting.follow_up_date}>
+                <Field
+                  label="Follow-up"
+                  isEmpty={
+                    !meeting.follow_up_date && !meeting.follow_up_completed
+                  }
+                >
                   <p className="mt-1 text-sm">
+                    {meeting.follow_up_completed
+                      ? "Completed"
+                      : "Not completed"}
                     {meeting.follow_up_date &&
-                      formatDate(meeting.follow_up_date)}
+                      ` (${formatDate(meeting.follow_up_date)})`}
                   </p>
                 </Field>
               )}

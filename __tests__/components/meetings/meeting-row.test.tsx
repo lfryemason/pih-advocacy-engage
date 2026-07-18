@@ -49,6 +49,7 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
     location: "123 Main St",
     scheduling_lead_name: null,
     follow_up_date: null,
+    follow_up_completed: false,
     champion_score: null,
     delegation_user_ids: [],
     ...overrides,

@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { RepresentativeCombobox } from "@/components/meetings/create/representative-combobox";
 import { TeamCombobox } from "@/components/meetings/create/team-combobox";
 import { EditMeetingLinks } from "@/components/meetings/create/edit-meeting-links";
@@ -34,6 +35,7 @@ export type FormState = {
   location: string;
   notes: string;
   followUpDate: string;
+  followUpCompleted: boolean;
   championScore: string;
 };
 
@@ -126,6 +128,21 @@ function LeftColumn({ meetingId, form, onFormChange, staffers }: ColumnProps) {
             value={form.followUpDate}
             onChange={(e) => onFormChange({ followUpDate: e.target.value })}
           />
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id={`edit-followup-completed-${meetingId}`}
+              checked={form.followUpCompleted}
+              onCheckedChange={(checked) =>
+                onFormChange({ followUpCompleted: checked === true })
+              }
+            />
+            <Label
+              htmlFor={`edit-followup-completed-${meetingId}`}
+              className="text-sm font-normal"
+            >
+              Follow-up completed
+            </Label>
+          </div>
         </div>
       </div>
 

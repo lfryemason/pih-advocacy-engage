@@ -119,6 +119,7 @@ async function main() {
       location: pick(locations, i),
       notes: i % 4 === 0 ? "Discuss global health funding priorities." : null,
       follow_up_date: null,
+      follow_up_completed: false,
       champion_score: i % 6 === 0 ? null : (i % 5) + 1,
       links:
         i % 3 === 0
@@ -139,6 +140,7 @@ async function main() {
       notes:
         i % 3 === 0 ? "Discussed FY2026 global health appropriations." : null,
       follow_up_date: i % 4 === 0 ? date(-(i * 6 - 3)) : null,
+      follow_up_completed: i % 4 === 0,
       champion_score: i % 5 === 0 ? null : (i % 5) + 1,
       links: [],
       created_by: createdBy,

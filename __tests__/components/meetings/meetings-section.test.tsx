@@ -25,6 +25,7 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
     location: null,
     scheduling_lead_name: null,
     follow_up_date: null,
+    follow_up_completed: false,
     champion_score: null,
     delegation_user_ids: [],
     ...overrides,
@@ -220,9 +221,9 @@ describe("MeetingsSection", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows check icon when follow_up_date is set in past meetings", () => {
+  it("shows check icon when follow_up_completed is true in past meetings", () => {
     const meetings = [
-      makeRow({ meeting_date: "2020-01-01", follow_up_date: "2020-02-01" }),
+      makeRow({ meeting_date: "2020-01-01", follow_up_completed: true }),
     ];
     render(
       <MeetingsSection
@@ -232,12 +233,16 @@ describe("MeetingsSection", () => {
         isPast
       />,
     );
-    expect(screen.getByLabelText("Follow-up sent")).toBeInTheDocument();
+    expect(screen.getByLabelText("Follow-up completed")).toBeInTheDocument();
   });
 
-  it("shows blank follow-up cell when follow_up_date is null in past meetings", () => {
+  it("shows blank follow-up cell when follow_up_completed is false in past meetings, even with a future follow_up_date", () => {
     const meetings = [
-      makeRow({ meeting_date: "2020-01-01", follow_up_date: null }),
+      makeRow({
+        meeting_date: "2020-01-01",
+        follow_up_date: "2099-06-15",
+        follow_up_completed: false,
+      }),
     ];
     render(
       <MeetingsSection
@@ -247,7 +252,9 @@ describe("MeetingsSection", () => {
         isPast
       />,
     );
-    expect(screen.queryByLabelText("Follow-up sent")).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText("Follow-up completed"),
+    ).not.toBeInTheDocument();
   });
 
   it("shows Show more button when more meetings are available", () => {

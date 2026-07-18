@@ -161,6 +161,7 @@ export type Database = {
           congressional_contact_id: string | null;
           created_at: string;
           created_by: string;
+          follow_up_completed: boolean;
           follow_up_date: string | null;
           id: string;
           links: Json;
@@ -178,6 +179,7 @@ export type Database = {
           congressional_contact_id?: string | null;
           created_at?: string;
           created_by: string;
+          follow_up_completed?: boolean;
           follow_up_date?: string | null;
           id?: string;
           links?: Json;
@@ -195,6 +197,7 @@ export type Database = {
           congressional_contact_id?: string | null;
           created_at?: string;
           created_by?: string;
+          follow_up_completed?: boolean;
           follow_up_date?: string | null;
           id?: string;
           links?: Json;
