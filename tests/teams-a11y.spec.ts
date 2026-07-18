@@ -56,3 +56,23 @@ test("team edit page with add-teammate dialog open has no accessibility violatio
 
   expect(results.violations).toEqual([]);
 });
+
+test("team edit page with a member staged for removal has no accessibility violations", async ({
+  page,
+}) => {
+  // Removing asks for confirmation before staging.
+  page.on("dialog", (d) => d.accept());
+  await page.goto("/teams/seattle-high-school/edit");
+  await page.waitForLoadState("networkidle");
+  await page
+    .getByRole("row", { name: /Test/ })
+    .getByRole("button", { name: /^Remove/ })
+    .click();
+  await expect(page.getByRole("button", { name: "Undo" })).toBeVisible();
+
+  const results = await new AxeBuilder({ page })
+    .exclude("h1") // primary color on white fails contrast — known issue
+    .analyze();
+
+  expect(results.violations).toEqual([]);
+});

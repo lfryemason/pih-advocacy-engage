@@ -69,7 +69,10 @@ export function DeleteAccountSection() {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
-        <Button variant="destructive" className="mt-6">
+        <Button
+          variant="link"
+          className="px-0 text-destructive hover:text-destructive"
+        >
           Delete Account
         </Button>
       </DialogTrigger>

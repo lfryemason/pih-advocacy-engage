@@ -66,9 +66,15 @@ test.describe("placeholder teammates (signed in)", () => {
     await dialog.getByRole("button", { name: "Add teammate" }).click();
 
     await expect(dialog).not.toBeVisible();
+    // Staged locally with a Pending badge; nothing is written until Save.
     const row = page.getByRole("row", { name: /Dana Dialog/ });
     await expect(row).toBeVisible();
     await expect(row.getByText("Pending", { exact: true })).toBeVisible();
+
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page).toHaveURL(/\/teams\/haverford-bryn-mawr-college$/);
+    await page.goto("/teams/haverford-bryn-mawr-college/edit");
+    await expect(page.getByRole("row", { name: /Dana Dialog/ })).toBeVisible();
   });
 
   test("validation: a name is required", async ({ page }) => {
@@ -113,10 +119,17 @@ test.describe("placeholder teammates (signed in)", () => {
     await dialog.getByRole("button", { name: "Save changes" }).click();
 
     await expect(dialog).not.toBeVisible();
+    // Optimistic in the table; persisted only when the team is saved.
+    await expect(page.getByText("Penelope Placeholder")).toBeVisible();
+
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page).toHaveURL(/\/teams\/haverford-bryn-mawr-college$/);
+    await page.goto("/teams/haverford-bryn-mawr-college/edit");
     await expect(page.getByText("Penelope Placeholder")).toBeVisible();
   });
 
   test("placeholder can be removed from the team", async ({ page }) => {
+    // Confirm the removal, which stages it; Save writes it.
     page.on("dialog", (d) => d.accept());
     await page.goto("/teams/haverford-bryn-mawr-college/edit");
     await page
@@ -124,6 +137,9 @@ test.describe("placeholder teammates (signed in)", () => {
         name: "Remove Penny Placeholder from team",
       })
       .click();
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page).toHaveURL(/\/teams\/haverford-bryn-mawr-college$/);
+    await page.goto("/teams/haverford-bryn-mawr-college/edit");
     await expect(page.getByText("Penny Placeholder")).not.toBeVisible();
   });
 
@@ -154,6 +170,9 @@ test.describe("placeholder teammates (signed in)", () => {
         name: /Permanently delete Penny Placeholder/,
       })
       .click();
+    // Staged until Save, then the permanent delete runs.
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page).toHaveURL(/\/teams\/haverford-bryn-mawr-college$/);
     await expect(page.getByText("Penny Placeholder")).not.toBeVisible();
 
     // The auth user is gone, not just the membership.

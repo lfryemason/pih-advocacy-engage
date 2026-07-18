@@ -13,6 +13,7 @@ import { US_STATES, getDistrictOptions } from "@/lib/us-districts";
 import { cn } from "@/lib/utils";
 import { TYPE_LABELS } from "@/lib/teams";
 import { DeleteTeamButton } from "@/components/teams/delete-team-button";
+import { FormActionBar } from "@/components/form-action-bar";
 
 type Team = Tables<"teams">;
 
@@ -73,20 +74,26 @@ export function useTeamForm({
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError(null);
+  type TeamPayload = {
+    name: string;
+    state: string | null;
+    type: string;
+    description: string | null;
+    founded_date: string | null;
+    congressional_districts: string[];
+  };
 
+  // Trim + validate the team fields, returning the payload or null. Kept
+  // separate from the write so EditTeamForm can run it *before* committing any
+  // staged member changes.
+  const validate = (): TeamPayload | null => {
+    setError(null);
     const nameTrimmed = name.trim();
     if (!nameTrimmed || !type) {
       setError("Name and type are required.");
-      return;
+      return null;
     }
-
-    const supabase = createClient();
-    setIsSaving(true);
-
-    const payload = {
+    return {
       name: nameTrimmed,
       state: state || null,
       type,
@@ -94,7 +101,14 @@ export function useTeamForm({
       founded_date: foundedDate || null,
       congressional_districts: districts,
     };
+  };
 
+  // Write the team without navigating, so callers can coordinate it with other
+  // saves (e.g. member changes) and decide when to leave the page.
+  const commitTeam = async (
+    payload: TeamPayload,
+  ): Promise<{ ok: true; slug: string } | { ok: false; error: string }> => {
+    const supabase = createClient();
     try {
       if (isEdit) {
         const { error: updateError } = await supabase
@@ -102,40 +116,56 @@ export function useTeamForm({
           .update(payload)
           .eq("id", team.id);
         if (updateError) throw updateError;
-        if (onDone) {
-          router.refresh();
-          onDone();
-        } else {
-          router.refresh();
-          router.replace(`/teams/${team.slug}`);
-        }
-      } else {
-        const { data, error: insertError } = await supabase
-          .from("teams")
-          .insert({ ...payload, org_id: orgId })
-          .select("id, slug")
-          .single();
-        if (insertError) throw insertError;
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          const { error: membershipError } = await supabase
-            .from("team_memberships")
-            .insert({
-              team_id: data.id,
-              user_id: user.id,
-              org_id: orgId,
-              role: "team_coordinator",
-            });
-          if (membershipError) throw membershipError;
-        }
-        router.replace(`/teams/${data.slug}`);
+        return { ok: true, slug: team.slug };
       }
+      const { data, error: insertError } = await supabase
+        .from("teams")
+        .insert({ ...payload, org_id: orgId })
+        .select("id, slug")
+        .single();
+      if (insertError) throw insertError;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (user) {
+        const { error: membershipError } = await supabase
+          .from("team_memberships")
+          .insert({
+            team_id: data.id,
+            user_id: user.id,
+            org_id: orgId,
+            role: "team_coordinator",
+          });
+        if (membershipError) throw membershipError;
+      }
+      return { ok: true, slug: data.slug };
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to save team");
-    } finally {
-      setIsSaving(false);
+      return {
+        ok: false,
+        error: err instanceof Error ? err.message : "Failed to save team",
+      };
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = validate();
+    if (!payload) return;
+
+    setIsSaving(true);
+    const result = await commitTeam(payload);
+    setIsSaving(false);
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
+    if (isEdit) {
+      router.refresh();
+      if (onDone) onDone();
+      else router.replace(`/teams/${team.slug}`);
+    } else {
+      router.replace(`/teams/${result.slug}`);
     }
   };
 
@@ -256,6 +286,8 @@ export function useTeamForm({
     formId,
     fields,
     handleSubmit,
+    validate,
+    commitTeam,
     isEdit,
     isSaving,
     showCancel,
@@ -280,45 +312,57 @@ export function TeamForm({
   cancelHref?: string;
   canDelete?: boolean;
 }) {
-  const { fields, handleSubmit, isEdit, isSaving, showCancel, handleCancel } =
-    useTeamForm({ orgId, team, onDone, onCancel, cancelHref });
+  const {
+    formId,
+    fields,
+    handleSubmit,
+    isEdit,
+    isSaving,
+    showCancel,
+    handleCancel,
+  } = useTeamForm({ orgId, team, onDone, onCancel, cancelHref });
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex max-w-lg flex-col">
-      <h2 className="text-lg font-semibold">Team settings</h2>
-      <p className="mt-1 text-xs text-muted-foreground">* Required</p>
-      <div className="mt-2 flex max-w-lg flex-col gap-6">
-        {fields}
-        <div className="flex items-center gap-2">
-          {team && canDelete && (
-            <DeleteTeamButton
-              teamId={team.id}
-              teamName={team.name}
-              disabled={isSaving}
-            />
-          )}
-          <div className="ml-auto flex gap-2">
-            {showCancel &&
-              (cancelHref && !onCancel ? (
-                <Button asChild variant="outline">
-                  <Link href={cancelHref}>Cancel</Link>
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleCancel}
-                  disabled={isSaving}
-                >
-                  Cancel
-                </Button>
-              ))}
-            <Button type="submit" disabled={isSaving}>
-              {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
-            </Button>
-          </div>
+    <div className="flex flex-col">
+      <form
+        id={formId}
+        onSubmit={handleSubmit}
+        noValidate
+        className="flex max-w-lg flex-col"
+      >
+        <h2 className="text-lg font-semibold">Team settings</h2>
+        <p className="mt-1 text-xs text-muted-foreground">* Required</p>
+        <div className="mt-2 flex max-w-lg flex-col gap-6">{fields}</div>
+      </form>
+      <FormActionBar>
+        {team && canDelete && (
+          <DeleteTeamButton
+            teamId={team.id}
+            teamName={team.name}
+            disabled={isSaving}
+          />
+        )}
+        <div className="ml-auto flex gap-2">
+          {showCancel &&
+            (cancelHref && !onCancel ? (
+              <Button asChild variant="outline">
+                <Link href={cancelHref}>Cancel</Link>
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isSaving}
+              >
+                Cancel
+              </Button>
+            ))}
+          <Button type="submit" form={formId} disabled={isSaving}>
+            {isSaving ? "Saving..." : isEdit ? "Save" : "Create team"}
+          </Button>
         </div>
-      </div>
-    </form>
+      </FormActionBar>
+    </div>
   );
 }

@@ -2,28 +2,15 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AddTeammateDialog } from "@/components/teams/add-teammate-dialog";
-import {
-  createPlaceholderTeammate,
-  updatePlaceholderTeammate,
-} from "@/lib/teams/placeholder-actions";
 import { createClient } from "@/lib/supabase/client";
 
-vi.mock("@/lib/teams/placeholder-actions", () => ({
-  createPlaceholderTeammate: vi.fn(),
-  updatePlaceholderTeammate: vi.fn(),
-}));
-
+// The dialog no longer writes anything itself — it reports the collected fields
+// to the parent via `onStage`, which stages them until the team is saved. The
+// Supabase client is only used to prefill an existing placeholder's profile.
 vi.mock("@/lib/supabase/client", () => ({
   createClient: vi.fn(),
 }));
 
-const mockRouterRefresh = vi.fn();
-vi.mock("next/navigation", () => ({
-  useRouter: () => ({ refresh: mockRouterRefresh }),
-}));
-
-const mockedCreate = vi.mocked(createPlaceholderTeammate);
-const mockedUpdate = vi.mocked(updatePlaceholderTeammate);
 const mockedCreateClient = vi.mocked(createClient);
 
 function mockProfileFetch(
@@ -40,14 +27,14 @@ function mockProfileFetch(
   } as unknown as ReturnType<typeof createClient>);
 }
 
-describe("AddTeammateDialog (create)", () => {
+describe("AddTeammateDialog (add)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("opens the dialog when the trigger is clicked", async () => {
     const user = userEvent.setup();
-    render(<AddTeammateDialog teamId="team-1" teamSlug="my-team" />);
+    render(<AddTeammateDialog onStage={vi.fn()} />);
 
     await user.click(screen.getByRole("button", { name: /add teammate/i }));
     expect(
@@ -58,8 +45,9 @@ describe("AddTeammateDialog (create)", () => {
   });
 
   it("requires a first or last name", async () => {
+    const onStage = vi.fn();
     const user = userEvent.setup();
-    render(<AddTeammateDialog teamId="team-1" teamSlug="my-team" />);
+    render(<AddTeammateDialog onStage={onStage} />);
 
     await user.click(screen.getByRole("button", { name: /add teammate/i }));
     await user.type(screen.getByLabelText(/Email/), "new@example.com");
@@ -68,13 +56,13 @@ describe("AddTeammateDialog (create)", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "A first or last name is required.",
     );
-    expect(mockedCreate).not.toHaveBeenCalled();
+    expect(onStage).not.toHaveBeenCalled();
   });
 
-  it("submits the placeholder and closes on success", async () => {
-    mockedCreate.mockResolvedValue({ ok: true, userId: "new-user" });
+  it("stages the teammate and closes on submit", async () => {
+    const onStage = vi.fn();
     const user = userEvent.setup();
-    render(<AddTeammateDialog teamId="team-1" teamSlug="my-team" />);
+    render(<AddTeammateDialog onStage={onStage} />);
 
     await user.click(screen.getByRole("button", { name: /add teammate/i }));
     await user.type(screen.getByLabelText(/Email/), "new@example.com");
@@ -88,50 +76,30 @@ describe("AddTeammateDialog (create)", () => {
     await user.click(screen.getByRole("button", { name: "Add teammate" }));
 
     await waitFor(() => {
-      expect(mockedCreate).toHaveBeenCalledWith({
-        teamId: "team-1",
+      expect(onStage).toHaveBeenCalledWith({
         email: "new@example.com",
-        firstName: "Jordan",
-        lastName: "Rivera",
-        pronouns: "",
-        state: "WA",
-        district: "",
         role: "advocacy_lead",
+        fields: {
+          firstName: "Jordan",
+          lastName: "Rivera",
+          pronouns: "",
+          state: "WA",
+          district: "",
+        },
       });
     });
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
-    expect(mockRouterRefresh).toHaveBeenCalled();
-  });
-
-  it("shows a server error via role=alert and stays open", async () => {
-    mockedCreate.mockResolvedValue({
-      ok: false,
-      error: "Someone with this email already exists.",
-    });
-    const user = userEvent.setup();
-    render(<AddTeammateDialog teamId="team-1" teamSlug="my-team" />);
-
-    await user.click(screen.getByRole("button", { name: /add teammate/i }));
-    await user.type(screen.getByLabelText(/Email/), "taken@example.com");
-    await user.type(screen.getByLabelText("First Name"), "Jordan");
-    await user.click(screen.getByRole("button", { name: "Add teammate" }));
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Someone with this email already exists.",
-    );
-    expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(mockRouterRefresh).not.toHaveBeenCalled();
   });
 });
 
-describe("AddTeammateDialog (edit)", () => {
+describe("AddTeammateDialog (edit committed placeholder)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("prefills from the profile, disables email, and submits an update", async () => {
+  it("prefills from the profile, disables email, and stages the fields", async () => {
     mockProfileFetch({
       email: "pending@example.com",
       first_name: "Sam",
@@ -140,15 +108,9 @@ describe("AddTeammateDialog (edit)", () => {
       state: "WA",
       congressional_district: null,
     });
-    mockedUpdate.mockResolvedValue({ ok: true, userId: "user-9" });
+    const onStage = vi.fn();
     const user = userEvent.setup();
-    render(
-      <AddTeammateDialog
-        teamId="team-1"
-        teamSlug="my-team"
-        editUserId="user-9"
-      />,
-    );
+    render(<AddTeammateDialog loadUserId="user-9" onStage={onStage} />);
 
     await user.click(
       screen.getByRole("button", { name: "Edit placeholder teammate" }),
@@ -168,19 +130,20 @@ describe("AddTeammateDialog (edit)", () => {
     await user.click(screen.getByRole("button", { name: "Save changes" }));
 
     await waitFor(() => {
-      expect(mockedUpdate).toHaveBeenCalledWith({
-        userId: "user-9",
-        teamSlug: "my-team",
-        firstName: "Samuel",
-        lastName: "Lee",
-        pronouns: "they/them",
-        state: "WA",
-        district: "",
-      });
+      expect(onStage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fields: {
+            firstName: "Samuel",
+            lastName: "Lee",
+            pronouns: "they/them",
+            state: "WA",
+            district: "",
+          },
+        }),
+      );
     });
     await waitFor(() => {
       expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
     });
-    expect(mockRouterRefresh).toHaveBeenCalled();
   });
 });
