@@ -33,6 +33,7 @@ export function UserSearchCombobox({
   focusOnMount,
   label = "Search members by name",
   placeholder = "Search by name…",
+  groupByTeam = true,
 }: {
   selectedProfile: ProfileSearchResult | null;
   onSelect: (
@@ -46,6 +47,7 @@ export function UserSearchCombobox({
   focusOnMount?: boolean;
   label?: string;
   placeholder?: string;
+  groupByTeam?: boolean;
 }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<ProfileSearchResult[]>([]);
@@ -69,26 +71,48 @@ export function UserSearchCombobox({
     };
   }, []);
 
-  const filteredInitialGroups = useMemo(
-    () =>
-      myTeamGroups
-        .map((group) => ({
-          ...group,
-          profiles: group.profiles.filter(
-            (profile) => !excludedUserIds.has(profile.user_id),
-          ),
-        }))
-        .filter((group) => group.profiles.length > 0),
-    [myTeamGroups, excludedUserIds],
-  );
+  const filteredInitialGroups = useMemo((): TeamGroup[] => {
+    const groups = myTeamGroups
+      .map((group) => ({
+        ...group,
+        profiles: group.profiles.filter(
+          (profile) => !excludedUserIds.has(profile.user_id),
+        ),
+      }))
+      .filter((group) => group.profiles.length > 0);
+
+    if (groupByTeam) return groups;
+
+    const seen = new Set<string>();
+    const profiles: ProfileSearchResult[] = [];
+    for (const group of groups) {
+      for (const profile of group.profiles) {
+        if (!seen.has(profile.user_id)) {
+          seen.add(profile.user_id);
+          profiles.push(profile);
+        }
+      }
+    }
+    return profiles.length > 0
+      ? [{ team_id: "__none__", team_name: "All users", profiles }]
+      : [];
+  }, [myTeamGroups, excludedUserIds, groupByTeam]);
 
   const groupedResults = useMemo((): TeamGroup[] => {
     if (!searchQuery.trim()) return [];
+    const filtered = searchResults.filter(
+      (result) => !excludedUserIds.has(result.user_id),
+    );
+
+    if (!groupByTeam) {
+      return filtered.length > 0
+        ? [{ team_id: "__none__", team_name: "All users", profiles: filtered }]
+        : [];
+    }
+
     const map = new Map<string, TeamGroup>();
     const noTeam: ProfileSearchResult[] = [];
-    for (const result of searchResults.filter(
-      (result) => !excludedUserIds.has(result.user_id),
-    )) {
+    for (const result of filtered) {
       if (result.teams.length === 0) {
         noTeam.push(result);
       } else {
@@ -113,7 +137,7 @@ export function UserSearchCombobox({
       });
     }
     return groups;
-  }, [searchResults, searchQuery, excludedUserIds]);
+  }, [searchResults, searchQuery, excludedUserIds, groupByTeam]);
 
   const runSearch = useCallback(
     (query: string) => {
@@ -332,10 +356,15 @@ export function UserSearchCombobox({
                           key={`${profile.user_id}-${group.team_id}`}
                           value={`${profile.user_id}::${group.team_id}`}
                           onSelect={() =>
-                            selectProfile(profile, {
-                              team_id: group.team_id,
-                              team_name: group.team_name,
-                            })
+                            selectProfile(
+                              profile,
+                              group.team_id !== "__none__"
+                                ? {
+                                    team_id: group.team_id,
+                                    team_name: group.team_name,
+                                  }
+                                : undefined,
+                            )
                           }
                           className="cursor-pointer flex-col items-start"
                         >

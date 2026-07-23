@@ -45,7 +45,7 @@ test("team edit page with add-teammate dialog open has no accessibility violatio
 }) => {
   await page.goto("/teams/seattle-high-school/edit");
   await page.waitForLoadState("networkidle");
-  await page.getByRole("button", { name: "Add teammate" }).click();
+  await page.getByRole("button", { name: "Create new user" }).click();
   await expect(
     page.getByRole("dialog", { name: "Add teammate" }),
   ).toBeVisible();

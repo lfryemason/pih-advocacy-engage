@@ -37,6 +37,7 @@ export function AddExistingMemberSearch({
         isLoadingInitial={isLoadingInitial}
         label="Search users to add to this team"
         placeholder="Add existing user"
+        groupByTeam={false}
       />
     </div>
   );

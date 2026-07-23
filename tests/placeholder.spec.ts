@@ -57,7 +57,7 @@ test.describe("placeholder teammates (signed in)", () => {
     // address would collide on re-runs.
     const email = `dana-${Date.now()}@example.com`;
     await page.goto("/teams/haverford-bryn-mawr-college/edit");
-    await page.getByRole("button", { name: "Add teammate" }).click();
+    await page.getByRole("button", { name: "Create new user" }).click();
 
     const dialog = page.getByRole("dialog", { name: "Add teammate" });
     await dialog.getByLabel("Email").fill(email);
@@ -79,7 +79,7 @@ test.describe("placeholder teammates (signed in)", () => {
 
   test("validation: a name is required", async ({ page }) => {
     await page.goto("/teams/haverford-bryn-mawr-college/edit");
-    await page.getByRole("button", { name: "Add teammate" }).click();
+    await page.getByRole("button", { name: "Create new user" }).click();
 
     const dialog = page.getByRole("dialog", { name: "Add teammate" });
     await dialog.getByLabel("Email").fill("nameless@example.com");
@@ -97,7 +97,7 @@ test.describe("placeholder teammates (signed in)", () => {
     await page.goto("/teams/portland-university/edit");
     await expect(page.getByText("Members", { exact: true })).toBeVisible();
     await expect(
-      page.getByRole("button", { name: "Add teammate" }),
+      page.getByRole("button", { name: "Create new user" }),
     ).not.toBeVisible();
   });
 
