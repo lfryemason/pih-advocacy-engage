@@ -165,7 +165,8 @@ export type Database = {
           follow_up_date: string | null;
           id: string;
           links: Json;
-          location: Json | null;
+          location: string | null;
+          location_json: Json | null;
           meeting_date: string;
           meeting_time: string | null;
           notes: string | null;
@@ -183,7 +184,8 @@ export type Database = {
           follow_up_date?: string | null;
           id?: string;
           links?: Json;
-          location?: Json | null;
+          location?: string | null;
+          location_json?: Json | null;
           meeting_date: string;
           meeting_time?: string | null;
           notes?: string | null;
@@ -201,7 +203,8 @@ export type Database = {
           follow_up_date?: string | null;
           id?: string;
           links?: Json;
-          location?: Json | null;
+          location?: string | null;
+          location_json?: Json | null;
           meeting_date?: string;
           meeting_time?: string | null;
           notes?: string | null;

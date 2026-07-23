@@ -117,7 +117,7 @@ async function main() {
       congressional_contact_id:
         staffers?.[i % (staffers?.length ?? 1)]?.id ?? null,
       primary_team_id: teams?.[i % (teams?.length ?? 1)]?.id ?? null,
-      location: pick(locations, i),
+      location_json: pick(locations, i),
       notes: i % 4 === 0 ? "Discuss global health funding priorities." : null,
       follow_up_date: null,
       follow_up_completed: false,
@@ -137,7 +137,7 @@ async function main() {
       congressional_contact_id:
         staffers?.[i % (staffers?.length ?? 1)]?.id ?? null,
       primary_team_id: teams?.[i % (teams?.length ?? 1)]?.id ?? null,
-      location: pick(locations, i + 2),
+      location_json: pick(locations, i + 2),
       notes:
         i % 3 === 0 ? "Discussed FY2026 global health appropriations." : null,
       follow_up_date: i % 4 === 0 ? date(-(i * 6 - 3)) : null,

@@ -28,7 +28,7 @@ type RawRow = {
   representative_id: string;
   congressional_contact_id: string | null;
   primary_team_id: string | null;
-  location: unknown;
+  location_json: unknown;
   follow_up_date: string | null;
   follow_up_completed: boolean;
   champion_score: number | null;
@@ -75,7 +75,7 @@ function mapRow(row: RawRow): MeetingRow {
     primary_team_id: row.primary_team_id,
     primary_team_name: row.teams?.name ?? null,
     primary_team_slug: row.teams?.slug ?? null,
-    location: parseMeetingLocation(row.location),
+    location: parseMeetingLocation(row.location_json),
     scheduling_lead_name: schedulingLead?.profiles
       ? [schedulingLead.profiles.first_name, schedulingLead.profiles.last_name]
           .filter(Boolean)
@@ -96,7 +96,7 @@ const SELECT = `
   representative_id,
   congressional_contact_id,
   primary_team_id,
-  location,
+  location_json,
   follow_up_date,
   follow_up_completed,
   champion_score,
@@ -196,17 +196,17 @@ export async function fetchMeetings(
 
   // Location filters apply to the meetings table's own jsonb column.
   if (filters.isVirtual === true) {
-    query = query.filter("location->>isVirtual", "eq", "true");
+    query = query.filter("location_json->>isVirtual", "eq", "true");
   } else if (filters.isVirtual === false) {
     // In-person includes meetings with no location set at all.
-    query = query.or("location->>isVirtual.eq.false,location.is.null");
+    query = query.or("location_json->>isVirtual.eq.false,location_json.is.null");
   }
   if (filters.buildings.length > 0) {
     // ilike (no wildcards) gives a case-insensitive exact match per building.
     const ors = filters.buildings
       .map((b) => sanitizeBuildingFilter(b))
       .filter(Boolean)
-      .map((b) => `location->>building.ilike.${b}`)
+      .map((b) => `location_json->>building.ilike.${b}`)
       .join(",");
     if (ors) query = query.or(ors);
   }
@@ -236,15 +236,15 @@ export async function fetchMeetingBuildings(
 ): Promise<string[]> {
   const { data, error } = await supabase
     .from("meetings")
-    .select("location")
+    .select("location_json")
     .eq("org_id", ORG_ID)
-    .not("location", "is", null);
+    .not("location_json", "is", null);
 
   if (error) throw error;
 
   const seen = new Map<string, string>();
-  for (const row of (data as unknown as { location: unknown }[]) ?? []) {
-    const building = parseMeetingLocation(row.location)?.building.trim();
+  for (const row of (data as unknown as { location_json: unknown }[]) ?? []) {
+    const building = parseMeetingLocation(row.location_json)?.building.trim();
     if (!building) continue;
     const key = building.toLowerCase();
     if (!seen.has(key)) seen.set(key, building);
@@ -276,7 +276,7 @@ export async function createMeeting(
       congressional_contact_id: values.congressional_contact_id,
       primary_team_id: values.primary_team_id,
       notes: values.notes,
-      location: values.location,
+      location_json: values.location,
       links,
       created_by: user.id,
     })
@@ -329,7 +329,7 @@ type RawDetailDelegationMember = {
 
 type RawDetailRow = Omit<RawRow, "meeting_delegation_members"> & {
   notes: string | null;
-  location: unknown;
+  location_json: unknown;
   links: MeetingLink[] | null;
   meeting_delegation_members: RawDetailDelegationMember[];
 };
@@ -346,7 +346,7 @@ const SELECT_DETAIL = `
   follow_up_completed,
   champion_score,
   notes,
-  location,
+  location_json,
   links,
   representatives!inner ( bioguide_id, official_full_name, pronouns, state, district, party ),
   staffers ( first_name, last_name ),
@@ -394,7 +394,7 @@ export async function fetchMeetingDetail(
   return {
     ...mapRow(row),
     notes: row.notes,
-    location: parseMeetingLocation(row.location),
+    location: parseMeetingLocation(row.location_json),
     links: row.links ?? [],
     delegation_members,
     represented_teams,
@@ -419,7 +419,7 @@ export async function updateMeeting(
       congressional_contact_id: values.congressional_contact_id,
       primary_team_id: values.primary_team_id,
       notes: values.notes,
-      location: values.location,
+      location_json: values.location,
       follow_up_date: values.follow_up_date,
       follow_up_completed: values.follow_up_completed,
       champion_score: values.champion_score,
