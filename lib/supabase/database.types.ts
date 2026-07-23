@@ -166,6 +166,7 @@ export type Database = {
           id: string;
           links: Json;
           location: string | null;
+          location_json: Json | null;
           meeting_date: string;
           meeting_time: string | null;
           notes: string | null;
@@ -184,6 +185,7 @@ export type Database = {
           id?: string;
           links?: Json;
           location?: string | null;
+          location_json?: Json | null;
           meeting_date: string;
           meeting_time?: string | null;
           notes?: string | null;
@@ -202,6 +204,7 @@ export type Database = {
           id?: string;
           links?: Json;
           location?: string | null;
+          location_json?: Json | null;
           meeting_date?: string;
           meeting_time?: string | null;
           notes?: string | null;
