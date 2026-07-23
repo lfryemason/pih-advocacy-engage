@@ -79,6 +79,7 @@ describe("DelegationForm — add member", () => {
         first_name: "Bob",
         last_name: "Jones",
         pronouns: null,
+        email: "bob@example.com",
         teams: [{ team_id: "team-2", team_name: "Advocacy" }],
       },
     ]);

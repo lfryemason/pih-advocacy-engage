@@ -168,9 +168,9 @@ export function AddTeammateDialog({
             <Pencil size={14} aria-hidden="true" />
           </Button>
         ) : (
-          <Button size="sm" variant="outline">
+          <Button variant="outline">
             <UserPlus className="h-4 w-4" aria-hidden="true" />
-            Add teammate
+            Create new user
           </Button>
         )}
       </DialogTrigger>
