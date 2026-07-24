@@ -185,7 +185,7 @@ describe("EditTeamForm — Save commits members and team fields together", () =>
     );
 
     await userEvent.type(
-      screen.getByPlaceholderText("Add existing member…"),
+      screen.getByPlaceholderText("Add existing user"),
       "Jamie",
     );
     await screen.findByText("Jamie Lee");

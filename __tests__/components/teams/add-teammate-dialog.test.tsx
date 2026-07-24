@@ -36,7 +36,7 @@ describe("AddTeammateDialog (add)", () => {
     const user = userEvent.setup();
     render(<AddTeammateDialog onStage={vi.fn()} />);
 
-    await user.click(screen.getByRole("button", { name: /add teammate/i }));
+    await user.click(screen.getByRole("button", { name: /create new user/i }));
     expect(
       screen.getByRole("dialog", { name: "Add teammate" }),
     ).toBeInTheDocument();
@@ -49,7 +49,7 @@ describe("AddTeammateDialog (add)", () => {
     const user = userEvent.setup();
     render(<AddTeammateDialog onStage={onStage} />);
 
-    await user.click(screen.getByRole("button", { name: /add teammate/i }));
+    await user.click(screen.getByRole("button", { name: /create new user/i }));
     await user.type(screen.getByLabelText(/Email/), "new@example.com");
     await user.click(screen.getByRole("button", { name: "Add teammate" }));
 
@@ -64,7 +64,7 @@ describe("AddTeammateDialog (add)", () => {
     const user = userEvent.setup();
     render(<AddTeammateDialog onStage={onStage} />);
 
-    await user.click(screen.getByRole("button", { name: /add teammate/i }));
+    await user.click(screen.getByRole("button", { name: /create new user/i }));
     await user.type(screen.getByLabelText(/Email/), "new@example.com");
     await user.type(screen.getByLabelText("First Name"), "Jordan");
     await user.type(screen.getByLabelText("Last Name"), "Rivera");

@@ -176,10 +176,7 @@ describe("MemberEditTable — add existing member", () => {
     const user = userEvent.setup();
     render(<Harness memberships={[COORDINATOR]} currentRole={CURRENT_USER} />);
 
-    await user.type(
-      screen.getByPlaceholderText("Add existing member…"),
-      "Jamie",
-    );
+    await user.type(screen.getByPlaceholderText("Add existing user"), "Jamie");
     await screen.findByText("Jamie Lee");
     await user.click(screen.getByText("Jamie Lee"));
 
@@ -194,10 +191,7 @@ describe("MemberEditTable — add existing member", () => {
     const user = userEvent.setup();
     render(<Harness memberships={[COORDINATOR]} currentRole={CURRENT_USER} />);
 
-    await user.type(
-      screen.getByPlaceholderText("Add existing member…"),
-      "Jamie",
-    );
+    await user.type(screen.getByPlaceholderText("Add existing user"), "Jamie");
     await screen.findByText("Jamie Lee");
     await user.click(screen.getByText("Jamie Lee"));
     await user.click(
@@ -222,10 +216,7 @@ describe("MemberEditTable — add existing member", () => {
     ]);
     render(<Harness memberships={[COORDINATOR]} currentRole={CURRENT_USER} />);
 
-    await user.type(
-      screen.getByPlaceholderText("Add existing member…"),
-      "Test",
-    );
+    await user.type(screen.getByPlaceholderText("Add existing user"), "Test");
 
     expect(await screen.findByText("No results")).toBeInTheDocument();
   });
