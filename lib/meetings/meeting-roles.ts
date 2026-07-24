@@ -15,7 +15,7 @@ export const ROLE_COLORS: Record<DelegationRole, string> = {
   note_taker: "bg-amber-500 text-white",
   storyteller: "bg-violet-500 text-white",
   photographer: "bg-rose-500 text-white",
-  scheduling_lead: "bg-muted text-foreground",
+  scheduling_lead: "bg-indigo-500 text-white",
   expert: "bg-teal-500 text-white",
   attendee: "bg-slate-500 text-white",
 };
