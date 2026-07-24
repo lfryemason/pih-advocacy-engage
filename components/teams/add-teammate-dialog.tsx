@@ -168,15 +168,17 @@ export function AddTeammateDialog({
             <Pencil size={14} aria-hidden="true" />
           </Button>
         ) : (
-          <Button size="sm" variant="outline">
+          <Button variant="outline">
             <UserPlus className="h-4 w-4" aria-hidden="true" />
-            Add teammate
+            Create new user
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit teammate" : "Add teammate"}</DialogTitle>
+          <DialogTitle>
+            {isEdit ? "Edit teammate" : "Create new user"}
+          </DialogTitle>
           <DialogDescription>
             {isEdit
               ? "Update this placeholder teammate's details. Changes are saved when you save the team."
@@ -299,7 +301,7 @@ export function AddTeammateDialog({
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoadingProfile}>
-                {isEdit ? "Save changes" : "Add teammate"}
+                {isEdit ? "Save changes" : "Create new user"}
               </Button>
             </div>
           </div>

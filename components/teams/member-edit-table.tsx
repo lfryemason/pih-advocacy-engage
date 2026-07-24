@@ -14,10 +14,12 @@ import {
   type TeamRole,
 } from "@/lib/teams";
 import { AddTeammateDialog } from "@/components/teams/add-teammate-dialog";
+import { AddExistingMemberSearch } from "@/components/teams/add-existing-member-search";
 import { MemberEditRow } from "@/components/teams/member-edit-row";
 import type { MemberStaging } from "@/components/teams/use-member-staging";
 import { ORG_ID } from "@/lib/org";
 import type { CurrentRole } from "@/lib/auth/role";
+import { useMemo } from "react";
 
 // Presentational: role changes, removals, placeholder edits/creates/deletes are
 // all staged in `staging` (owned by EditTeamForm) and only written on Save, so
@@ -57,14 +59,33 @@ export function MemberEditTable({
     }
   };
 
-  const hasRows = memberships.length > 0 || staging.newMembers.length > 0;
+  const hasRows =
+    memberships.length > 0 ||
+    staging.newMembers.length > 0 ||
+    staging.newExistingMembers.length > 0;
+
+  const excludedUserIds = useMemo(
+    () =>
+      new Set([
+        ...memberships.map((m) => m.user_id),
+        ...staging.newExistingMembers.map((m) => m.userId),
+      ]),
+    [memberships, staging.newExistingMembers],
+  );
 
   return (
     <div>
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold">Members</h2>
         {canAddTeammate && (
-          <AddTeammateDialog onStage={(data) => staging.addNew(data)} />
+          <div className="flex items-center gap-2">
+            <AddExistingMemberSearch
+              excludedUserIds={excludedUserIds}
+              onSelect={(profile) => staging.addExisting(profile)}
+            />
+            or
+            <AddTeammateDialog onStage={(data) => staging.addNew(data)} />
+          </div>
         )}
       </div>
       <div className="mt-2">
@@ -155,6 +176,25 @@ export function MemberEditTable({
                   />
                 );
               })}
+              {staging.newExistingMembers.map((nem) => (
+                <MemberEditRow
+                  key={nem.tempId}
+                  displayName={nem.displayName}
+                  email={nem.email}
+                  isPlaceholder={false}
+                  effectiveRole={nem.role}
+                  isRemoved={false}
+                  disabled={isSaving}
+                  onRoleChange={(role) =>
+                    staging.editExistingRole(
+                      nem.tempId,
+                      (role in ROLE_LABELS ? role : "member") as TeamRole,
+                    )
+                  }
+                  onRemove={() => staging.removeExisting(nem.tempId)}
+                  onUndo={() => {}}
+                />
+              ))}
             </TableBody>
           </Table>
         )}
