@@ -73,7 +73,7 @@ export function MeetingsSection({
   return (
     <div aria-labelledby={headingId}>
       <h2 id={headingId} className={`mb-3 text-lg font-semibold`}>
-        {title}
+        {title} ({totalCount})
       </h2>
       {loading ? (
         <Table>
