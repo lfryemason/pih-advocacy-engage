@@ -338,9 +338,6 @@ export function UserSearchCombobox({
                               <span className="font-medium">
                                 {profile.display_name}
                               </span>
-                              <span className="text-xs text-muted-foreground">
-                                {profile.email}
-                              </span>
                             </CommandItem>
                           ))}
                         </CommandGroup>
@@ -370,9 +367,6 @@ export function UserSearchCombobox({
                         >
                           <span className="font-medium">
                             {profile.display_name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {profile.email}
                           </span>
                         </CommandItem>
                       ))}

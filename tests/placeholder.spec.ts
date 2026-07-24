@@ -59,11 +59,11 @@ test.describe("placeholder teammates (signed in)", () => {
     await page.goto("/teams/haverford-bryn-mawr-college/edit");
     await page.getByRole("button", { name: "Create new user" }).click();
 
-    const dialog = page.getByRole("dialog", { name: "Add teammate" });
+    const dialog = page.getByRole("dialog", { name: "Create new user" });
     await dialog.getByLabel("Email").fill(email);
     await dialog.getByLabel("First Name").fill("Dana");
     await dialog.getByLabel("Last Name").fill("Dialog");
-    await dialog.getByRole("button", { name: "Add teammate" }).click();
+    await dialog.getByRole("button", { name: "Create new user" }).click();
 
     await expect(dialog).not.toBeVisible();
     // Staged locally with a Pending badge; nothing is written until Save.
@@ -81,9 +81,9 @@ test.describe("placeholder teammates (signed in)", () => {
     await page.goto("/teams/haverford-bryn-mawr-college/edit");
     await page.getByRole("button", { name: "Create new user" }).click();
 
-    const dialog = page.getByRole("dialog", { name: "Add teammate" });
+    const dialog = page.getByRole("dialog", { name: "Create new user" });
     await dialog.getByLabel("Email").fill("nameless@example.com");
-    await dialog.getByRole("button", { name: "Add teammate" }).click();
+    await dialog.getByRole("button", { name: "Create new user" }).click();
 
     await expect(dialog.getByRole("alert")).toHaveText(
       "A first or last name is required.",

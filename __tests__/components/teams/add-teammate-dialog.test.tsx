@@ -38,7 +38,7 @@ describe("AddTeammateDialog (add)", () => {
 
     await user.click(screen.getByRole("button", { name: /create new user/i }));
     expect(
-      screen.getByRole("dialog", { name: "Add teammate" }),
+      screen.getByRole("dialog", { name: "Create new user" }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/)).toBeInTheDocument();
     expect(screen.getByLabelText("Team Role")).toBeInTheDocument();
@@ -51,7 +51,7 @@ describe("AddTeammateDialog (add)", () => {
 
     await user.click(screen.getByRole("button", { name: /create new user/i }));
     await user.type(screen.getByLabelText(/Email/), "new@example.com");
-    await user.click(screen.getByRole("button", { name: "Add teammate" }));
+    await user.click(screen.getByRole("button", { name: "Create new user" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "A first or last name is required.",
@@ -73,7 +73,7 @@ describe("AddTeammateDialog (add)", () => {
       screen.getByLabelText("Team Role"),
       "advocacy_lead",
     );
-    await user.click(screen.getByRole("button", { name: "Add teammate" }));
+    await user.click(screen.getByRole("button", { name: "Create new user" }));
 
     await waitFor(() => {
       expect(onStage).toHaveBeenCalledWith({
