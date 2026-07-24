@@ -64,6 +64,7 @@ export function MeetingDetailView({
       (a, b) => MEMBER_ROLES.indexOf(a.role) - MEMBER_ROLES.indexOf(b.role),
     );
   const hasDelegationContent = expertMembers.length > 0 || attendees.length > 0;
+  const delegationCount = expertMembers.length + attendees.length;
 
   return (
     <div className="p-4">
@@ -174,7 +175,10 @@ export function MeetingDetailView({
           <Field label="Primary PIH Team" isEmpty={!meeting.primary_team_name}>
             <p className="mt-1 text-sm">{meeting.primary_team_name}</p>
           </Field>
-          <Field label="Delegation" isEmpty={!hasDelegationContent}>
+          <Field
+            label={`Delegation (${delegationCount})`}
+            isEmpty={!hasDelegationContent}
+          >
             <div className="mt-2 flex flex-col gap-3">
               {expertMembers.length > 0 && (
                 <div className="flex flex-col gap-1">
