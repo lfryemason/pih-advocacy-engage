@@ -36,9 +36,9 @@ describe("AddTeammateDialog (add)", () => {
     const user = userEvent.setup();
     render(<AddTeammateDialog onStage={vi.fn()} />);
 
-    await user.click(screen.getByRole("button", { name: /add teammate/i }));
+    await user.click(screen.getByRole("button", { name: /create new user/i }));
     expect(
-      screen.getByRole("dialog", { name: "Add teammate" }),
+      screen.getByRole("dialog", { name: "Create new user" }),
     ).toBeInTheDocument();
     expect(screen.getByLabelText(/Email/)).toBeInTheDocument();
     expect(screen.getByLabelText("Team Role")).toBeInTheDocument();
@@ -49,9 +49,9 @@ describe("AddTeammateDialog (add)", () => {
     const user = userEvent.setup();
     render(<AddTeammateDialog onStage={onStage} />);
 
-    await user.click(screen.getByRole("button", { name: /add teammate/i }));
+    await user.click(screen.getByRole("button", { name: /create new user/i }));
     await user.type(screen.getByLabelText(/Email/), "new@example.com");
-    await user.click(screen.getByRole("button", { name: "Add teammate" }));
+    await user.click(screen.getByRole("button", { name: "Create new user" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "A first or last name is required.",
@@ -64,7 +64,7 @@ describe("AddTeammateDialog (add)", () => {
     const user = userEvent.setup();
     render(<AddTeammateDialog onStage={onStage} />);
 
-    await user.click(screen.getByRole("button", { name: /add teammate/i }));
+    await user.click(screen.getByRole("button", { name: /create new user/i }));
     await user.type(screen.getByLabelText(/Email/), "new@example.com");
     await user.type(screen.getByLabelText("First Name"), "Jordan");
     await user.type(screen.getByLabelText("Last Name"), "Rivera");
@@ -73,7 +73,7 @@ describe("AddTeammateDialog (add)", () => {
       screen.getByLabelText("Team Role"),
       "advocacy_lead",
     );
-    await user.click(screen.getByRole("button", { name: "Add teammate" }));
+    await user.click(screen.getByRole("button", { name: "Create new user" }));
 
     await waitFor(() => {
       expect(onStage).toHaveBeenCalledWith({

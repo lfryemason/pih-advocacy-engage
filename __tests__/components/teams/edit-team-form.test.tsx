@@ -17,6 +17,14 @@ vi.mock("@/lib/teams/placeholder-actions", () => ({
   deletePlaceholderTeammate: vi.fn(),
 }));
 
+// Backs the "add existing member" search box the table now renders.
+const mockSearchProfiles = vi.hoisted(() => vi.fn());
+const mockFetchMyTeamMembers = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/meetings/queries", () => ({
+  searchProfiles: mockSearchProfiles,
+  fetchMyTeamMembers: mockFetchMyTeamMembers,
+}));
+
 const mockRouterReplace = vi.fn();
 const mockRouterRefresh = vi.fn();
 vi.mock("next/navigation", () => ({
@@ -73,12 +81,15 @@ function mockClient({
       return { delete: membershipDelete };
     }),
     rpc: vi.fn().mockResolvedValue({ error: null }),
+    auth: { getUser: vi.fn().mockResolvedValue({ data: { user: null } }) },
   };
   return { client, teamsUpdate, membershipDelete };
 }
 
 beforeEach(() => {
   vi.clearAllMocks();
+  mockFetchMyTeamMembers.mockResolvedValue([]);
+  mockSearchProfiles.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -141,6 +152,51 @@ describe("EditTeamForm — Save commits members and team fields together", () =>
         p_user_id: "user-2",
         p_old_role: "member",
         p_new_role: "advocacy_lead",
+      });
+      expect(mockRouterReplace).toHaveBeenCalledWith(
+        "/teams/seattle-high-school",
+      );
+    });
+  });
+
+  it("commits a staged existing-member addition via add_team_member", async () => {
+    mockSearchProfiles.mockResolvedValue([
+      {
+        user_id: "user-3",
+        display_name: "Jamie Lee",
+        first_name: "Jamie",
+        last_name: "Lee",
+        pronouns: null,
+        email: "jamie@example.com",
+        teams: [],
+      },
+    ]);
+    const { client } = mockClient();
+    vi.mocked(createClient).mockReturnValue(
+      client as unknown as ReturnType<typeof createClient>,
+    );
+    render(
+      <EditTeamForm
+        team={SEED_TEAM}
+        canDelete={false}
+        memberships={[MEMBER]}
+        currentRole={{ user_id: "user-2", role: "member", org_id: "pihe" }}
+      />,
+    );
+
+    await userEvent.type(
+      screen.getByPlaceholderText("Add existing user"),
+      "Jamie",
+    );
+    await screen.findByText("Jamie Lee");
+    await userEvent.click(screen.getByText("Jamie Lee"));
+    await userEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => {
+      expect(client.rpc).toHaveBeenCalledWith("add_team_member", {
+        p_team_id: "team-123",
+        p_user_id: "user-3",
+        p_role: "member",
       });
       expect(mockRouterReplace).toHaveBeenCalledWith(
         "/teams/seattle-high-school",

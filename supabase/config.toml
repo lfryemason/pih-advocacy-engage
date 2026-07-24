@@ -222,10 +222,10 @@ otp_expiry = 3600
 # not here. Local dev uses the Inbucket catcher at port 54324.
 # [auth.email.smtp]
 # enabled = true
-# host = "email-smtp.us-east-1.amazonaws.com"
+# host = "smtp.resend.com"
 # port = 587
-# user = "env(SES_SMTP_USER)"
-# pass = "env(SES_SMTP_PASSWORD)"
+# user = "env(RESEND_SMTP_USER)"
+# pass = "env(RESEND_SMTP_PASSWORD)"
 # admin_email = "no-reply@pihengage.org"
 # sender_name = "PIH Engage"
 
