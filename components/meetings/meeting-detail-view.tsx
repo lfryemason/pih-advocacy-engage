@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { ExternalLink, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import type { MeetingDetail, DelegationRole } from "@/lib/meetings/types";
+import type { MeetingDetail } from "@/lib/meetings/types";
 import {
   formatDate,
   formatTime,
@@ -58,17 +58,10 @@ export function MeetingDetailView({
   const expertMembers = meeting.delegation_members.filter(
     (m) => m.role === "expert",
   );
-  const attendeeSortOrder: DelegationRole[] = [
-    "scheduling_lead",
-    ...MEMBER_ROLES,
-  ];
   const attendees = meeting.delegation_members
-    .filter(
-      (m) => MEMBER_ROLES.includes(m.role) || m.role === "scheduling_lead",
-    )
+    .filter((m) => MEMBER_ROLES.includes(m.role))
     .sort(
-      (a, b) =>
-        attendeeSortOrder.indexOf(a.role) - attendeeSortOrder.indexOf(b.role),
+      (a, b) => MEMBER_ROLES.indexOf(a.role) - MEMBER_ROLES.indexOf(b.role),
     );
   const hasDelegationContent = expertMembers.length > 0 || attendees.length > 0;
   const delegationCount = expertMembers.length + attendees.length;
