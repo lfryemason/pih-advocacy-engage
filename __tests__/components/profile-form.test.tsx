@@ -150,20 +150,30 @@ describe("ProfileForm", () => {
     });
   });
 
-  it("shows success message after saving", async () => {
+  it("hard-loads the homepage after saving", async () => {
     mockProfileUpdate.mockReturnValue({
       eq: vi.fn().mockResolvedValue({ error: null }),
     });
-    render(<ProfileForm />);
-    await waitFor(() => {
-      expect(screen.getByLabelText("First Name")).toBeInTheDocument();
+    const originalLocation = window.location;
+    Object.defineProperty(window, "location", {
+      writable: true,
+      value: { ...originalLocation, href: "" },
     });
-    await userEvent.click(screen.getByRole("button", { name: "Save" }));
-    await waitFor(() => {
-      expect(
-        screen.getByText("Profile saved successfully."),
-      ).toBeInTheDocument();
-    });
+    try {
+      render(<ProfileForm />);
+      await waitFor(() => {
+        expect(screen.getByLabelText("First Name")).toBeInTheDocument();
+      });
+      await userEvent.click(screen.getByRole("button", { name: "Save" }));
+      await waitFor(() => {
+        expect(window.location.href).toBe("/");
+      });
+    } finally {
+      Object.defineProperty(window, "location", {
+        writable: true,
+        value: originalLocation,
+      });
+    }
   });
 
   it("shows error message when save fails", async () => {

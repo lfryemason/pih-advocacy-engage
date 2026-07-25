@@ -21,7 +21,6 @@ export function ProfileForm({ children }: { children?: React.ReactNode }) {
   const [state, setState] = useState("");
   const [district, setDistrict] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -57,7 +56,6 @@ export function ProfileForm({ children }: { children?: React.ReactNode }) {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    setSuccess(null);
 
     try {
       const supabase = createClient();
@@ -76,10 +74,10 @@ export function ProfileForm({ children }: { children?: React.ReactNode }) {
         })
         .eq("user_id", user.id);
       if (error) throw error;
-      setSuccess("Profile saved successfully.");
+      window.location.href = "/";
+      return;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
       setIsLoading(false);
     }
   };
@@ -179,7 +177,6 @@ export function ProfileForm({ children }: { children?: React.ReactNode }) {
           </Select>
         </div>
         {error && <p className="text-sm text-red-500">{error}</p>}
-        {success && <p className="text-sm text-green-600">{success}</p>}
       </form>
       {actionBar}
     </>
