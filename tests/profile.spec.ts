@@ -44,7 +44,9 @@ test("at-large states show only 'At Large' district option", async ({
   );
 });
 
-test("saves profile fields and persists after reload", async ({ page }) => {
+test("saves profile fields, redirects home, and persists on revisit", async ({
+  page,
+}) => {
   await page.goto("/profile");
 
   await page.getByLabel("First Name").fill("Test");
@@ -54,9 +56,9 @@ test("saves profile fields and persists after reload", async ({ page }) => {
   await page.getByLabel("Congressional District").selectOption("5");
 
   await page.getByRole("button", { name: "Save" }).click();
-  await expect(page.getByText("Profile saved successfully.")).toBeVisible();
+  await page.waitForURL("/");
 
-  await page.reload();
+  await page.goto("/profile");
   await expect(page.getByLabel("First Name")).toHaveValue("Test");
   await expect(page.getByLabel("Last Name")).toHaveValue("User");
   await expect(page.getByLabel("Pronouns")).toHaveValue("they/them");
