@@ -78,6 +78,23 @@ export function isLocationEmpty(loc: MeetingLocation): boolean {
   );
 }
 
+// Renders a MeetingLocation back into the free-text shape the legacy
+// `location` column expects, mirroring the parsing rules in the
+// add_meeting_location_json migration ("<digits> <rest>" -> room + building)
+// so a later re-parse of this text recovers the same structured value.
+// Writing both columns keeps `location` from going stale between the
+// location_json backfill and the migration that eventually drops it.
+export function toLegacyLocationText(
+  loc: MeetingLocation | null,
+): string | null {
+  if (!loc || isLocationEmpty(loc)) return null;
+  if (loc.isVirtual) return "Virtual";
+  const building = loc.building.trim();
+  const room = loc.room.trim();
+  if (building && room) return `${room} ${building}`;
+  return building || room || null;
+}
+
 export type DelegationMember = {
   id: string;
   user_id: string;

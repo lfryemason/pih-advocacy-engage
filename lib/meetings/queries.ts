@@ -14,6 +14,7 @@ import {
   ProfileSearchResult,
   TeamGroup,
   parseMeetingLocation,
+  toLegacyLocationText,
 } from "@/lib/meetings/types";
 import { localDateString } from "@/lib/utils";
 import { ORG_ID } from "@/lib/org";
@@ -199,7 +200,9 @@ export async function fetchMeetings(
     query = query.filter("location_json->>isVirtual", "eq", "true");
   } else if (filters.isVirtual === false) {
     // In-person includes meetings with no location set at all.
-    query = query.or("location_json->>isVirtual.eq.false,location_json.is.null");
+    query = query.or(
+      "location_json->>isVirtual.eq.false,location_json.is.null",
+    );
   }
   if (filters.buildings.length > 0) {
     // ilike (no wildcards) gives a case-insensitive exact match per building.
@@ -276,6 +279,7 @@ export async function createMeeting(
       congressional_contact_id: values.congressional_contact_id,
       primary_team_id: values.primary_team_id,
       notes: values.notes,
+      location: toLegacyLocationText(values.location),
       location_json: values.location,
       links,
       created_by: user.id,
@@ -419,6 +423,7 @@ export async function updateMeeting(
       congressional_contact_id: values.congressional_contact_id,
       primary_team_id: values.primary_team_id,
       notes: values.notes,
+      location: toLegacyLocationText(values.location),
       location_json: values.location,
       follow_up_date: values.follow_up_date,
       follow_up_completed: values.follow_up_completed,
