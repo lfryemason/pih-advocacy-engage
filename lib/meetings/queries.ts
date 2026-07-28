@@ -450,6 +450,7 @@ type RawProfile = {
   first_name: string | null;
   last_name: string | null;
   pronouns: string | null;
+  email: string;
   team_memberships: Array<{
     team_id: string;
     teams: { name: string } | null;
@@ -470,6 +471,7 @@ function mapRawProfile(p: RawProfile): ProfileSearchResult {
     first_name: p.first_name,
     last_name: p.last_name,
     pronouns: p.pronouns,
+    email: p.email,
     teams: (p.team_memberships ?? [])
       .filter((tm) => tm.teams?.name)
       .map((tm) => ({ team_id: tm.team_id, team_name: tm.teams!.name })),
@@ -490,7 +492,7 @@ export async function searchProfiles(
   const { data, error } = await supabase
     .from("profiles")
     .select(
-      `user_id, first_name, last_name, pronouns, team_memberships ( team_id, teams ( name ) )`,
+      `user_id, first_name, last_name, pronouns, email, team_memberships ( team_id, teams ( name ) )`,
     )
     .eq("org_id", ORG_ID)
     .or(`first_name.ilike.%${safeQuery}%,last_name.ilike.%${safeQuery}%`)
@@ -530,7 +532,7 @@ export async function fetchMyTeamMembers(
   const { data: profilesData, error: profilesError } = await supabase
     .from("profiles")
     .select(
-      "user_id, first_name, last_name, pronouns, team_memberships!inner ( team_id, teams ( name ) )",
+      "user_id, first_name, last_name, pronouns, email, team_memberships!inner ( team_id, teams ( name ) )",
     )
     .eq("org_id", ORG_ID)
     .filter("team_memberships.team_id", "in", `(${myTeamIds.join(",")})`);

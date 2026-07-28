@@ -50,5 +50,7 @@ alter table public.meetings
       and coalesce(jsonb_typeof(location_json -> 'state'), '')     = 'string'
       and coalesce(jsonb_typeof(location_json -> 'building'), '')  = 'string'
       and coalesce(jsonb_typeof(location_json -> 'room'), '')      = 'string'
+      -- no keys beyond the five above: strip them and require nothing is left
+      and location_json - array['isVirtual', 'city', 'state', 'building', 'room'] = '{}'::jsonb
     )
   );

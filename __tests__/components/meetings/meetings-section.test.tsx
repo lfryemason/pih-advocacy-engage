@@ -50,7 +50,21 @@ describe("MeetingsSection", () => {
       />,
     );
     expect(
-      screen.getByRole("heading", { name: "Upcoming Meetings" }),
+      screen.getByRole("heading", { name: "Upcoming Meetings (0)" }),
+    ).toBeVisible();
+  });
+
+  it("shows the total meeting count in the heading", () => {
+    const meetings = [makeRow({ id: "m1" }), makeRow({ id: "m2" })];
+    render(
+      <MeetingsSection
+        title="Upcoming Meetings"
+        meetings={meetings}
+        {...sectionProps(meetings, { totalCount: 12 })}
+      />,
+    );
+    expect(
+      screen.getByRole("heading", { name: "Upcoming Meetings (12)" }),
     ).toBeVisible();
   });
 

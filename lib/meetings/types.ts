@@ -183,6 +183,7 @@ export type ProfileSearchResult = {
   first_name: string | null;
   last_name: string | null;
   pronouns: string | null;
+  email: string;
   teams: ProfileTeam[];
 };
 

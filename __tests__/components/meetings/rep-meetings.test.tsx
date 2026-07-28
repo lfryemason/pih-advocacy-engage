@@ -70,11 +70,11 @@ describe("RepMeetings", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: "Future Meetings" }),
+        screen.getByRole("heading", { name: "Future Meetings (1)" }),
       ).toBeInTheDocument();
     });
     expect(
-      screen.getByRole("heading", { name: "Past Meetings" }),
+      screen.getByRole("heading", { name: "Past Meetings (1)" }),
     ).toBeInTheDocument();
   });
 
@@ -108,7 +108,7 @@ describe("RepMeetings", () => {
 
     await waitFor(() => {
       expect(
-        screen.getByRole("heading", { name: "Future Meetings" }),
+        screen.getByRole("heading", { name: "Future Meetings (1)" }),
       ).toBeInTheDocument();
     });
     expect(

@@ -8,6 +8,7 @@ import {
   deletePlaceholderTeammate,
 } from "@/lib/teams/placeholder-actions";
 import type { MembershipWithProfile, TeamRole } from "@/lib/teams";
+import type { ProfileSearchResult } from "@/lib/meetings/types";
 
 export type PlaceholderFields = {
   firstName: string;
@@ -26,6 +27,16 @@ export type StagedTeammate = {
 
 // A placeholder queued for creation; nothing is written until Save.
 export type NewMember = StagedTeammate & { tempId: string };
+
+// An existing (already-registered) user picked from search, queued to join
+// the team; nothing is written until Save.
+export type NewExistingMember = {
+  tempId: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  role: TeamRole;
+};
 
 // One entry per existing membership (keyed by `${user_id}-${role}`). Aspects are
 // independent so a role change and a profile edit on the same placeholder can be
@@ -56,6 +67,9 @@ export function useMemberStaging({
 }) {
   const [pending, setPending] = useState<Map<string, StagedEdit>>(new Map());
   const [newMembers, setNewMembers] = useState<NewMember[]>([]);
+  const [newExistingMembers, setNewExistingMembers] = useState<
+    NewExistingMember[]
+  >([]);
 
   const patch = (key: string, updater: (cur: StagedEdit) => StagedEdit) =>
     setPending((prev) => {
@@ -96,7 +110,26 @@ export function useMemberStaging({
   const removeNew = (tempId: string) =>
     setNewMembers((prev) => prev.filter((m) => m.tempId !== tempId));
 
-  const hasPending = pending.size > 0 || newMembers.length > 0;
+  const addExisting = (profile: ProfileSearchResult) =>
+    setNewExistingMembers((prev) => [
+      ...prev,
+      {
+        tempId: crypto.randomUUID(),
+        userId: profile.user_id,
+        displayName: profile.display_name,
+        email: profile.email,
+        role: "member",
+      },
+    ]);
+  const editExistingRole = (tempId: string, role: TeamRole) =>
+    setNewExistingMembers((prev) =>
+      prev.map((m) => (m.tempId === tempId ? { ...m, role } : m)),
+    );
+  const removeExisting = (tempId: string) =>
+    setNewExistingMembers((prev) => prev.filter((m) => m.tempId !== tempId));
+
+  const hasPending =
+    pending.size > 0 || newMembers.length > 0 || newExistingMembers.length > 0;
 
   // Runs every staged write in parallel. Each op reports which staged aspect(s)
   // it covers; succeeded aspects are cleared and failed ones stay staged so the
@@ -108,6 +141,7 @@ export function useMemberStaging({
     type Op = {
       clears?: { key: string; aspect: Aspect }[];
       newIds?: string[];
+      newExistingIds?: string[];
       run: () => Promise<void>;
     };
     const ops: Op[] = [];
@@ -211,14 +245,30 @@ export function useMemberStaging({
       });
     }
 
+    for (const nem of newExistingMembers) {
+      ops.push({
+        newExistingIds: [nem.tempId],
+        run: async () => {
+          const { error } = await supabase.rpc("add_team_member", {
+            p_team_id: teamId,
+            p_user_id: nem.userId,
+            p_role: nem.role,
+          });
+          if (error) throw error;
+        },
+      });
+    }
+
     const results = await Promise.allSettled(ops.map((o) => o.run()));
     const clears: { key: string; aspect: Aspect }[] = [];
     const doneNew = new Set<string>();
+    const doneNewExisting = new Set<string>();
     let firstError: string | null = null;
     results.forEach((res, i) => {
       if (res.status === "fulfilled") {
         ops[i].clears?.forEach((c) => clears.push(c));
         ops[i].newIds?.forEach((id) => doneNew.add(id));
+        ops[i].newExistingIds?.forEach((id) => doneNewExisting.add(id));
       } else if (!firstError) {
         firstError =
           res.reason instanceof Error
@@ -241,6 +291,10 @@ export function useMemberStaging({
       });
     if (doneNew.size > 0)
       setNewMembers((prev) => prev.filter((m) => !doneNew.has(m.tempId)));
+    if (doneNewExisting.size > 0)
+      setNewExistingMembers((prev) =>
+        prev.filter((m) => !doneNewExisting.has(m.tempId)),
+      );
 
     return { ok: firstError === null, error: firstError };
   };
@@ -248,6 +302,7 @@ export function useMemberStaging({
   return {
     pending,
     newMembers,
+    newExistingMembers,
     hasPending,
     stageRole,
     stageRemove,
@@ -257,6 +312,9 @@ export function useMemberStaging({
     addNew,
     editNew,
     removeNew,
+    addExisting,
+    editExistingRole,
+    removeExisting,
     commit,
   };
 }

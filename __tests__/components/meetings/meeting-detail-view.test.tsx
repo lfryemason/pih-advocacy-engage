@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MeetingDetailView } from "@/components/meetings/meeting-detail-view";
 import type { MeetingDetail } from "@/lib/meetings/types";
@@ -221,6 +221,55 @@ describe("MeetingDetailView — delegation", () => {
     ).toBeInTheDocument();
   });
 
+  it("shows the delegation count as the total across experts and attendees", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: null,
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+            {
+              id: "dm-2",
+              user_id: "u-2",
+              first_name: "Bob",
+              last_name: "Jones",
+              display_name: "Bob Jones",
+              email: null,
+              role: "attendee",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+            {
+              id: "dm-3",
+              user_id: "u-3",
+              first_name: "Carol",
+              last_name: "Diaz",
+              display_name: "Carol Diaz",
+              email: null,
+              role: "expert",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Delegation (3)")).toBeInTheDocument();
+  });
+
   it("shows email for scheduling_lead when present", () => {
     render(
       <MeetingDetailView
@@ -318,11 +367,12 @@ describe("MeetingDetailView — delegation", () => {
         onEdit={vi.fn()}
       />,
     );
-    expect(screen.getByText("Delegation")).toBeInTheDocument();
-    expect(screen.getByText("Delegation").nextSibling).toHaveTextContent("—");
+    const header = screen.getByText("Delegation (0)");
+    expect(header).toBeInTheDocument();
+    expect(header.nextSibling).toHaveTextContent("—");
   });
 
-  it("shows the Delegation header with an em dash when the only member is the scheduling lead", () => {
+  it("shows the scheduling lead as an attendee avatar in Delegation when they are the only member", () => {
     render(
       <MeetingDetailView
         meeting={makeMeeting({
@@ -344,7 +394,111 @@ describe("MeetingDetailView — delegation", () => {
         onEdit={vi.fn()}
       />,
     );
-    expect(screen.getByText("Delegation").nextSibling).toHaveTextContent("—");
+    const header = screen.getByText("Delegation (1)");
+    expect(header.nextSibling).not.toHaveTextContent("—");
+    expect(
+      screen.getByRole("button", { name: /Alice Smith.*Scheduler/i }),
+    ).toBeInTheDocument();
+  });
+});
+
+describe("MeetingDetailView — attendees list includes scheduling lead", () => {
+  it("shows the scheduling lead as an avatar alongside other attendees", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Bob",
+              last_name: "Jones",
+              display_name: "Bob Jones",
+              email: null,
+              role: "attendee",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+            {
+              id: "dm-2",
+              user_id: "u-2",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: null,
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    const attendeesSection = screen.getByText("Attendees").parentElement!;
+    expect(
+      within(attendeesSection).getByRole("button", {
+        name: /Alice Smith.*Scheduler/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      within(attendeesSection).getByRole("button", {
+        name: /Bob Jones.*Attendee/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it("orders the scheduling lead first among the attendee avatars", () => {
+    render(
+      <MeetingDetailView
+        meeting={makeMeeting({
+          delegation_members: [
+            {
+              id: "dm-1",
+              user_id: "u-1",
+              first_name: "Bob",
+              last_name: "Jones",
+              display_name: "Bob Jones",
+              email: null,
+              role: "attendee",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+            {
+              id: "dm-2",
+              user_id: "u-2",
+              first_name: "Carol",
+              last_name: "Diaz",
+              display_name: "Carol Diaz",
+              email: null,
+              role: "meeting_facilitator",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+            {
+              id: "dm-3",
+              user_id: "u-3",
+              first_name: "Alice",
+              last_name: "Smith",
+              display_name: "Alice Smith",
+              email: null,
+              role: "scheduling_lead",
+              pronouns: null,
+              team_id: null,
+              team_name_snapshot: null,
+            },
+          ],
+        })}
+        onEdit={vi.fn()}
+      />,
+    );
+    const attendeesSection = screen.getByText("Attendees").parentElement!;
+    const buttons = within(attendeesSection).getAllByRole("button");
+    expect(buttons[0]).toHaveAccessibleName(/Alice Smith.*Scheduler/i);
   });
 });
 

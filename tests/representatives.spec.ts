@@ -24,6 +24,7 @@ test.describe("My Members of Congress section", () => {
     await page.goto("/profile");
     await page.getByLabel(/State/).selectOption("");
     await page.getByRole("button", { name: "Save" }).click();
+    await page.waitForURL("/");
 
     await page.goto("/representatives");
     await expect(page.getByText(/Set your state and district/)).toBeVisible();
