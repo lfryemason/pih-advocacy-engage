@@ -107,12 +107,12 @@ function LeftColumn({
           ))}
         </Select>
         <p className="text-xs italic text-muted-foreground">
-          If you don&apos;t see the staffer you are meeting with,{" "}
+          Don&apos;t see the staffer you are meeting with?{" "}
           <Link
             href={`/representatives/${representativeBioguideId}`}
             className={LINK_CN}
           >
-            click here
+            Click here
           </Link>{" "}
           to add them
         </p>
