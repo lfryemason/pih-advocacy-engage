@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import { CHAMPION_LABELS } from "@/lib/meetings/meeting-roles";
-import { SECTION_LABEL_CLASSNAME } from "@/lib/meetings/format";
+import { LINK_CN, SECTION_LABEL_CLASSNAME } from "@/lib/meetings/format";
 import {
   LinkFormEntry,
   StafferOption,
@@ -52,11 +53,18 @@ type Props = {
   isSaving: boolean;
   delegationInitialMembers: DelegationMember[];
   onDelegationChange: (members: LocalDelegationMember[]) => void;
+  representativeBioguideId: string;
 };
 
 type ColumnProps = Props & { staffers: StafferOption[]; canDelete: boolean };
 
-function LeftColumn({ meetingId, form, onFormChange, staffers }: ColumnProps) {
+function LeftColumn({
+  meetingId,
+  form,
+  onFormChange,
+  staffers,
+  representativeBioguideId,
+}: ColumnProps) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-2">
@@ -98,6 +106,16 @@ function LeftColumn({ meetingId, form, onFormChange, staffers }: ColumnProps) {
             </option>
           ))}
         </Select>
+        <p className="text-xs italic text-muted-foreground">
+          If you don&apos;t see the staffer you are meeting with,{" "}
+          <Link
+            href={`/representatives/${representativeBioguideId}`}
+            className={LINK_CN}
+          >
+            click here
+          </Link>{" "}
+          to add them
+        </p>
       </div>
 
       <div className="flex gap-4">
