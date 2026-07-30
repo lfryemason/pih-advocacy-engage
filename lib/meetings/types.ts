@@ -66,6 +66,16 @@ export function parseMeetingLocation(raw: unknown): MeetingLocation | null {
   };
 }
 
+// Virtual meetings carry no physical address. This is applied at save time
+// rather than when the virtual toggle changes, so switching the toggle a
+// couple of times while editing doesn't silently discard an in-progress or
+// existing address.
+export function normalizeLocationForSave(
+  loc: MeetingLocation,
+): MeetingLocation {
+  return loc.isVirtual ? { ...EMPTY_LOCATION, isVirtual: true } : loc;
+}
+
 // An in-person location with every field blank carries no information, so it is
 // stored as null rather than an empty object.
 export function isLocationEmpty(loc: MeetingLocation): boolean {

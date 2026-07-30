@@ -207,9 +207,9 @@ export async function fetchMeetings(
   if (filters.buildings.length > 0) {
     // ilike (no wildcards) gives a case-insensitive exact match per building.
     const ors = filters.buildings
-      .map((b) => sanitizeBuildingFilter(b))
+      .map((b) => b.trim())
       .filter(Boolean)
-      .map((b) => `location_json->>building.ilike.${b}`)
+      .map((b) => `location_json->>building.ilike.${sanitizeBuildingFilter(b)}`)
       .join(",");
     if (ors) query = query.or(ors);
   }
@@ -225,34 +225,60 @@ export async function fetchMeetings(
   };
 }
 
-// Strip characters that are structural in PostgREST filter strings or act as
-// LIKE wildcards, mirroring the sanitization in searchProfiles below.
+// Quote the value per PostgREST's filter syntax so structural characters
+// (commas, parens) and building-name punctuation (apostrophes, periods) pass
+// through literally instead of being stripped. Backslashes, double quotes,
+// and the ilike wildcards `%`/`_` are backslash-escaped so they match
+// literally rather than acting as syntax or wildcards.
 function sanitizeBuildingFilter(value: string): string {
-  return value.replace(/[,()%_"']/g, "").trim();
+  const escaped = value
+    .trim()
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_")
+    .replace(/"/g, '\\"');
+  return `"${escaped}"`;
+}
+
+// fetchMeetingBuildings feeds both the building filter dropdown and the
+// create/edit form autocomplete, and both can mount at once. The building
+// list changes rarely, so a short-lived cache shared across callers avoids
+// hitting the DB on every mount; meetingBuildingsCache is invalidated below
+// whenever a save might have introduced a new building.
+const BUILDINGS_CACHE_TTL_MS = 5 * 60 * 1000;
+let buildingsCache: { expiresAt: number; promise: Promise<string[]> } | null =
+  null;
+
+export function invalidateMeetingBuildingsCache(): void {
+  buildingsCache = null;
 }
 
 // Distinct building names already used across the org's meetings, deduped
-// case-insensitively (keeping the first-seen casing). Feeds both the building
-// filter dropdown and the create/edit form autocomplete.
+// and sorted case-insensitively by the fetch_meeting_buildings DB function
+// rather than pulling every meeting's location_json to the client for it.
 export async function fetchMeetingBuildings(
   supabase: SupabaseBrowserClient,
 ): Promise<string[]> {
-  const { data, error } = await supabase
-    .from("meetings")
-    .select("location_json")
-    .eq("org_id", ORG_ID)
-    .not("location_json", "is", null);
-
-  if (error) throw error;
-
-  const seen = new Map<string, string>();
-  for (const row of (data as unknown as { location_json: unknown }[]) ?? []) {
-    const building = parseMeetingLocation(row.location_json)?.building.trim();
-    if (!building) continue;
-    const key = building.toLowerCase();
-    if (!seen.has(key)) seen.set(key, building);
+  if (buildingsCache && buildingsCache.expiresAt > Date.now()) {
+    return buildingsCache.promise;
   }
-  return [...seen.values()].sort((a, b) => a.localeCompare(b));
+
+  const promise = (async () => {
+    const { data, error } = await supabase.rpc("fetch_meeting_buildings", {
+      p_org_id: ORG_ID,
+    });
+    if (error) throw error;
+    return ((data as unknown as { building: string }[]) ?? []).map(
+      (row) => row.building,
+    );
+  })();
+
+  buildingsCache = { expiresAt: Date.now() + BUILDINGS_CACHE_TTL_MS, promise };
+  // Don't cache a failed fetch, so the next mount retries against the DB.
+  promise.catch(() => {
+    buildingsCache = null;
+  });
+  return promise;
 }
 
 export async function createMeeting(
@@ -289,6 +315,8 @@ export async function createMeeting(
 
   if (error) throw error;
   if (!data) throw new Error("Meeting created but ID could not be retrieved");
+
+  if (values.location?.building.trim()) invalidateMeetingBuildingsCache();
 
   const { error: delegationError } = await supabase
     .from("meeting_delegation_members")
@@ -433,6 +461,7 @@ export async function updateMeeting(
     .eq("id", id);
 
   if (error) throw error;
+  if (values.location?.building.trim()) invalidateMeetingBuildingsCache();
 }
 
 export async function deleteMeeting(

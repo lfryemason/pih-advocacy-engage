@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   EMPTY_LOCATION,
   isLocationEmpty,
+  normalizeLocationForSave,
   parseMeetingLocation,
   toLegacyLocationText,
 } from "@/lib/meetings/types";
@@ -61,6 +62,25 @@ describe("isLocationEmpty", () => {
       false,
     );
     expect(isLocationEmpty({ ...EMPTY_LOCATION, room: "509" })).toBe(false);
+  });
+});
+
+describe("normalizeLocationForSave", () => {
+  it("blanks the address fields for a virtual location", () => {
+    expect(
+      normalizeLocationForSave({
+        isVirtual: true,
+        building: "Hart",
+        room: "509",
+        city: "Washington",
+        state: "DC",
+      }),
+    ).toEqual({ ...EMPTY_LOCATION, isVirtual: true });
+  });
+
+  it("leaves an in-person location untouched", () => {
+    const loc = { ...EMPTY_LOCATION, building: "Hart", room: "509" };
+    expect(normalizeLocationForSave(loc)).toEqual(loc);
   });
 });
 

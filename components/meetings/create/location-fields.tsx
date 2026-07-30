@@ -1,6 +1,6 @@
 "use client";
 
-import { EMPTY_LOCATION, type MeetingLocation } from "@/lib/meetings/types";
+import type { MeetingLocation } from "@/lib/meetings/types";
 import { useMeetingBuildings } from "@/lib/meetings/use-meeting-buildings";
 import { US_STATES } from "@/lib/us-districts";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,12 +28,10 @@ export function LocationFields({
         <Checkbox
           checked={value.isVirtual}
           onCheckedChange={(checked) =>
-            // Toggling on clears any physical address; toggling off starts blank.
-            onChange(
-              checked === true
-                ? { ...EMPTY_LOCATION, isVirtual: true }
-                : { ...EMPTY_LOCATION, isVirtual: false },
-            )
+            // Leave the address fields as-is; they're discarded on save (see
+            // normalizeLocationForSave) rather than here, so an accidental
+            // double-toggle doesn't wipe out an in-progress or existing address.
+            set({ isVirtual: checked === true })
           }
         />
         Virtual meeting

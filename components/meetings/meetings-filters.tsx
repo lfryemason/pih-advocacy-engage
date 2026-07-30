@@ -54,8 +54,7 @@ export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
   );
 }
 
-const VIRTUAL_OPTIONS: { value: boolean | null; label: string }[] = [
-  { value: null, label: "Any format" },
+const VIRTUAL_OPTIONS: { value: boolean; label: string }[] = [
   { value: true, label: "Virtual" },
   { value: false, label: "In person" },
 ];
@@ -141,9 +140,9 @@ function buildActiveChips(
       : [
           {
             key: "format",
-            label:
-              VIRTUAL_OPTIONS.find((opt) => opt.value === filters.isVirtual)
-                ?.label ?? "Any format",
+            label: VIRTUAL_OPTIONS.find(
+              (opt) => opt.value === filters.isVirtual,
+            )!.label,
             onRemove: () => onChange({ ...filters, isVirtual: null }),
           },
         ];
@@ -321,7 +320,10 @@ export function MeetingsFilters({
                 checked={filters.isVirtual === opt.value}
                 onSelect={(event) => {
                   event.preventDefault();
-                  set({ isVirtual: opt.value });
+                  set({
+                    isVirtual:
+                      filters.isVirtual === opt.value ? null : opt.value,
+                  });
                 }}
               >
                 {opt.label}

@@ -16,6 +16,7 @@ import {
   memberFromDelegation,
   EMPTY_LOCATION,
   isLocationEmpty,
+  normalizeLocationForSave,
 } from "@/lib/meetings/types";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
@@ -188,7 +189,9 @@ export function MeetingDetail({
       congressional_contact_id: form.congressionalContactId || null,
       primary_team_id: form.primaryTeamId || null,
       notes: form.notes.trim() || null,
-      location: isLocationEmpty(form.location) ? null : form.location,
+      location: isLocationEmpty(form.location)
+        ? null
+        : normalizeLocationForSave(form.location),
       follow_up_date: form.followUpDate || null,
       follow_up_completed: form.followUpCompleted,
       champion_score: parsedScore,

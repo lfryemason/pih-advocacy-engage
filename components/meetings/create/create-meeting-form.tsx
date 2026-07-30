@@ -7,6 +7,7 @@ import {
   MeetingLocation,
   EMPTY_LOCATION,
   isLocationEmpty,
+  normalizeLocationForSave,
 } from "@/lib/meetings/types";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
@@ -74,7 +75,9 @@ export function CreateMeetingForm({
       congressional_contact_id: congressionalContactId || null,
       primary_team_id: primaryTeamId || null,
       notes: notes.trim() || null,
-      location: isLocationEmpty(location) ? null : location,
+      location: isLocationEmpty(location)
+        ? null
+        : normalizeLocationForSave(location),
     };
 
     const filteredLinks = links.filter((l) => l.label.trim() || l.url.trim());

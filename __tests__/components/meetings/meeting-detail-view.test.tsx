@@ -94,7 +94,7 @@ describe("MeetingDetailView — location", () => {
         onEdit={vi.fn()}
       />,
     );
-    expect(screen.getByText("Capitol Hill, Rm 101")).toBeInTheDocument();
+    expect(screen.getByText("Capitol Hill - 101")).toBeInTheDocument();
   });
 
   it("shows the Location header with an em dash when null", () => {

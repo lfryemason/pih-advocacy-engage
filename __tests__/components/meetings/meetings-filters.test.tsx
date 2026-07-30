@@ -278,4 +278,25 @@ describe("MeetingsFilters — meeting format filter", () => {
       isVirtual: true,
     });
   });
+
+  it("clears isVirtual when the active format option is unchecked", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <MeetingsFilters
+        filters={{ ...EMPTY_MEETING_FILTERS, isVirtual: true }}
+        onChange={onChange}
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Filter by meeting format" }),
+    );
+    await user.click(
+      await screen.findByRole("menuitemcheckbox", { name: "Virtual" }),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      ...EMPTY_MEETING_FILTERS,
+      isVirtual: null,
+    });
+  });
 });

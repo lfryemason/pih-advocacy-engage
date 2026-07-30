@@ -2,9 +2,9 @@ import type { MeetingLocation } from "@/lib/meetings/types";
 
 export function formatLocation(loc: MeetingLocation): string {
   if (loc.isVirtual) return "Virtual";
-  const building = [loc.building, loc.room && `Rm ${loc.room}`]
+  const building = [loc.building, loc.room]
     .filter((p) => p && p.trim())
-    .join(", ");
+    .join(" - ");
   const cityState = [loc.city, loc.state]
     .filter((p) => p && p.trim())
     .join(", ");
