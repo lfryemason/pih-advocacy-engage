@@ -10,7 +10,7 @@ export default async function AdminPage() {
   await requireOrgAdmin(ORG_ID);
 
   return (
-    <div className="p-8">
+    <div>
       <h1 className="text-3xl font-bold">Admin</h1>
       <h2 className="mt-6 text-xl font-semibold">User list</h2>
       <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>

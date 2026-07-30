@@ -3,14 +3,14 @@ import { AUTH_STATE_PATH } from "./global-setup";
 import { resetDatabase } from "./reset-db";
 
 async function expandAllMeetings(page: Page) {
-  await page.getByRole("button", { name: "All Meetings" }).click();
+  await page.getByRole("tab", { name: "All Meetings" }).click();
 }
 
 // The seed test user is a delegate on every seeded meeting, so seeded rows
 // legitimately appear under both "My Meetings" and "All Meetings" once the
-// latter is expanded. Scope to "All Meetings" to keep locators unambiguous.
+// latter is selected. Scope to "All Meetings" to keep locators unambiguous.
 function allMeetingsRegion(page: Page) {
-  return page.getByRole("region", { name: "All Meetings" });
+  return page.getByRole("tabpanel", { name: "All Meetings" });
 }
 
 test.use({ storageState: AUTH_STATE_PATH });
@@ -66,7 +66,7 @@ test.describe("meetings list page", () => {
     // The dropdown stays open after checking an item; close it so the rest
     // of the page (hidden via aria-hidden while it's open) is queryable again.
     await page.keyboard.press("Escape");
-    // Scope to the "All Meetings" region — "My Meetings" and "Team Meetings"
+    // Scope to the "All Meetings" tab panel — other tabs (e.g. "My Meetings")
     // independently render their own empty states for the same filter.
     const emptyMessages =
       allMeetingsRegion(page).getByText("No meetings found.");

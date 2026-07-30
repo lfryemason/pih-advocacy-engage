@@ -9,7 +9,7 @@ import { MeetingsSection } from "@/components/meetings/meetings-section";
 import { MeetingsFilters } from "@/components/meetings/meetings-filters";
 import { AddMeetingDialog } from "@/components/meetings/create/add-meeting-dialog";
 import { PersonalMeetingsSection } from "@/components/meetings/personal-meetings-section";
-import { CollapsibleMeetingsGroup } from "@/components/meetings/collapsible-meetings-group";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const PAGE_SIZE = 15;
 
@@ -170,92 +170,112 @@ export function MeetingsPage() {
   };
 
   return (
-    <div className="flex flex-col p-8">
+    <div className="flex flex-col">
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-3xl font-bold">Meetings</h1>
         <AddMeetingDialog onCreated={refreshAll} />
       </div>
-      <MeetingsFilters
-        filters={filters}
-        onChange={handleFiltersChange}
-        disabled={filtering || initialLoading}
-      />
-      <div className="flex flex-col gap-6">
-        <CollapsibleMeetingsGroup title="My Meetings" defaultOpen>
-          <PersonalMeetingsSection
-            mode="user"
-            filters={filters}
-            variant="pink"
-            refreshKey={personalRefreshKey}
-          />
-        </CollapsibleMeetingsGroup>
-        {myTeams.length > 0 && (
-          <CollapsibleMeetingsGroup title="Team Meetings" defaultOpen={false}>
+      <Tabs defaultValue="my-meetings" className="gap-0 rounded-lg border">
+        <div className="w-full border-b">
+          <TabsList variant="line" className="w-full justify-start px-4">
+            <TabsTrigger value="my-meetings">My Meetings</TabsTrigger>
             {myTeams.map((team) => (
-              <div key={team.team_id}>
-                <h3 className="text-xl font-semibold">
-                  {`${team.team_name} Meetings`}
-                </h3>
-                <div className="ml-8 mt-3">
-                  <PersonalMeetingsSection
-                    mode="team"
-                    teamId={team.team_id}
-                    filters={filters}
-                    variant="teal"
-                    refreshKey={personalRefreshKey}
-                  />
-                </div>
-              </div>
+              <TabsTrigger key={team.team_id} value={`team-${team.team_id}`}>
+                {team.team_name} Meetings
+              </TabsTrigger>
             ))}
-          </CollapsibleMeetingsGroup>
-        )}
-        <CollapsibleMeetingsGroup title="All Meetings" defaultOpen={false}>
-          {initialLoading ? (
-            <p role="status" className="py-8 text-center text-muted-foreground">
-              Loading meetings…
-            </p>
-          ) : error ? (
-            <p role="alert" className="py-8 text-center text-destructive">
-              {error}
-            </p>
-          ) : (
-            <div
-              className="flex flex-col gap-10"
-              {...(applyingFilters
-                ? { role: "status", "aria-label": "Updating meetings" }
-                : {})}
+            <TabsTrigger value="all-meetings">All Meetings</TabsTrigger>
+          </TabsList>
+        </div>
+        <div className="p-4">
+          <MeetingsFilters
+            filters={filters}
+            onChange={handleFiltersChange}
+            disabled={filtering || initialLoading}
+          />
+          <TabsContent
+            value="my-meetings"
+            forceMount
+            className="mt-4 data-[state=inactive]:hidden"
+          >
+            <PersonalMeetingsSection
+              mode="user"
+              filters={filters}
+              variant="pink"
+              refreshKey={personalRefreshKey}
+            />
+          </TabsContent>
+          {myTeams.map((team) => (
+            <TabsContent
+              key={team.team_id}
+              value={`team-${team.team_id}`}
+              forceMount
+              className="mt-4 data-[state=inactive]:hidden"
             >
-              <MeetingsSection
-                title="Upcoming Meetings"
-                meetings={upcoming.meetings}
-                totalCount={upcoming.count}
-                onShowMore={() => loadMore("upcoming")}
-                disableLoadMore={loadingMore === "upcoming" || filtering}
-                onRefresh={refreshAll}
-                loading={applyingFilters}
+              <PersonalMeetingsSection
+                mode="team"
+                teamId={team.team_id}
+                filters={filters}
+                variant="teal"
+                refreshKey={personalRefreshKey}
               />
-              <MeetingsSection
-                title="Past Meetings"
-                meetings={past.meetings}
-                totalCount={past.count}
-                onShowMore={() => loadMore("past")}
-                disableLoadMore={loadingMore === "past" || filtering}
-                onRefresh={refreshAll}
-                isPast
-                loading={applyingFilters}
-              />
-              {loadMoreError && (
-                <p
-                  role="alert"
-                  className="text-center text-sm text-destructive"
-                >
-                  {loadMoreError}
-                </p>
-              )}
-            </div>
-          )}
-        </CollapsibleMeetingsGroup>
-      </div>
+            </TabsContent>
+          ))}
+          <TabsContent
+            value="all-meetings"
+            forceMount
+            className="mt-4 data-[state=inactive]:hidden"
+          >
+            {initialLoading ? (
+              <p
+                role="status"
+                className="py-8 text-center text-muted-foreground"
+              >
+                Loading meetings…
+              </p>
+            ) : error ? (
+              <p role="alert" className="py-8 text-center text-destructive">
+                {error}
+              </p>
+            ) : (
+              <div
+                className="flex flex-col gap-10"
+                {...(applyingFilters
+                  ? { role: "status", "aria-label": "Updating meetings" }
+                  : {})}
+              >
+                <MeetingsSection
+                  title="Upcoming Meetings"
+                  meetings={upcoming.meetings}
+                  totalCount={upcoming.count}
+                  onShowMore={() => loadMore("upcoming")}
+                  disableLoadMore={loadingMore === "upcoming" || filtering}
+                  onRefresh={refreshAll}
+                  loading={applyingFilters}
+                />
+                <MeetingsSection
+                  title="Past Meetings"
+                  meetings={past.meetings}
+                  totalCount={past.count}
+                  onShowMore={() => loadMore("past")}
+                  disableLoadMore={loadingMore === "past" || filtering}
+                  onRefresh={refreshAll}
+                  isPast
+                  loading={applyingFilters}
+                />
+                {loadMoreError && (
+                  <p
+                    role="alert"
+                    className="text-center text-sm text-destructive"
+                  >
+                    {loadMoreError}
+                  </p>
+                )}
+              </div>
+            )}
+          </TabsContent>
+        </div>
+      </Tabs>
     </div>
   );
 }

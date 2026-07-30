@@ -6,7 +6,7 @@ export function SuspenseWithDefaultFallback({
   children: React.ReactNode;
 }) {
   return (
-    <div className="p-8">
+    <div>
       <Suspense fallback={<p className="text-muted-foreground">Loading…</p>}>
         {children}
       </Suspense>
