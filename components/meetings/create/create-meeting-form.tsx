@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CreateMeetingValues, LinkFormEntry } from "@/lib/meetings/types";
 import { DEFAULT_MEETING_TIMEZONE } from "@/lib/meetings/constants";
 import { validateMeetingFields } from "@/lib/meetings/validate";
 import { useStaffers } from "@/lib/meetings/use-staffers";
+import { LINK_CN } from "@/lib/meetings/format";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,8 +45,31 @@ export function CreateMeetingForm({
   const [links, setLinks] = useState<LinkFormEntry[]>([]);
 
   const staffers = useStaffers(representativeId);
+  const [representativeBioguideId, setRepresentativeBioguideId] = useState<
+    string | null
+  >(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!representativeId) {
+      setRepresentativeBioguideId(null);
+      return;
+    }
+    let cancelled = false;
+    createClient()
+      .from("representatives")
+      .select("bioguide_id")
+      .eq("id", representativeId)
+      .single()
+      .then(({ data }) => {
+        if (cancelled) return;
+        setRepresentativeBioguideId(data?.bioguide_id ?? null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [representativeId]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -151,6 +177,18 @@ export function CreateMeetingForm({
               </option>
             ))}
           </Select>
+          <p className="text-xs italic text-muted-foreground">
+            Don&apos;t see the staffer you are meeting with?{" "}
+            <Link
+              href={`/representatives${representativeBioguideId ? "/" + representativeBioguideId : ""}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={LINK_CN}
+            >
+              Click here
+            </Link>{" "}
+            to add them
+          </p>
         </div>
 
         <div className="grid gap-2 sm:col-span-2">
