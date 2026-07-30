@@ -175,28 +175,42 @@ export function MeetingsPage() {
         <h1 className="text-3xl font-bold">Meetings</h1>
         <AddMeetingDialog onCreated={refreshAll} />
       </div>
-      <Tabs defaultValue="my-meetings" className="gap-0 rounded-lg border">
-        <div className="w-full border-b">
-          <TabsList variant="line" className="w-full justify-start px-4">
-            <TabsTrigger value="my-meetings">My Meetings</TabsTrigger>
+      <MeetingsFilters
+        filters={filters}
+        onChange={handleFiltersChange}
+        disabled={filtering || initialLoading}
+      />
+      <Tabs defaultValue="my-meetings" className="gap-0 rounded-lg">
+        <div className="w-full border-b pb-1">
+          <TabsList className="w-full justify-start bg-inherit p-0">
+            <TabsTrigger
+              value="my-meetings"
+              className="data-[state=active]:border-border data-[state=active]:bg-muted"
+            >
+              My Meetings
+            </TabsTrigger>
             {myTeams.map((team) => (
-              <TabsTrigger key={team.team_id} value={`team-${team.team_id}`}>
+              <TabsTrigger
+                key={team.team_id}
+                value={`team-${team.team_id}`}
+                className="data-[state=active]:border-border data-[state=active]:bg-muted"
+              >
                 {team.team_name} Meetings
               </TabsTrigger>
             ))}
-            <TabsTrigger value="all-meetings">All Meetings</TabsTrigger>
+            <TabsTrigger
+              value="all-meetings"
+              className="data-[state=active]:border-border data-[state=active]:bg-muted"
+            >
+              All Meetings
+            </TabsTrigger>
           </TabsList>
         </div>
-        <div className="p-4">
-          <MeetingsFilters
-            filters={filters}
-            onChange={handleFiltersChange}
-            disabled={filtering || initialLoading}
-          />
+        <div>
           <TabsContent
             value="my-meetings"
             forceMount
-            className="mt-4 data-[state=inactive]:hidden"
+            className="data-[state=inactive]:hidden"
           >
             <PersonalMeetingsSection
               mode="user"
@@ -210,7 +224,7 @@ export function MeetingsPage() {
               key={team.team_id}
               value={`team-${team.team_id}`}
               forceMount
-              className="mt-4 data-[state=inactive]:hidden"
+              className="data-[state=inactive]:hidden"
             >
               <PersonalMeetingsSection
                 mode="team"
@@ -224,7 +238,7 @@ export function MeetingsPage() {
           <TabsContent
             value="all-meetings"
             forceMount
-            className="mt-4 data-[state=inactive]:hidden"
+            className="data-[state=inactive]:hidden"
           >
             {initialLoading ? (
               <p
@@ -239,7 +253,7 @@ export function MeetingsPage() {
               </p>
             ) : (
               <div
-                className="flex flex-col gap-10"
+                className="flex flex-col gap-6"
                 {...(applyingFilters
                   ? { role: "status", "aria-label": "Updating meetings" }
                   : {})}
