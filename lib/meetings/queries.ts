@@ -129,10 +129,12 @@ export async function fetchMeetings(
 ): Promise<{ meetings: MeetingRow[]; count: number }> {
   const today = localDateString();
 
+  const ascending = section === "upcoming";
   let query = supabase
     .from("meetings")
     .select(SELECT, { count: "exact" })
-    .order("meeting_date", { ascending: false });
+    .order("meeting_date", { ascending })
+    .order("meeting_time", { ascending });
 
   if (section === "upcoming") {
     query = query.gte("meeting_date", today);
