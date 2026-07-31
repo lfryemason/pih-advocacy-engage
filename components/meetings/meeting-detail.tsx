@@ -273,6 +273,7 @@ export function MeetingDetail({
           isSaving={isSaving}
           delegationInitialMembers={detail.delegation_members}
           onDelegationChange={setPendingDelegation}
+          representativeBioguideId={detail.representative_bioguide_id}
         />
       )}
     </div>
