@@ -181,11 +181,11 @@ export function MeetingsPage() {
         disabled={filtering || initialLoading}
       />
       <Tabs defaultValue="my-meetings" className="gap-0 rounded-lg">
-        <div className="w-full border-b pb-1">
-          <TabsList className="w-full justify-start bg-inherit p-0">
+        <div className="mb-4 w-full pb-1">
+          <TabsList className="justify-start bg-inherit p-0">
             <TabsTrigger
               value="my-meetings"
-              className="data-[state=active]:border-border data-[state=active]:bg-muted"
+              className="rounded-full px-4 text-base data-[state=active]:bg-secondary data-[state=active]:font-bold"
             >
               My Meetings
             </TabsTrigger>
@@ -193,14 +193,14 @@ export function MeetingsPage() {
               <TabsTrigger
                 key={team.team_id}
                 value={`team-${team.team_id}`}
-                className="data-[state=active]:border-border data-[state=active]:bg-muted"
+                className="rounded-full px-4 text-base data-[state=active]:bg-secondary data-[state=active]:font-bold"
               >
                 {team.team_name} Meetings
               </TabsTrigger>
             ))}
             <TabsTrigger
               value="all-meetings"
-              className="data-[state=active]:border-border data-[state=active]:bg-muted"
+              className="rounded-full px-4 text-base data-[state=active]:bg-secondary data-[state=active]:font-bold"
             >
               All Meetings
             </TabsTrigger>
