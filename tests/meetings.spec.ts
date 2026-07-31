@@ -53,7 +53,9 @@ test.describe("meetings list page", () => {
     await expandAllMeetings(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
-    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    await expect(
+      allMeetingsRegion(page).getByText("Adam Smith").first(),
+    ).toBeVisible();
   });
 
   test("filter by state OR shows empty state in both sections", async ({
@@ -82,7 +84,9 @@ test.describe("meetings list page", () => {
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: /Clear all/i }).click();
-    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    await expect(
+      allMeetingsRegion(page).getByText("Adam Smith").first(),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: /Clear all/i })).toHaveCount(
       0,
     );
@@ -94,7 +98,9 @@ test.describe("meetings list page", () => {
     await page.goto("/meetings");
     await expandAllMeetings(page);
     // Wait for the initial list so we isolate the filter-triggered refetch.
-    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    await expect(
+      allMeetingsRegion(page).getByText("Adam Smith").first(),
+    ).toBeVisible();
 
     // Delay the refetch so the transient skeleton is observable.
     await page.route(/\/rest\/v1\/meetings/, async (route) => {
@@ -112,7 +118,9 @@ test.describe("meetings list page", () => {
 
     // Once the refetch resolves, the skeleton gives way to the results.
     await expect(status).toBeHidden();
-    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    await expect(
+      allMeetingsRegion(page).getByText("Adam Smith").first(),
+    ).toBeVisible();
   });
 
   test("expand button toggles chevron aria-expanded", async ({ page }) => {
