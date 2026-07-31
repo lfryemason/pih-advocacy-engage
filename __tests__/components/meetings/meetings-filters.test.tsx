@@ -61,11 +61,17 @@ describe("hasActiveMeetingFilters", () => {
   });
 });
 
+async function openFilters(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: /^Filters/ }));
+}
+
 describe("MeetingsFilters", () => {
-  it("shows default labels when no filters are active", () => {
+  it("shows default labels when no filters are active", async () => {
+    const user = userEvent.setup();
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={vi.fn()} />,
     );
+    await openFilters(user);
     expect(
       screen.getByRole("button", { name: "Filter by state" }),
     ).toHaveTextContent("State");
@@ -92,6 +98,7 @@ describe("MeetingsFilters", () => {
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={onChange} />,
     );
+    await openFilters(user);
     await user.click(screen.getByRole("button", { name: "Filter by state" }));
     await user.click(
       await screen.findByRole("menuitemcheckbox", { name: "Washington" }),
@@ -111,6 +118,7 @@ describe("MeetingsFilters", () => {
         onChange={onChange}
       />,
     );
+    await openFilters(user);
     await user.click(screen.getByRole("button", { name: "Filter by state" }));
     await user.click(
       await screen.findByRole("menuitemcheckbox", { name: "Washington" }),
@@ -127,6 +135,7 @@ describe("MeetingsFilters", () => {
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={onChange} />,
     );
+    await openFilters(user);
     await user.click(screen.getByRole("button", { name: "Filter by party" }));
     await user.click(
       await screen.findByRole("menuitemcheckbox", { name: "Democrat" }),
@@ -151,6 +160,7 @@ describe("MeetingsFilters", () => {
         onChange={onChange}
       />,
     );
+    await openFilters(user);
     await user.click(screen.getByRole("button", { name: /Clear all/i }));
     expect(onChange).toHaveBeenCalledWith(EMPTY_MEETING_FILTERS);
   });
