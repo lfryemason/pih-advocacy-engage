@@ -6,6 +6,10 @@ async function expandAllMeetings(page: Page) {
   await page.getByRole("tab", { name: "All Meetings" }).click();
 }
 
+async function openFilters(page: Page) {
+  await page.getByRole("button", { name: /^Filters/ }).click();
+}
+
 // The seed test user is a delegate on every seeded meeting, so seeded rows
 // legitimately appear under both "My Meetings" and "All Meetings" once the
 // latter is selected. Scope to "All Meetings" to keep locators unambiguous.
@@ -51,6 +55,7 @@ test.describe("meetings list page", () => {
   }) => {
     await page.goto("/meetings");
     await expandAllMeetings(page);
+    await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
     await expect(
@@ -63,6 +68,7 @@ test.describe("meetings list page", () => {
   }) => {
     await page.goto("/meetings");
     await expandAllMeetings(page);
+    await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
     // The dropdown stays open after checking an item; close it so the rest
@@ -80,6 +86,7 @@ test.describe("meetings list page", () => {
   }) => {
     await page.goto("/meetings");
     await expandAllMeetings(page);
+    await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
     await page.keyboard.press("Escape");
@@ -108,6 +115,7 @@ test.describe("meetings list page", () => {
       await route.continue();
     });
 
+    await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
     // Close the (modal) dropdown so the page behind it is no longer aria-hidden.
