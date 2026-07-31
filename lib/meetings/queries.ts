@@ -13,6 +13,8 @@ import {
   LocalDelegationMember,
   ProfileSearchResult,
   TeamGroup,
+  parseMeetingLocation,
+  toLegacyLocationText,
 } from "@/lib/meetings/types";
 import { localDateString } from "@/lib/utils";
 import { ORG_ID } from "@/lib/org";
@@ -27,7 +29,7 @@ type RawRow = {
   representative_id: string;
   congressional_contact_id: string | null;
   primary_team_id: string | null;
-  location: string | null;
+  location_json: unknown;
   follow_up_date: string | null;
   follow_up_completed: boolean;
   champion_score: number | null;
@@ -74,7 +76,7 @@ function mapRow(row: RawRow): MeetingRow {
     primary_team_id: row.primary_team_id,
     primary_team_name: row.teams?.name ?? null,
     primary_team_slug: row.teams?.slug ?? null,
-    location: row.location,
+    location: parseMeetingLocation(row.location_json),
     scheduling_lead_name: schedulingLead?.profiles
       ? [schedulingLead.profiles.first_name, schedulingLead.profiles.last_name]
           .filter(Boolean)
@@ -95,7 +97,7 @@ const SELECT = `
   representative_id,
   congressional_contact_id,
   primary_team_id,
-  location,
+  location_json,
   follow_up_date,
   follow_up_completed,
   champion_score,
@@ -195,6 +197,25 @@ export async function fetchMeetings(
     query = query.lte("meeting_date", filters.dateRange.to);
   }
 
+  // Location filters apply to the meetings table's own jsonb column.
+  if (filters.isVirtual === true) {
+    query = query.filter("location_json->>isVirtual", "eq", "true");
+  } else if (filters.isVirtual === false) {
+    // In-person includes meetings with no location set at all.
+    query = query.or(
+      "location_json->>isVirtual.eq.false,location_json.is.null",
+    );
+  }
+  if (filters.buildings.length > 0) {
+    // ilike (no wildcards) gives a case-insensitive exact match per building.
+    const ors = filters.buildings
+      .map((b) => b.trim())
+      .filter(Boolean)
+      .map((b) => `location_json->>building.ilike.${sanitizeBuildingFilter(b)}`)
+      .join(",");
+    if (ors) query = query.or(ors);
+  }
+
   query = query.range(offset, offset + limit - 1);
 
   const { data, error, count } = await query;
@@ -204,6 +225,62 @@ export async function fetchMeetings(
     meetings: (data as unknown as RawRow[]).map(mapRow),
     count: count ?? 0,
   };
+}
+
+// Quote the value per PostgREST's filter syntax so structural characters
+// (commas, parens) and building-name punctuation (apostrophes, periods) pass
+// through literally instead of being stripped. Backslashes, double quotes,
+// and the ilike wildcards `%`/`_` are backslash-escaped so they match
+// literally rather than acting as syntax or wildcards.
+function sanitizeBuildingFilter(value: string): string {
+  const escaped = value
+    .trim()
+    .replace(/\\/g, "\\\\")
+    .replace(/%/g, "\\%")
+    .replace(/_/g, "\\_")
+    .replace(/"/g, '\\"');
+  return `"${escaped}"`;
+}
+
+// fetchMeetingBuildings feeds both the building filter dropdown and the
+// create/edit form autocomplete, and both can mount at once. The building
+// list changes rarely, so a short-lived cache shared across callers avoids
+// hitting the DB on every mount; meetingBuildingsCache is invalidated below
+// whenever a save might have introduced a new building.
+const BUILDINGS_CACHE_TTL_MS = 5 * 60 * 1000;
+let buildingsCache: { expiresAt: number; promise: Promise<string[]> } | null =
+  null;
+
+export function invalidateMeetingBuildingsCache(): void {
+  buildingsCache = null;
+}
+
+// Distinct building names already used across the org's meetings, deduped
+// and sorted case-insensitively by the fetch_meeting_buildings DB function
+// rather than pulling every meeting's location_json to the client for it.
+export async function fetchMeetingBuildings(
+  supabase: SupabaseBrowserClient,
+): Promise<string[]> {
+  if (buildingsCache && buildingsCache.expiresAt > Date.now()) {
+    return buildingsCache.promise;
+  }
+
+  const promise = (async () => {
+    const { data, error } = await supabase.rpc("fetch_meeting_buildings", {
+      p_org_id: ORG_ID,
+    });
+    if (error) throw error;
+    return ((data as unknown as { building: string }[]) ?? []).map(
+      (row) => row.building,
+    );
+  })();
+
+  buildingsCache = { expiresAt: Date.now() + BUILDINGS_CACHE_TTL_MS, promise };
+  // Don't cache a failed fetch, so the next mount retries against the DB.
+  promise.catch(() => {
+    buildingsCache = null;
+  });
+  return promise;
 }
 
 export async function createMeeting(
@@ -230,7 +307,8 @@ export async function createMeeting(
       congressional_contact_id: values.congressional_contact_id,
       primary_team_id: values.primary_team_id,
       notes: values.notes,
-      location: values.location,
+      location: toLegacyLocationText(values.location),
+      location_json: values.location,
       links,
       created_by: user.id,
     })
@@ -239,6 +317,8 @@ export async function createMeeting(
 
   if (error) throw error;
   if (!data) throw new Error("Meeting created but ID could not be retrieved");
+
+  if (values.location?.building.trim()) invalidateMeetingBuildingsCache();
 
   const { error: delegationError } = await supabase
     .from("meeting_delegation_members")
@@ -283,6 +363,7 @@ type RawDetailDelegationMember = {
 
 type RawDetailRow = Omit<RawRow, "meeting_delegation_members"> & {
   notes: string | null;
+  location_json: unknown;
   links: MeetingLink[] | null;
   meeting_delegation_members: RawDetailDelegationMember[];
 };
@@ -299,7 +380,7 @@ const SELECT_DETAIL = `
   follow_up_completed,
   champion_score,
   notes,
-  location,
+  location_json,
   links,
   representatives!inner ( bioguide_id, official_full_name, pronouns, state, district, party ),
   staffers ( first_name, last_name ),
@@ -347,6 +428,7 @@ export async function fetchMeetingDetail(
   return {
     ...mapRow(row),
     notes: row.notes,
+    location: parseMeetingLocation(row.location_json),
     links: row.links ?? [],
     delegation_members,
     represented_teams,
@@ -371,7 +453,8 @@ export async function updateMeeting(
       congressional_contact_id: values.congressional_contact_id,
       primary_team_id: values.primary_team_id,
       notes: values.notes,
-      location: values.location,
+      location: toLegacyLocationText(values.location),
+      location_json: values.location,
       follow_up_date: values.follow_up_date,
       follow_up_completed: values.follow_up_completed,
       champion_score: values.champion_score,
@@ -380,6 +463,7 @@ export async function updateMeeting(
     .eq("id", id);
 
   if (error) throw error;
+  if (values.location?.building.trim()) invalidateMeetingBuildingsCache();
 }
 
 export async function deleteMeeting(

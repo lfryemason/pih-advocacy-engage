@@ -16,7 +16,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MeetingRow as MeetingRowType } from "@/lib/meetings/types";
-import { formatDate, formatTime } from "@/lib/meetings/format";
+import { formatDate, formatLocation, formatTime } from "@/lib/meetings/format";
 import { isDelegationMember } from "@/lib/meetings/permissions";
 import { MeetingDetail } from "@/components/meetings/meeting-detail";
 import { RepresentativeLink } from "@/components/meetings/representative-link";
@@ -114,7 +114,11 @@ export function MeetingRow({
         </TableCell>
         <TableCell className="max-w-0 truncate">
           {canViewDetails ? (
-            (meeting.location ?? "—")
+            meeting.location ? (
+              formatLocation(meeting.location)
+            ) : (
+              "—"
+            )
           ) : (
             <TooltipProvider>
               <Tooltip>

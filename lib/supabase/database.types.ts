@@ -555,6 +555,10 @@ export type Database = {
         Args: Record<PropertyKey, never>;
         Returns: undefined;
       };
+      fetch_meeting_buildings: {
+        Args: { p_org_id: string };
+        Returns: { building: string }[];
+      };
       is_in_org: { Args: { target_org_id: string }; Returns: boolean };
       is_org_admin_for: { Args: { target_org_id: string }; Returns: boolean };
       is_super_admin: { Args: never; Returns: boolean };

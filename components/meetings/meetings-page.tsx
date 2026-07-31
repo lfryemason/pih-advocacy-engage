@@ -21,12 +21,15 @@ type SectionState = {
 function filtersFromParams(params: URLSearchParams): MeetingFilters {
   const dateFrom = params.get("dateFrom");
   const dateTo = params.get("dateTo");
+  const virtual = params.get("virtual");
   return {
     states: params.getAll("state"),
     districts: params.getAll("district"),
     parties: params.getAll("party"),
     representativeIds: params.getAll("rep"),
     dateRange: { from: dateFrom, to: dateTo },
+    buildings: params.getAll("building"),
+    isVirtual: virtual === "1" ? true : virtual === "0" ? false : null,
   };
 }
 
@@ -38,6 +41,8 @@ function filtersToSearch(f: MeetingFilters): string {
   f.representativeIds.forEach((id) => params.append("rep", id));
   if (f.dateRange.from) params.set("dateFrom", f.dateRange.from);
   if (f.dateRange.to) params.set("dateTo", f.dateRange.to);
+  f.buildings.forEach((b) => params.append("building", b));
+  if (f.isVirtual !== null) params.set("virtual", f.isVirtual ? "1" : "0");
   const str = params.toString();
   return str ? `?${str}` : "";
 }

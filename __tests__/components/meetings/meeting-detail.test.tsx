@@ -28,6 +28,7 @@ vi.mock("@/lib/meetings/queries", () => ({
   deleteMeeting: mockDeleteMeeting,
   syncDelegationMembers: mockSyncDelegationMembers,
   fetchMyTeamMembers: mockFetchMyTeamMembers,
+  fetchMeetingBuildings: vi.fn(() => Promise.resolve([])),
 }));
 
 vi.mock("@/lib/auth/use-current-user", () => ({
@@ -65,7 +66,13 @@ function makeRow(overrides: Partial<MeetingRow> = {}): MeetingRow {
 const mockDetail = {
   ...makeRow(),
   notes: "Test notes",
-  location: "DC",
+  location: {
+    isVirtual: false,
+    city: "",
+    state: "",
+    building: "Hart Building",
+    room: "",
+  },
   links: [{ label: "Agenda", url: "https://example.com" }],
   delegation_members: [],
   represented_teams: [],
@@ -149,7 +156,7 @@ describe("MeetingDetail — view mode (default)", () => {
     render(<MeetingDetail meeting={makeRow()} onSaved={vi.fn()} />);
     await screen.findByRole("button", { name: /Edit Meeting/i });
     expect(screen.getByText("Test notes")).toBeInTheDocument();
-    expect(screen.getByText("DC")).toBeInTheDocument();
+    expect(screen.getByText("Hart Building")).toBeInTheDocument();
   });
 });
 
@@ -232,7 +239,7 @@ describe("MeetingDetail — mode toggle", () => {
     await user.click(editBtn);
 
     expect(await screen.findByDisplayValue("Test notes")).toBeInTheDocument();
-    expect(screen.getByDisplayValue("DC")).toBeInTheDocument();
+    expect(screen.getByDisplayValue("Hart Building")).toBeInTheDocument();
     expect(screen.getByDisplayValue("2099-06-01")).toBeInTheDocument();
   });
 

@@ -29,6 +29,7 @@ import {
   ActiveFilterChips,
   type FilterChip,
 } from "./meetings-filters/active-filter-chips";
+import { useMeetingBuildings } from "@/lib/meetings/use-meeting-buildings";
 
 export const EMPTY_MEETING_FILTERS: MeetingFilters = {
   states: [],
@@ -36,6 +37,8 @@ export const EMPTY_MEETING_FILTERS: MeetingFilters = {
   parties: [],
   representativeIds: [],
   dateRange: { from: null, to: null },
+  buildings: [],
+  isVirtual: null,
 };
 
 export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
@@ -45,9 +48,16 @@ export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
     f.parties.length > 0 ||
     f.representativeIds.length > 0 ||
     f.dateRange.from !== null ||
-    f.dateRange.to !== null
+    f.dateRange.to !== null ||
+    f.buildings.length > 0 ||
+    f.isVirtual !== null
   );
 }
+
+const VIRTUAL_OPTIONS: { value: boolean; label: string }[] = [
+  { value: true, label: "Virtual" },
+  { value: false, label: "In person" },
+];
 
 function buildActiveChips(
   filters: MeetingFilters,
@@ -112,7 +122,39 @@ function buildActiveChips(
     };
   });
 
-  return [...stateChips, ...districtChips, ...partyChips, ...repChips];
+  const buildingChips: FilterChip[] = filters.buildings.map((building) => ({
+    key: `building-${building}`,
+    label: building,
+    onRemove: () =>
+      onChange({
+        ...filters,
+        buildings: filters.buildings.filter(
+          (existing) => existing !== building,
+        ),
+      }),
+  }));
+
+  const virtualChips: FilterChip[] =
+    filters.isVirtual === null
+      ? []
+      : [
+          {
+            key: "format",
+            label: VIRTUAL_OPTIONS.find(
+              (opt) => opt.value === filters.isVirtual,
+            )!.label,
+            onRemove: () => onChange({ ...filters, isVirtual: null }),
+          },
+        ];
+
+  return [
+    ...stateChips,
+    ...districtChips,
+    ...partyChips,
+    ...repChips,
+    ...buildingChips,
+    ...virtualChips,
+  ];
 }
 
 export function MeetingsFilters({
@@ -126,6 +168,7 @@ export function MeetingsFilters({
 }) {
   const set = (patch: Partial<MeetingFilters>) =>
     onChange({ ...filters, ...patch });
+  const buildings = useMeetingBuildings();
 
   const [reps, setReps] = useState<RepRow[] | null>(null);
   const [profileState, setProfileState] = useState<string | null>(null);
@@ -221,6 +264,73 @@ export function MeetingsFilters({
           }
           disabled={disabled}
         />
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label="Filter by building"
+              className={`justify-between ${filters.buildings.length > 0 ? "bg-muted" : ""}`}
+              disabled={disabled}
+            >
+              <span className="mx-2 truncate">Building</span>
+              <ChevronDown aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="max-h-64 overflow-y-auto">
+            {buildings.length === 0 ? (
+              <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                No buildings yet
+              </div>
+            ) : (
+              buildings.map((building) => (
+                <DropdownMenuCheckboxItem
+                  key={building}
+                  checked={filters.buildings.includes(building)}
+                  onSelect={(event) => {
+                    event.preventDefault();
+                    set({ buildings: xor(filters.buildings, [building]) });
+                  }}
+                >
+                  {building}
+                </DropdownMenuCheckboxItem>
+              ))
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label="Filter by meeting format"
+              className={`justify-between ${filters.isVirtual !== null ? "bg-muted" : ""}`}
+              disabled={disabled}
+            >
+              <span className="mx-2 truncate">Format</span>
+              <ChevronDown aria-hidden="true" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent>
+            {VIRTUAL_OPTIONS.map((opt) => (
+              <DropdownMenuCheckboxItem
+                key={opt.label}
+                checked={filters.isVirtual === opt.value}
+                onSelect={(event) => {
+                  event.preventDefault();
+                  set({
+                    isVirtual:
+                      filters.isVirtual === opt.value ? null : opt.value,
+                  });
+                }}
+              >
+                {opt.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {hasActiveMeetingFilters(filters) && (
           <Button
