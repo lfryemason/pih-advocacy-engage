@@ -176,6 +176,40 @@
 }
 
 /*
+ * Safari, and Chrome on macOS, use overlay scrollbars that stay invisible until
+ * you scroll, so a container that overflows (a wide table, say) just looks like
+ * its content ends early. Styling the scrollbar opts every scrollable element
+ * into a classic always-drawn bar, which the browser only reserves space for
+ * when the content really does overflow.
+ *
+ * These have to be the `-webkit-` pseudo-elements rather than the standard
+ * `scrollbar-width`/`scrollbar-color`: Chromium ignores the pseudo-elements as
+ * soon as either standard property is set, and its `thin` keyword still renders
+ * the full-width native bar. Firefox keeps its native scrollbars either way.
+ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 9999px;
+  background-color: hsl(var(--border));
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: hsl(var(--muted-foreground));
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/*
  * High-contrast theme: decorative accents (table headers, party/type badges,
  * status icons) use fixed Tailwind palette colors that ignore the semantic
  * theme tokens, so they stay colorful in high-contrast mode. Force them to
