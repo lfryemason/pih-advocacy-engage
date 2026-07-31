@@ -58,6 +58,8 @@ test.describe("meetings list page", () => {
     await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
+    // Close the (modal) dropdown so the page behind it is no longer aria-hidden.
+    await page.keyboard.press("Escape");
     await expect(
       allMeetingsRegion(page).getByText("Adam Smith").first(),
     ).toBeVisible();
