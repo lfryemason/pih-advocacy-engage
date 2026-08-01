@@ -297,17 +297,14 @@ export async function fetchMeetingBuildings(
   return promise;
 }
 
-// Members who are on at least one meeting's delegation, so every option in the
-// filter dropdown returns something. The `!inner` embed does that narrowing in
-// the database and yields one row per profile rather than one per membership.
+// Every member of the org, including those not on any delegation yet: an absent
+// name in the dropdown would read as "no account" rather than "no meetings".
 export async function fetchDelegationMemberOptions(
   supabase: SupabaseBrowserClient,
 ): Promise<DelegationMemberOption[]> {
   const { data, error } = await supabase
     .from("profiles")
-    .select(
-      "user_id, first_name, last_name, meeting_delegation_members!inner ( user_id )",
-    )
+    .select("user_id, first_name, last_name")
     .eq("org_id", ORG_ID)
     .order("first_name")
     .order("last_name");

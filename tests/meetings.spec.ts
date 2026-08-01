@@ -610,7 +610,7 @@ test.describe("filter by delegation member", () => {
     await expect(memberPicker(page)).toBeVisible();
   });
 
-  test("lists only members who are on a delegation", async ({ page }) => {
+  test("lists members who are on no delegation as well", async ({ page }) => {
     await promoteToOrgAdmin();
     await page.goto("/meetings");
     await openFilters(page);
@@ -618,10 +618,10 @@ test.describe("filter by delegation member", () => {
     await expect(
       page.getByRole("option", { name: "Test Admin" }),
     ).toBeVisible();
-    // Alex Rivera has a profile but no delegation, so they are not an option.
-    await expect(page.getByRole("option", { name: "Alex Rivera" })).toHaveCount(
-      0,
-    );
+    // Alex Rivera has a profile but no delegation, and is still an option.
+    await expect(
+      page.getByRole("option", { name: "Alex Rivera" }),
+    ).toBeVisible();
   });
 
   test("narrows the list to the selected member's meetings", async ({

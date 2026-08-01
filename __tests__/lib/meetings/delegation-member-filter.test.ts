@@ -156,13 +156,13 @@ describe("fetchDelegationMemberOptions", () => {
     ]);
   });
 
-  it("restricts the list to profiles on at least one delegation", async () => {
+  it("lists every profile, including ones with no delegation", async () => {
     const { supabase, calls } = optionsClient([]);
 
     await fetchDelegationMemberOptions(supabase);
 
     expect(calls[0].method).toBe("select");
-    expect(calls[0].args[0]).toContain("meeting_delegation_members!inner");
+    expect(calls[0].args[0]).not.toContain("meeting_delegation_members");
   });
 
   it("throws when the query fails", async () => {
