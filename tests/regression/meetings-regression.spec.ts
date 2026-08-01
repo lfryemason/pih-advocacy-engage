@@ -70,7 +70,7 @@ for (const theme of themes) {
       await page.goto("/meetings");
       await page.waitForLoadState("networkidle");
       await setTheme(page, theme);
-      await page.getByRole("button", { name: "All Meetings" }).click();
+      await page.getByRole("tab", { name: "All Meetings" }).click();
       const expandBtn = page
         .getByRole("button", { name: /Expand meeting with/ })
         .first();
@@ -90,7 +90,7 @@ for (const theme of themes) {
       await page.goto("/meetings");
       await page.waitForLoadState("networkidle");
       await setTheme(page, theme);
-      await page.getByRole("button", { name: "All Meetings" }).click();
+      await page.getByRole("tab", { name: "All Meetings" }).click();
       const expandBtn = page
         .getByRole("button", { name: /Expand meeting with/ })
         .first();
@@ -111,7 +111,7 @@ for (const theme of themes) {
       await page.goto("/meetings");
       await page.waitForLoadState("networkidle");
       await setTheme(page, theme);
-      await page.getByRole("button", { name: "All Meetings" }).click();
+      await page.getByRole("tab", { name: "All Meetings" }).click();
       const expandBtn = page
         .getByRole("button", { name: /Expand meeting with/ })
         .first();
@@ -153,6 +153,7 @@ for (const theme of themes) {
       await page.goto("/meetings");
       await page.waitForLoadState("networkidle");
       await setTheme(page, theme);
+      await page.getByRole("button", { name: /^Filters/ }).click();
       await expect(page.getByPlaceholder("Delegation member")).toBeVisible();
     });
 

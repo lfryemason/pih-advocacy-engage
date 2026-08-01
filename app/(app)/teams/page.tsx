@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Teams" };
 
 export default function TeamsPage() {
   return (
-    <div className="p-8">
+    <div>
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Teams</h1>
         <Button asChild>

@@ -4,6 +4,12 @@ import { useState, useEffect } from "react";
 import { X, ChevronDown } from "lucide-react";
 import { xor } from "es-toolkit";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -11,6 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { createClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 import { US_STATES } from "@/lib/us-districts";
 import { PARTIES } from "@/lib/parties";
 import { MeetingFilters, DelegationMemberOption } from "@/lib/meetings/types";
@@ -198,6 +205,7 @@ export function MeetingsFilters({
   const [reps, setReps] = useState<RepRow[] | null>(null);
   const [profileState, setProfileState] = useState<string | null>(null);
   const [profileDistrict, setProfileDistrict] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -236,152 +244,183 @@ export function MeetingsFilters({
   const chips = buildActiveChips(filters, reps, delegationMembers, onChange);
 
   return (
-    <div className="mb-6 flex flex-col gap-2">
-      <div className="flex flex-wrap items-center gap-2">
-        <DateRangeFilter
-          dateRange={filters.dateRange}
-          onChange={(range) => set({ dateRange: range })}
-          disabled={disabled}
-        />
-
-        <StateDistrictFilters
-          filters={filters}
-          onChange={onChange}
-          disabled={disabled}
-        />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              aria-label="Filter by party"
-              className={`justify-between ${filters.parties.length > 0 ? "bg-muted" : ""}`}
-              disabled={disabled}
-            >
-              <span className="mx-2 truncate">Party</span>
-              <ChevronDown aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {PARTIES.map((party) => (
-              <DropdownMenuCheckboxItem
-                key={party}
-                checked={filters.parties.includes(party)}
-                onSelect={(event) => {
-                  event.preventDefault();
-                  set({ parties: xor(filters.parties, [party]) });
-                }}
-              >
-                {party}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <RepresentativeFilterPicker
-          selectedIds={filters.representativeIds}
-          reps={reps ?? []}
-          profileState={profileState}
-          profileDistrict={profileDistrict}
-          onAdd={(repId) =>
-            set({ representativeIds: [...filters.representativeIds, repId] })
-          }
-          disabled={disabled}
-        />
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              aria-label="Filter by building"
-              className={`justify-between ${filters.buildings.length > 0 ? "bg-muted" : ""}`}
-              disabled={disabled}
-            >
-              <span className="mx-2 truncate">Building</span>
-              <ChevronDown aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="max-h-64 overflow-y-auto">
-            {buildings.length === 0 ? (
-              <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                No buildings yet
-              </div>
-            ) : (
-              buildings.map((building) => (
-                <DropdownMenuCheckboxItem
-                  key={building}
-                  checked={filters.buildings.includes(building)}
-                  onSelect={(event) => {
-                    event.preventDefault();
-                    set({ buildings: xor(filters.buildings, [building]) });
-                  }}
-                >
-                  {building}
-                </DropdownMenuCheckboxItem>
-              ))
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              aria-label="Filter by meeting format"
-              className={`justify-between ${filters.isVirtual !== null ? "bg-muted" : ""}`}
-              disabled={disabled}
-            >
-              <span className="mx-2 truncate">Format</span>
-              <ChevronDown aria-hidden="true" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            {VIRTUAL_OPTIONS.map((opt) => (
-              <DropdownMenuCheckboxItem
-                key={opt.label}
-                checked={filters.isVirtual === opt.value}
-                onSelect={(event) => {
-                  event.preventDefault();
-                  set({
-                    isVirtual:
-                      filters.isVirtual === opt.value ? null : opt.value,
-                  });
-                }}
-              >
-                {opt.label}
-              </DropdownMenuCheckboxItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {canFilterByDelegationMember && (
-          <DelegationMemberFilterPicker
-            selectedIds={filters.delegationUserIds}
-            members={delegationMembers}
-            onAdd={(userId) =>
-              set({ delegationUserIds: [...filters.delegationUserIds, userId] })
-            }
-            disabled={disabled}
-          />
-        )}
-
-        {hasActiveMeetingFilters(filters) && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onChange(EMPTY_MEETING_FILTERS)}
-            disabled={disabled}
+    <Card className="mb-6 bg-background">
+      <Collapsible open={open} onOpenChange={setOpen}>
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex w-full items-center gap-2 px-4 py-2 text-left"
           >
-            <X aria-hidden="true" />
-            Clear all filters
-          </Button>
-        )}
-      </div>
+            <ChevronDown
+              aria-hidden="true"
+              className={cn("transition-transform", !open && "-rotate-90")}
+            />
+            <span className="flex items-center gap-2 font-semibold">
+              Filters
+              {hasActiveMeetingFilters(filters) && (
+                <span className="rounded-full bg-secondary px-2 py-0.5 text-xs font-normal text-secondary-foreground">
+                  {chips.length}
+                </span>
+              )}
+            </span>
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="flex flex-col gap-2 p-4">
+            <div className="flex flex-wrap items-center gap-2">
+              <DateRangeFilter
+                dateRange={filters.dateRange}
+                onChange={(range) => set({ dateRange: range })}
+                disabled={disabled}
+              />
 
-      <ActiveFilterChips chips={chips} disabled={disabled} />
-    </div>
+              <StateDistrictFilters
+                filters={filters}
+                onChange={onChange}
+                disabled={disabled}
+              />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label="Filter by party"
+                    className={`justify-between ${filters.parties.length > 0 ? "bg-muted" : ""}`}
+                    disabled={disabled}
+                  >
+                    <span className="mx-2 truncate">Party</span>
+                    <ChevronDown aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {PARTIES.map((party) => (
+                    <DropdownMenuCheckboxItem
+                      key={party}
+                      checked={filters.parties.includes(party)}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        set({ parties: xor(filters.parties, [party]) });
+                      }}
+                    >
+                      {party}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <RepresentativeFilterPicker
+                selectedIds={filters.representativeIds}
+                reps={reps ?? []}
+                profileState={profileState}
+                profileDistrict={profileDistrict}
+                onAdd={(repId) =>
+                  set({
+                    representativeIds: [...filters.representativeIds, repId],
+                  })
+                }
+                disabled={disabled}
+              />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label="Filter by building"
+                    className={`justify-between ${filters.buildings.length > 0 ? "bg-muted" : ""}`}
+                    disabled={disabled}
+                  >
+                    <span className="mx-2 truncate">Building</span>
+                    <ChevronDown aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="max-h-64 overflow-y-auto">
+                  {buildings.length === 0 ? (
+                    <div className="px-2 py-1.5 text-sm text-muted-foreground">
+                      No buildings yet
+                    </div>
+                  ) : (
+                    buildings.map((building) => (
+                      <DropdownMenuCheckboxItem
+                        key={building}
+                        checked={filters.buildings.includes(building)}
+                        onSelect={(event) => {
+                          event.preventDefault();
+                          set({
+                            buildings: xor(filters.buildings, [building]),
+                          });
+                        }}
+                      >
+                        {building}
+                      </DropdownMenuCheckboxItem>
+                    ))
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label="Filter by meeting format"
+                    className={`justify-between ${filters.isVirtual !== null ? "bg-muted" : ""}`}
+                    disabled={disabled}
+                  >
+                    <span className="mx-2 truncate">Format</span>
+                    <ChevronDown aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {VIRTUAL_OPTIONS.map((opt) => (
+                    <DropdownMenuCheckboxItem
+                      key={opt.label}
+                      checked={filters.isVirtual === opt.value}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        set({
+                          isVirtual:
+                            filters.isVirtual === opt.value ? null : opt.value,
+                        });
+                      }}
+                    >
+                      {opt.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {canFilterByDelegationMember && (
+                <DelegationMemberFilterPicker
+                  selectedIds={filters.delegationUserIds}
+                  members={delegationMembers}
+                  onAdd={(userId) =>
+                    set({
+                      delegationUserIds: [...filters.delegationUserIds, userId],
+                    })
+                  }
+                  disabled={disabled}
+                />
+              )}
+
+              {hasActiveMeetingFilters(filters) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onChange(EMPTY_MEETING_FILTERS)}
+                  disabled={disabled}
+                >
+                  <X aria-hidden="true" />
+                  Clear all filters
+                </Button>
+              )}
+            </div>
+
+            <ActiveFilterChips chips={chips} disabled={disabled} />
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
   );
 }

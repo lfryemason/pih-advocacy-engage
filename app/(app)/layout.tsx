@@ -23,7 +23,9 @@ export default async function AppLayout({
         isAdmin={isAdmin}
         isFacilitator={isFacilitator}
       >
-        <main className="flex-1 overflow-y-auto">{children}</main>
+        <main className="flex-1 overflow-y-auto p-2 pt-8 md:p-8">
+          {children}
+        </main>
       </CurrentUserProvider>
     </div>
   );
