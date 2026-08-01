@@ -3,14 +3,18 @@ import { AUTH_STATE_PATH } from "./global-setup";
 import { resetDatabase } from "./reset-db";
 
 async function expandAllMeetings(page: Page) {
-  await page.getByRole("button", { name: "All Meetings" }).click();
+  await page.getByRole("tab", { name: "All Meetings" }).click();
+}
+
+async function openFilters(page: Page) {
+  await page.getByRole("button", { name: /^Filters/ }).click();
 }
 
 // The seed test user is a delegate on every seeded meeting, so seeded rows
 // legitimately appear under both "My Meetings" and "All Meetings" once the
-// latter is expanded. Scope to "All Meetings" to keep locators unambiguous.
+// latter is selected. Scope to "All Meetings" to keep locators unambiguous.
 function allMeetingsRegion(page: Page) {
-  return page.getByRole("region", { name: "All Meetings" });
+  return page.getByRole("tabpanel", { name: "All Meetings" });
 }
 
 test.use({ storageState: AUTH_STATE_PATH });
@@ -51,9 +55,14 @@ test.describe("meetings list page", () => {
   }) => {
     await page.goto("/meetings");
     await expandAllMeetings(page);
+    await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
-    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    // Close the (modal) dropdown so the page behind it is no longer aria-hidden.
+    await page.keyboard.press("Escape");
+    await expect(
+      allMeetingsRegion(page).getByText("Adam Smith").first(),
+    ).toBeVisible();
   });
 
   test("filter by state OR shows empty state in both sections", async ({
@@ -61,12 +70,13 @@ test.describe("meetings list page", () => {
   }) => {
     await page.goto("/meetings");
     await expandAllMeetings(page);
+    await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
     // The dropdown stays open after checking an item; close it so the rest
     // of the page (hidden via aria-hidden while it's open) is queryable again.
     await page.keyboard.press("Escape");
-    // Scope to the "All Meetings" region — "My Meetings" and "Team Meetings"
+    // Scope to the "All Meetings" tab panel — other tabs (e.g. "My Meetings")
     // independently render their own empty states for the same filter.
     const emptyMessages =
       allMeetingsRegion(page).getByText("No meetings found.");
@@ -78,11 +88,14 @@ test.describe("meetings list page", () => {
   }) => {
     await page.goto("/meetings");
     await expandAllMeetings(page);
+    await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Oregon" }).click();
     await page.keyboard.press("Escape");
     await page.getByRole("button", { name: /Clear all/i }).click();
-    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    await expect(
+      allMeetingsRegion(page).getByText("Adam Smith").first(),
+    ).toBeVisible();
     await expect(page.getByRole("button", { name: /Clear all/i })).toHaveCount(
       0,
     );
@@ -94,7 +107,9 @@ test.describe("meetings list page", () => {
     await page.goto("/meetings");
     await expandAllMeetings(page);
     // Wait for the initial list so we isolate the filter-triggered refetch.
-    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    await expect(
+      allMeetingsRegion(page).getByText("Adam Smith").first(),
+    ).toBeVisible();
 
     // Delay the refetch so the transient skeleton is observable.
     await page.route(/\/rest\/v1\/meetings/, async (route) => {
@@ -102,6 +117,7 @@ test.describe("meetings list page", () => {
       await route.continue();
     });
 
+    await openFilters(page);
     await page.getByRole("button", { name: "Filter by state" }).click();
     await page.getByRole("menuitemcheckbox", { name: "Washington" }).click();
     // Close the (modal) dropdown so the page behind it is no longer aria-hidden.
@@ -112,7 +128,9 @@ test.describe("meetings list page", () => {
 
     // Once the refetch resolves, the skeleton gives way to the results.
     await expect(status).toBeHidden();
-    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    await expect(
+      allMeetingsRegion(page).getByText("Adam Smith").first(),
+    ).toBeVisible();
   });
 
   test("expand button toggles chevron aria-expanded", async ({ page }) => {

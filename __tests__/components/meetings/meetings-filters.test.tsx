@@ -86,11 +86,17 @@ describe("hasActiveMeetingFilters", () => {
   });
 });
 
+async function openFilters(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole("button", { name: /^Filters/ }));
+}
+
 describe("MeetingsFilters", () => {
-  it("shows default labels when no filters are active", () => {
+  it("shows default labels when no filters are active", async () => {
+    const user = userEvent.setup();
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={vi.fn()} />,
     );
+    await openFilters(user);
     expect(
       screen.getByRole("button", { name: "Filter by state" }),
     ).toHaveTextContent("State");
@@ -117,6 +123,7 @@ describe("MeetingsFilters", () => {
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={onChange} />,
     );
+    await openFilters(user);
     await user.click(screen.getByRole("button", { name: "Filter by state" }));
     await user.click(
       await screen.findByRole("menuitemcheckbox", { name: "Washington" }),
@@ -136,6 +143,7 @@ describe("MeetingsFilters", () => {
         onChange={onChange}
       />,
     );
+    await openFilters(user);
     await user.click(screen.getByRole("button", { name: "Filter by state" }));
     await user.click(
       await screen.findByRole("menuitemcheckbox", { name: "Washington" }),
@@ -152,6 +160,7 @@ describe("MeetingsFilters", () => {
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={onChange} />,
     );
+    await openFilters(user);
     await user.click(screen.getByRole("button", { name: "Filter by party" }));
     await user.click(
       await screen.findByRole("menuitemcheckbox", { name: "Democrat" }),
@@ -178,22 +187,26 @@ describe("MeetingsFilters", () => {
         onChange={onChange}
       />,
     );
+    await openFilters(user);
     await user.click(screen.getByRole("button", { name: /Clear all/i }));
     expect(onChange).toHaveBeenCalledWith(EMPTY_MEETING_FILTERS);
   });
 });
 
 describe("MeetingsFilters — building filter", () => {
-  it("shows the default Building label when none selected", () => {
+  it("shows the default Building label when none selected", async () => {
+    const user = userEvent.setup();
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={vi.fn()} />,
     );
+    await openFilters(user);
     expect(
       screen.getByRole("button", { name: "Filter by building" }),
     ).toHaveTextContent("Building");
   });
 
-  it("shows selected buildings as chips", () => {
+  it("shows selected buildings as chips", async () => {
+    const user = userEvent.setup();
     render(
       <MeetingsFilters
         filters={{
@@ -206,6 +219,7 @@ describe("MeetingsFilters — building filter", () => {
         onChange={vi.fn()}
       />,
     );
+    await openFilters(user);
     expect(screen.getByText("Hart Senate Office Building")).toBeVisible();
     expect(screen.getByText("Cannon House Office Building")).toBeVisible();
   });
@@ -216,6 +230,7 @@ describe("MeetingsFilters — building filter", () => {
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={onChange} />,
     );
+    await openFilters(user);
     await user.click(
       screen.getByRole("button", { name: "Filter by building" }),
     );
@@ -232,32 +247,38 @@ describe("MeetingsFilters — building filter", () => {
 });
 
 describe("MeetingsFilters — meeting format filter", () => {
-  it("shows the default Format label by default", () => {
+  it("shows the default Format label by default", async () => {
+    const user = userEvent.setup();
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={vi.fn()} />,
     );
+    await openFilters(user);
     expect(
       screen.getByRole("button", { name: "Filter by meeting format" }),
     ).toHaveTextContent("Format");
   });
 
-  it("shows a 'Virtual' chip when filtering to virtual meetings", () => {
+  it("shows a 'Virtual' chip when filtering to virtual meetings", async () => {
+    const user = userEvent.setup();
     render(
       <MeetingsFilters
         filters={{ ...EMPTY_MEETING_FILTERS, isVirtual: true }}
         onChange={vi.fn()}
       />,
     );
+    await openFilters(user);
     expect(screen.getByText("Virtual")).toBeVisible();
   });
 
-  it("shows an 'In person' chip when filtering to in-person meetings", () => {
+  it("shows an 'In person' chip when filtering to in-person meetings", async () => {
+    const user = userEvent.setup();
     render(
       <MeetingsFilters
         filters={{ ...EMPTY_MEETING_FILTERS, isVirtual: false }}
         onChange={vi.fn()}
       />,
     );
+    await openFilters(user);
     expect(screen.getByText("In person")).toBeVisible();
   });
 
@@ -267,6 +288,7 @@ describe("MeetingsFilters — meeting format filter", () => {
     render(
       <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={onChange} />,
     );
+    await openFilters(user);
     await user.click(
       screen.getByRole("button", { name: "Filter by meeting format" }),
     );
@@ -288,6 +310,7 @@ describe("MeetingsFilters — meeting format filter", () => {
         onChange={onChange}
       />,
     );
+    await openFilters(user);
     await user.click(
       screen.getByRole("button", { name: "Filter by meeting format" }),
     );
