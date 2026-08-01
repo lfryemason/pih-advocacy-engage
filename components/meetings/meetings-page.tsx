@@ -10,6 +10,7 @@ import { MeetingsFilters } from "@/components/meetings/meetings-filters";
 import { AddMeetingDialog } from "@/components/meetings/create/add-meeting-dialog";
 import { PersonalMeetingsSection } from "@/components/meetings/personal-meetings-section";
 import { CollapsibleMeetingsGroup } from "@/components/meetings/collapsible-meetings-group";
+import { useCurrentUser } from "@/lib/auth/use-current-user";
 
 const PAGE_SIZE = 15;
 
@@ -18,7 +19,10 @@ type SectionState = {
   count: number;
 };
 
-function filtersFromParams(params: URLSearchParams): MeetingFilters {
+function filtersFromParams(
+  params: URLSearchParams,
+  canFilterByDelegationMember: boolean,
+): MeetingFilters {
   const dateFrom = params.get("dateFrom");
   const dateTo = params.get("dateTo");
   const virtual = params.get("virtual");
@@ -30,6 +34,9 @@ function filtersFromParams(params: URLSearchParams): MeetingFilters {
     dateRange: { from: dateFrom, to: dateTo },
     buildings: params.getAll("building"),
     isVirtual: virtual === "1" ? true : virtual === "0" ? false : null,
+    delegationUserIds: canFilterByDelegationMember
+      ? params.getAll("member")
+      : [],
   };
 }
 
@@ -43,6 +50,7 @@ function filtersToSearch(f: MeetingFilters): string {
   if (f.dateRange.to) params.set("dateTo", f.dateRange.to);
   f.buildings.forEach((b) => params.append("building", b));
   if (f.isVirtual !== null) params.set("virtual", f.isVirtual ? "1" : "0");
+  f.delegationUserIds.forEach((id) => params.append("member", id));
   const str = params.toString();
   return str ? `?${str}` : "";
 }
@@ -51,6 +59,8 @@ export function MeetingsPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
+  const { isAdmin, isFacilitator } = useCurrentUser();
+  const canFilterByDelegationMember = isAdmin || isFacilitator;
 
   const [upcoming, setUpcoming] = useState<SectionState>({
     meetings: [],
@@ -66,7 +76,7 @@ export function MeetingsPage() {
   const [error, setError] = useState<string | null>(null);
   const [loadMoreError, setLoadMoreError] = useState<string | null>(null);
   const [filters, setFilters] = useState<MeetingFilters>(() =>
-    filtersFromParams(searchParams),
+    filtersFromParams(searchParams, canFilterByDelegationMember),
   );
   const [myTeams, setMyTeams] = useState<
     { team_id: string; team_name: string }[]
@@ -124,11 +134,11 @@ export function MeetingsPage() {
   }, []);
 
   useEffect(() => {
-    const f = filtersFromParams(searchParams);
+    const f = filtersFromParams(searchParams, canFilterByDelegationMember);
     setFilters(f);
     setApplyingFilters(true);
     loadInitial(f).finally(() => setApplyingFilters(false));
-  }, [searchParams, loadInitial]);
+  }, [searchParams, loadInitial, canFilterByDelegationMember]);
 
   const refreshAll = useCallback(() => {
     loadInitial(filtersRef.current);
@@ -184,6 +194,7 @@ export function MeetingsPage() {
         filters={filters}
         onChange={handleFiltersChange}
         disabled={filtering || initialLoading}
+        canFilterByDelegationMember={canFilterByDelegationMember}
       />
       <div className="flex flex-col gap-6">
         <CollapsibleMeetingsGroup title="My Meetings" defaultOpen>

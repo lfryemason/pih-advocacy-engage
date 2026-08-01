@@ -14,6 +14,16 @@ vi.mock("@/lib/meetings/use-meeting-buildings", () => ({
   ],
 }));
 
+const DELEGATION_MEMBERS = [
+  { user_id: "user-alex", display_name: "Alex Rivera" },
+  { user_id: "user-jordan", display_name: "Jordan Kim" },
+];
+
+vi.mock("@/lib/meetings/use-delegation-members", () => ({
+  useDelegationMembers: (enabled: boolean) =>
+    enabled ? DELEGATION_MEMBERS : [],
+}));
+
 describe("hasActiveMeetingFilters", () => {
   it("returns false for empty filters", () => {
     expect(hasActiveMeetingFilters(EMPTY_MEETING_FILTERS)).toBe(false);
@@ -82,6 +92,15 @@ describe("hasActiveMeetingFilters", () => {
     ).toBe(true);
     expect(
       hasActiveMeetingFilters({ ...EMPTY_MEETING_FILTERS, isVirtual: false }),
+    ).toBe(true);
+  });
+
+  it("returns true when delegationUserIds has entries", () => {
+    expect(
+      hasActiveMeetingFilters({
+        ...EMPTY_MEETING_FILTERS,
+        delegationUserIds: ["user-alex"],
+      }),
     ).toBe(true);
   });
 });
@@ -298,5 +317,127 @@ describe("MeetingsFilters — meeting format filter", () => {
       ...EMPTY_MEETING_FILTERS,
       isVirtual: null,
     });
+  });
+});
+
+describe("MeetingsFilters — delegation member filter", () => {
+  const memberCombobox = () =>
+    screen.queryByPlaceholderText("Delegation member");
+
+  it("hides the picker from users who are neither admin nor facilitator", () => {
+    render(
+      <MeetingsFilters filters={EMPTY_MEETING_FILTERS} onChange={vi.fn()} />,
+    );
+    expect(memberCombobox()).not.toBeInTheDocument();
+  });
+
+  it("shows the picker to admins and facilitators", () => {
+    render(
+      <MeetingsFilters
+        filters={EMPTY_MEETING_FILTERS}
+        onChange={vi.fn()}
+        canFilterByDelegationMember
+      />,
+    );
+    expect(memberCombobox()).toBeInTheDocument();
+  });
+
+  it("adds the selected member to the filters", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <MeetingsFilters
+        filters={EMPTY_MEETING_FILTERS}
+        onChange={onChange}
+        canFilterByDelegationMember
+      />,
+    );
+    await user.click(screen.getByPlaceholderText("Delegation member"));
+    await user.click(
+      await screen.findByRole("option", { name: "Alex Rivera" }),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      ...EMPTY_MEETING_FILTERS,
+      delegationUserIds: ["user-alex"],
+    });
+  });
+
+  it("keeps already-selected members out of the option list", async () => {
+    const user = userEvent.setup();
+    render(
+      <MeetingsFilters
+        filters={{
+          ...EMPTY_MEETING_FILTERS,
+          delegationUserIds: ["user-alex"],
+        }}
+        onChange={vi.fn()}
+        canFilterByDelegationMember
+      />,
+    );
+    await user.click(screen.getByPlaceholderText("Delegation member"));
+    expect(
+      screen.queryByRole("option", { name: "Alex Rivera" }),
+    ).not.toBeInTheDocument();
+    expect(
+      await screen.findByRole("option", { name: "Jordan Kim" }),
+    ).toBeInTheDocument();
+  });
+
+  it("shows a chip naming each selected member", () => {
+    render(
+      <MeetingsFilters
+        filters={{
+          ...EMPTY_MEETING_FILTERS,
+          delegationUserIds: ["user-alex", "user-jordan"],
+        }}
+        onChange={vi.fn()}
+        canFilterByDelegationMember
+      />,
+    );
+    expect(
+      screen.getByRole("button", { name: "Remove Alex Rivera filter" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Remove Jordan Kim filter" }),
+    ).toBeInTheDocument();
+  });
+
+  it("removes only the dismissed member when its chip is cleared", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <MeetingsFilters
+        filters={{
+          ...EMPTY_MEETING_FILTERS,
+          delegationUserIds: ["user-alex", "user-jordan"],
+        }}
+        onChange={onChange}
+        canFilterByDelegationMember
+      />,
+    );
+    await user.click(
+      screen.getByRole("button", { name: "Remove Alex Rivera filter" }),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      ...EMPTY_MEETING_FILTERS,
+      delegationUserIds: ["user-jordan"],
+    });
+  });
+
+  it("clears selected members along with the other filters", async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    render(
+      <MeetingsFilters
+        filters={{
+          ...EMPTY_MEETING_FILTERS,
+          delegationUserIds: ["user-alex"],
+        }}
+        onChange={onChange}
+        canFilterByDelegationMember
+      />,
+    );
+    await user.click(screen.getByRole("button", { name: /Clear all/i }));
+    expect(onChange).toHaveBeenCalledWith(EMPTY_MEETING_FILTERS);
   });
 });

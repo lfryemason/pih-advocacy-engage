@@ -1,6 +1,18 @@
 import { test, expect, type Page } from "@playwright/test";
+import { createClient } from "@supabase/supabase-js";
 import { AUTH_STATE_PATH } from "./global-setup";
 import { resetDatabase } from "./reset-db";
+import { TEST_USER_ID, SEED_MEETING_PAST_ID, SEED_USER_2_ID } from "./seed";
+
+function adminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+  const key =
+    process.env.SUPABASE_SERVICE_ROLE_KEY ?? process.env.SERVICE_ROLE_KEY;
+  if (!key) throw new Error("SUPABASE_SERVICE_ROLE_KEY missing");
+  return createClient(url, key, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
+}
 
 async function expandAllMeetings(page: Page) {
   await page.getByRole("button", { name: "All Meetings" }).click();
@@ -534,5 +546,104 @@ test.describe("US4 — Delegation members", () => {
     await expect(
       page.getByRole("button", { name: "Save changes" }),
     ).not.toBeVisible();
+  });
+});
+
+test.describe("filter by delegation member", () => {
+  async function promoteToOrgAdmin() {
+    const supabase = adminClient();
+    const { error } = await supabase
+      .from("user_role")
+      .upsert(
+        { user_id: TEST_USER_ID, role: "org_admin", org_id: "pihe" },
+        { onConflict: "user_id" },
+      );
+    if (error) throw new Error(`Failed to promote test user: ${error.message}`);
+  }
+
+  // Alex Rivera is seeded as a profile but not as a delegate, so adding them to
+  // one meeting gives the filter a member whose meetings differ from the test
+  // user's — otherwise every option would return the same two rows.
+  async function addDelegate(meetingId: string, userId: string) {
+    const supabase = adminClient();
+    const { error } = await supabase.from("meeting_delegation_members").insert({
+      org_id: "pihe",
+      meeting_id: meetingId,
+      user_id: userId,
+      role: "note_taker",
+    });
+    if (error) throw new Error(`Failed to add delegate: ${error.message}`);
+  }
+
+  const memberPicker = (page: Page) =>
+    page.getByPlaceholder("Delegation member");
+
+  test("is not offered to plain members", async ({ page }) => {
+    await page.goto("/meetings");
+    await expect(page.getByText("Adam Smith").first()).toBeVisible();
+    await expect(memberPicker(page)).toHaveCount(0);
+  });
+
+  test("is offered to org admins", async ({ page }) => {
+    await promoteToOrgAdmin();
+    await page.goto("/meetings");
+    await expect(memberPicker(page)).toBeVisible();
+  });
+
+  test("lists only members who are on a delegation", async ({ page }) => {
+    await promoteToOrgAdmin();
+    await page.goto("/meetings");
+    await memberPicker(page).click();
+    await expect(
+      page.getByRole("option", { name: "Test Admin" }),
+    ).toBeVisible();
+    // Alex Rivera has a profile but no delegation, so they are not an option.
+    await expect(page.getByRole("option", { name: "Alex Rivera" })).toHaveCount(
+      0,
+    );
+  });
+
+  test("narrows the list to the selected member's meetings", async ({
+    page,
+  }) => {
+    await promoteToOrgAdmin();
+    await addDelegate(SEED_MEETING_PAST_ID, SEED_USER_2_ID);
+    await page.goto("/meetings");
+    await expandAllMeetings(page);
+
+    await memberPicker(page).click();
+    await page.getByRole("option", { name: "Alex Rivera" }).click();
+
+    const allMeetings = allMeetingsRegion(page);
+    await expect(
+      allMeetings
+        .getByLabel("Upcoming Meetings")
+        .getByText("No meetings found."),
+    ).toBeVisible({ timeout: 15000 });
+    await expect(
+      allMeetings.getByLabel("Past Meetings").getByText("Jan 15, 2020"),
+    ).toBeVisible();
+  });
+
+  test("removing the member chip restores the full list", async ({ page }) => {
+    await promoteToOrgAdmin();
+    await addDelegate(SEED_MEETING_PAST_ID, SEED_USER_2_ID);
+    await page.goto("/meetings");
+    await expandAllMeetings(page);
+
+    await memberPicker(page).click();
+    await page.getByRole("option", { name: "Alex Rivera" }).click();
+    await expect(page).toHaveURL(/member=/);
+
+    await page
+      .getByRole("button", { name: "Remove Alex Rivera filter" })
+      .click();
+
+    await expect(page).not.toHaveURL(/member=/);
+    await expect(
+      allMeetingsRegion(page)
+        .getByLabel("Upcoming Meetings")
+        .getByText("Adam Smith"),
+    ).toBeVisible({ timeout: 15000 });
   });
 });

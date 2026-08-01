@@ -172,6 +172,12 @@ export type MeetingFilters = {
   buildings: string[];
   // null = either, true = virtual only, false = in-person only
   isVirtual: boolean | null;
+  delegationUserIds: string[];
+};
+
+export type DelegationMemberOption = {
+  user_id: string;
+  display_name: string;
 };
 
 // ─── Profile search result (used by delegation-form user search) ──────────────
