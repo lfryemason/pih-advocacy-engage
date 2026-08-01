@@ -175,18 +175,7 @@
   }
 }
 
-/*
- * Safari, and Chrome on macOS, use overlay scrollbars that stay invisible until
- * you scroll, so a container that overflows (a wide table, say) just looks like
- * its content ends early. Styling the scrollbar opts every scrollable element
- * into a classic always-drawn bar, which the browser only reserves space for
- * when the content really does overflow.
- *
- * These have to be the `-webkit-` pseudo-elements rather than the standard
- * `scrollbar-width`/`scrollbar-color`: Chromium ignores the pseudo-elements as
- * soon as either standard property is set, and its `thin` keyword still renders
- * the full-width native bar. Firefox keeps its native scrollbars either way.
- */
+/* Force always-visible scrollbars over macOS overlay ones; must be `-webkit-` pseudo-elements, since Chromium drops them if `scrollbar-width`/`scrollbar-color` is set. */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
