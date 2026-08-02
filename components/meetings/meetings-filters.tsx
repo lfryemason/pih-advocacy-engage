@@ -20,7 +20,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { US_STATES } from "@/lib/us-districts";
 import { PARTIES } from "@/lib/parties";
-import { MeetingFilters } from "@/lib/meetings/types";
+import { MeetingFilters, DelegationMemberOption } from "@/lib/meetings/types";
 import {
   RepresentativeFilterPicker,
   type RepRow,
@@ -37,6 +37,8 @@ import {
   type FilterChip,
 } from "./meetings-filters/active-filter-chips";
 import { useMeetingBuildings } from "@/lib/meetings/use-meeting-buildings";
+import { useDelegationMembers } from "@/lib/meetings/use-delegation-members";
+import { DelegationMemberFilterPicker } from "./meetings-filters/delegation-member-filter-picker";
 
 export const EMPTY_MEETING_FILTERS: MeetingFilters = {
   states: [],
@@ -46,6 +48,7 @@ export const EMPTY_MEETING_FILTERS: MeetingFilters = {
   dateRange: { from: null, to: null },
   buildings: [],
   isVirtual: null,
+  delegationUserIds: [],
 };
 
 export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
@@ -57,7 +60,8 @@ export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
     f.dateRange.from !== null ||
     f.dateRange.to !== null ||
     f.buildings.length > 0 ||
-    f.isVirtual !== null
+    f.isVirtual !== null ||
+    f.delegationUserIds.length > 0
   );
 }
 
@@ -69,6 +73,7 @@ const VIRTUAL_OPTIONS: { value: boolean; label: string }[] = [
 function buildActiveChips(
   filters: MeetingFilters,
   reps: RepRow[] | null,
+  delegationMembers: DelegationMemberOption[],
   onChange: (filters: MeetingFilters) => void,
 ): FilterChip[] {
   const availableDistricts = availableDistrictsForStates(filters.states);
@@ -141,6 +146,22 @@ function buildActiveChips(
       }),
   }));
 
+  const delegationChips: FilterChip[] = filters.delegationUserIds.map(
+    (userId) => ({
+      key: `member-${userId}`,
+      label:
+        delegationMembers.find((member) => member.user_id === userId)
+          ?.display_name ?? "Loading…",
+      onRemove: () =>
+        onChange({
+          ...filters,
+          delegationUserIds: filters.delegationUserIds.filter(
+            (id) => id !== userId,
+          ),
+        }),
+    }),
+  );
+
   const virtualChips: FilterChip[] =
     filters.isVirtual === null
       ? []
@@ -161,6 +182,7 @@ function buildActiveChips(
     ...repChips,
     ...buildingChips,
     ...virtualChips,
+    ...delegationChips,
   ];
 }
 
@@ -168,14 +190,17 @@ export function MeetingsFilters({
   filters,
   onChange,
   disabled = false,
+  canFilterByDelegationMember = false,
 }: {
   filters: MeetingFilters;
   onChange: (f: MeetingFilters) => void;
   disabled?: boolean;
+  canFilterByDelegationMember?: boolean;
 }) {
   const set = (patch: Partial<MeetingFilters>) =>
     onChange({ ...filters, ...patch });
   const buildings = useMeetingBuildings();
+  const delegationMembers = useDelegationMembers(canFilterByDelegationMember);
 
   const [reps, setReps] = useState<RepRow[] | null>(null);
   const [profileState, setProfileState] = useState<string | null>(null);
@@ -216,7 +241,7 @@ export function MeetingsFilters({
     };
   }, []);
 
-  const chips = buildActiveChips(filters, reps, onChange);
+  const chips = buildActiveChips(filters, reps, delegationMembers, onChange);
 
   return (
     <Card className="mb-6 bg-background">
@@ -365,6 +390,19 @@ export function MeetingsFilters({
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
+
+              {canFilterByDelegationMember && (
+                <DelegationMemberFilterPicker
+                  selectedIds={filters.delegationUserIds}
+                  members={delegationMembers}
+                  onAdd={(userId) =>
+                    set({
+                      delegationUserIds: [...filters.delegationUserIds, userId],
+                    })
+                  }
+                  disabled={disabled}
+                />
+              )}
 
               {hasActiveMeetingFilters(filters) && (
                 <Button

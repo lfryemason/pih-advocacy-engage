@@ -8,6 +8,7 @@ import {
   MeetingDetail,
   MeetingLink,
   DelegationMember,
+  DelegationMemberOption,
   DelegationRole,
   DelegationFormEntry,
   LocalDelegationMember,
@@ -107,6 +108,13 @@ const SELECT = `
   meeting_delegation_members ( user_id, role, profiles ( first_name, last_name ) )
 `;
 
+// A second, aliased embed of the same table: `!inner` narrows the meetings
+// themselves to those with a matching delegate, while the unaliased embed above
+// keeps returning every delegate for display.
+const DELEGATION_FILTER_SELECT = `,
+  delegation_filter:meeting_delegation_members!inner ( user_id )
+`;
+
 export async function fetchMeetings(
   supabase: SupabaseBrowserClient,
   {
@@ -130,9 +138,12 @@ export async function fetchMeetings(
   const today = localDateString();
 
   const ascending = section === "upcoming";
+  const byDelegate = filters.delegationUserIds.length > 0;
   let query = supabase
     .from("meetings")
-    .select(SELECT, { count: "exact" })
+    .select(byDelegate ? SELECT + DELEGATION_FILTER_SELECT : SELECT, {
+      count: "exact",
+    })
     .order("meeting_date", { ascending })
     .order("meeting_time", { ascending });
 
@@ -189,6 +200,9 @@ export async function fetchMeetings(
   }
   if (filters.representativeIds.length > 0) {
     query = query.in("representative_id", filters.representativeIds);
+  }
+  if (byDelegate) {
+    query = query.in("delegation_filter.user_id", filters.delegationUserIds);
   }
   if (filters.dateRange.from) {
     query = query.gte("meeting_date", filters.dateRange.from);
@@ -281,6 +295,31 @@ export async function fetchMeetingBuildings(
     buildingsCache = null;
   });
   return promise;
+}
+
+// Every member of the org, including those not on any delegation yet: an absent
+// name in the dropdown would read as "no account" rather than "no meetings".
+export async function fetchDelegationMemberOptions(
+  supabase: SupabaseBrowserClient,
+): Promise<DelegationMemberOption[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("user_id, first_name, last_name")
+    .eq("org_id", ORG_ID)
+    .order("first_name")
+    .order("last_name");
+
+  if (error) throw error;
+
+  type Row = {
+    user_id: string;
+    first_name: string | null;
+    last_name: string | null;
+  };
+  return (data as unknown as Row[]).map((row) => ({
+    user_id: row.user_id,
+    display_name: buildDisplayName(row.first_name, row.last_name),
+  }));
 }
 
 export async function createMeeting(

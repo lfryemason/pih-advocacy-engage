@@ -2,7 +2,11 @@ import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
 import { AUTH_STATE_PATH } from "../global-setup";
 import { resetDatabase } from "../reset-db";
-import { SEED_MEETING_UPCOMING_ID, SEED_MEETING_PAST_ID } from "../seed";
+import {
+  SEED_MEETING_UPCOMING_ID,
+  SEED_MEETING_PAST_ID,
+  TEST_USER_ID,
+} from "../seed";
 import { themes, setTheme } from "./theme-utils";
 
 test.use({ storageState: AUTH_STATE_PATH });
@@ -125,6 +129,38 @@ for (const theme of themes) {
 
     test("matches screenshot", async ({ page }) => {
       await expect(page).toHaveScreenshot(`meetings-delegation-${theme}.png`);
+    });
+  });
+}
+
+// The default seed user is a plain member, so the filter bar above only ever
+// screenshots the non-privileged layout. This covers the extra picker.
+async function promoteToOrgAdmin() {
+  const supabase = adminClient();
+  const { error } = await supabase
+    .from("user_role")
+    .upsert(
+      { user_id: TEST_USER_ID, role: "org_admin", org_id: "pihe" },
+      { onConflict: "user_id" },
+    );
+  if (error) throw new Error(`Failed to promote test user: ${error.message}`);
+}
+
+for (const theme of themes) {
+  test.describe(`meetings filters as org admin (${theme})`, () => {
+    test.beforeEach(async ({ page }) => {
+      await promoteToOrgAdmin();
+      await page.goto("/meetings");
+      await page.waitForLoadState("networkidle");
+      await setTheme(page, theme);
+      await page.getByRole("button", { name: /^Filters/ }).click();
+      await expect(page.getByPlaceholder("Delegation member")).toBeVisible();
+    });
+
+    test("matches screenshot", async ({ page }) => {
+      await expect(page).toHaveScreenshot(
+        `meetings-filters-admin-${theme}.png`,
+      );
     });
   });
 }
