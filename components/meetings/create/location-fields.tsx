@@ -1,8 +1,8 @@
 "use client";
 
 import type { MeetingLocation } from "@/lib/meetings/types";
-import { useMeetingBuildings } from "@/lib/meetings/use-meeting-buildings";
 import { US_STATES } from "@/lib/us-districts";
+import { BuildingSelect } from "@/components/meetings/create/building-select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,10 +17,8 @@ export function LocationFields({
   value: MeetingLocation;
   onChange: (next: MeetingLocation) => void;
 }) {
-  const buildings = useMeetingBuildings();
   const set = (patch: Partial<MeetingLocation>) =>
     onChange({ ...value, ...patch });
-  const buildingListId = `${idPrefix}-building-list`;
 
   return (
     <div className="flex flex-col gap-3">
@@ -41,18 +39,12 @@ export function LocationFields({
         <div className="grid grid-cols-2 gap-3">
           <div className="flex flex-col gap-1">
             <Label htmlFor={`${idPrefix}-building`}>Building</Label>
-            <Input
+            <BuildingSelect
               id={`${idPrefix}-building`}
-              list={buildingListId}
               value={value.building}
-              onChange={(e) => set({ building: e.target.value })}
+              onChange={(building) => set({ building })}
               placeholder="e.g. Hart Senate Office Building"
             />
-            <datalist id={buildingListId}>
-              {buildings.map((b) => (
-                <option key={b} value={b} />
-              ))}
-            </datalist>
           </div>
           <div className="flex flex-col gap-1">
             <Label htmlFor={`${idPrefix}-room`}>Room</Label>
