@@ -191,6 +191,13 @@ export async function fetchMeetings(
       query = query.filter("representatives.district", "is", null);
     }
   }
+  if (filters.chambers.length > 0) {
+    query = query.filter(
+      "representatives.chamber",
+      "in",
+      `(${filters.chambers.map((chamber) => `"${chamber}"`).join(",")})`,
+    );
+  }
   if (filters.parties.length > 0) {
     query = query.filter(
       "representatives.party",
