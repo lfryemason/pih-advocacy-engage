@@ -166,6 +166,7 @@ export type DelegationFormEntry = {
 export type MeetingFilters = {
   states: string[];
   districts: string[];
+  chambers: string[];
   parties: string[];
   representativeIds: string[];
   dateRange: { from: string | null; to: string | null };

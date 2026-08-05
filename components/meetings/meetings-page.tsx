@@ -30,6 +30,7 @@ function filtersFromParams(
   return {
     states: params.getAll("state"),
     districts: params.getAll("district"),
+    chambers: params.getAll("chamber"),
     parties: params.getAll("party"),
     representativeIds: params.getAll("rep"),
     dateRange: { from: dateFrom, to: dateTo },
@@ -45,6 +46,7 @@ function filtersToSearch(f: MeetingFilters): string {
   const params = new URLSearchParams();
   f.states.forEach((state) => params.append("state", state));
   f.districts.forEach((district) => params.append("district", district));
+  f.chambers.forEach((chamber) => params.append("chamber", chamber));
   f.parties.forEach((party) => params.append("party", party));
   f.representativeIds.forEach((id) => params.append("rep", id));
   if (f.dateRange.from) params.set("dateFrom", f.dateRange.from);
