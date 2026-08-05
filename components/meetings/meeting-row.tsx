@@ -38,7 +38,11 @@ export function MeetingRow({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { userId, isAdmin, isFacilitator } = useCurrentUser();
+  // Hidden location is toggleable by an environment variable. Defaults to true
+  const locationHidingEnabled =
+    process.env.NEXT_PUBLIC_LOCATION_HIDING_ENABLED !== "false";
   const canViewDetails =
+    !locationHidingEnabled ||
     isPast ||
     isAdmin ||
     isFacilitator ||
