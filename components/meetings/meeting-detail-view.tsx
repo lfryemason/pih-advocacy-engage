@@ -24,6 +24,7 @@ import { AvatarInitialsCircle } from "@/components/ui/avatar-initials-circle";
 import { NameWithPronouns } from "@/components/teams/name-with-pronouns";
 import { RepresentativeLink } from "@/components/meetings/representative-link";
 import { StafferDisplay } from "@/components/meetings/staffer-display";
+import { useMeetingDisplayDateTime } from "@/lib/meetings/time-preference";
 
 function Field({
   label,
@@ -53,6 +54,15 @@ export function MeetingDetailView({
   const showChampion = isPast || meeting.champion_score != null;
   const showFollowUp =
     isPast || meeting.follow_up_date != null || meeting.follow_up_completed;
+  const {
+    date: displayDate,
+    time: displayTime,
+    timezone: displayTimezone,
+  } = useMeetingDisplayDateTime(
+    meeting.meeting_date,
+    meeting.meeting_time,
+    meeting.meeting_timezone,
+  );
   const schedulingLeads = meeting.delegation_members.filter(
     (m) => m.role === "scheduling_lead",
   );
@@ -162,16 +172,12 @@ export function MeetingDetailView({
           <div className="flex gap-6">
             <div>
               <p className={SECTION_LABEL_CLASSNAME}>Date</p>
-              <p className="mt-1 text-sm">{formatDate(meeting.meeting_date)}</p>
+              <p className="mt-1 text-sm">{formatDate(displayDate)}</p>
             </div>
-            <Field label="Time" isEmpty={!meeting.meeting_time}>
+            <Field label="Time" isEmpty={!displayTime}>
               <p className="mt-1 text-sm">
-                {meeting.meeting_time &&
-                  formatTime(
-                    meeting.meeting_date,
-                    meeting.meeting_time,
-                    meeting.meeting_timezone,
-                  )}
+                {displayTime &&
+                  formatTime(displayDate, displayTime, displayTimezone)}
               </p>
             </Field>
           </div>
