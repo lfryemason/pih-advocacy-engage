@@ -145,7 +145,8 @@ export async function fetchMeetings(
       count: "exact",
     })
     .order("meeting_date", { ascending })
-    .order("meeting_time", { ascending });
+    .order("meeting_time", { ascending })
+    .order("id", { ascending });
 
   if (section === "upcoming") {
     query = query.gte("meeting_date", today);
