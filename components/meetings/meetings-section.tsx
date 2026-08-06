@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TimeDisplaySettings } from "@/components/meetings/time-display-settings";
 
 const SKELETON_ROWS = 5;
 
@@ -58,7 +59,12 @@ export function MeetingsSection({
           <span className="sr-only">Actions</span>
         </TableHead>
         <TableHead className="w-28">Date</TableHead>
-        <TableHead className="w-24">Time</TableHead>
+        <TableHead className="w-24">
+          <span className="flex items-center gap-1">
+            Time
+            <TimeDisplaySettings />
+          </span>
+        </TableHead>
         <TableHead className="w-52">Location</TableHead>
         {showRepColumn && (
           <TableHead className="w-56">Member of Congress</TableHead>

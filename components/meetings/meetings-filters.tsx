@@ -20,6 +20,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import { US_STATES } from "@/lib/us-districts";
 import { PARTIES } from "@/lib/parties";
+import { CHAMBERS } from "@/lib/chambers";
 import { MeetingFilters, DelegationMemberOption } from "@/lib/meetings/types";
 import {
   RepresentativeFilterPicker,
@@ -43,6 +44,7 @@ import { DelegationMemberFilterPicker } from "./meetings-filters/delegation-memb
 export const EMPTY_MEETING_FILTERS: MeetingFilters = {
   states: [],
   districts: [],
+  chambers: [],
   parties: [],
   representativeIds: [],
   dateRange: { from: null, to: null },
@@ -55,6 +57,7 @@ export function hasActiveMeetingFilters(f: MeetingFilters): boolean {
   return (
     f.states.length > 0 ||
     f.districts.length > 0 ||
+    f.chambers.length > 0 ||
     f.parties.length > 0 ||
     f.representativeIds.length > 0 ||
     f.dateRange.from !== null ||
@@ -106,6 +109,16 @@ function buildActiveChips(
       onChange({
         ...filters,
         districts: filters.districts.filter((code) => code !== district),
+      }),
+  }));
+
+  const chamberChips: FilterChip[] = filters.chambers.map((chamber) => ({
+    key: `chamber-${chamber}`,
+    label: CHAMBERS.find((c) => c.value === chamber)?.label ?? chamber,
+    onRemove: () =>
+      onChange({
+        ...filters,
+        chambers: filters.chambers.filter((existing) => existing !== chamber),
       }),
   }));
 
@@ -178,6 +191,7 @@ function buildActiveChips(
   return [
     ...stateChips,
     ...districtChips,
+    ...chamberChips,
     ...partyChips,
     ...repChips,
     ...buildingChips,
@@ -279,6 +293,37 @@ export function MeetingsFilters({
                 onChange={onChange}
                 disabled={disabled}
               />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    aria-label="Filter by chamber"
+                    className={`justify-between ${filters.chambers.length > 0 ? "bg-muted" : ""}`}
+                    disabled={disabled}
+                  >
+                    <span className="mx-2 truncate">Chamber</span>
+                    <ChevronDown aria-hidden="true" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  {CHAMBERS.map((chamber) => (
+                    <DropdownMenuCheckboxItem
+                      key={chamber.value}
+                      checked={filters.chambers.includes(chamber.value)}
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        set({
+                          chambers: xor(filters.chambers, [chamber.value]),
+                        });
+                      }}
+                    >
+                      {chamber.label}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

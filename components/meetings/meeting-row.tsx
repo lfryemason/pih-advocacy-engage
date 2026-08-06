@@ -22,6 +22,7 @@ import { MeetingDetail } from "@/components/meetings/meeting-detail";
 import { RepresentativeLink } from "@/components/meetings/representative-link";
 import { StafferDisplay } from "@/components/meetings/staffer-display";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { useMeetingDisplayDateTime } from "@/lib/meetings/time-preference";
 import { cn } from "@/lib/utils";
 
 export function MeetingRow({
@@ -38,13 +39,27 @@ export function MeetingRow({
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const { userId, isAdmin, isFacilitator } = useCurrentUser();
+  // Hidden location is toggleable by an environment variable. Defaults to true
+  const locationHidingEnabled =
+    process.env.NEXT_PUBLIC_LOCATION_HIDING_ENABLED !== "false";
   const canViewDetails =
+    !locationHidingEnabled ||
     isPast ||
     isAdmin ||
     isFacilitator ||
     isDelegationMember(userId, meeting.delegation_user_ids);
   const colSpan = 6 + (showRepColumn ? 1 : 0) + (isPast ? 1 : 0);
   const detailRowId = `meeting-detail-${meeting.id}`;
+
+  const {
+    date: displayDate,
+    time: displayTime,
+    timezone: displayTimezone,
+  } = useMeetingDisplayDateTime(
+    meeting.meeting_date,
+    meeting.meeting_time,
+    meeting.meeting_timezone,
+  );
 
   const toggle = () => {
     if (isExpanded && isEditing) return;
@@ -102,14 +117,10 @@ export function MeetingRow({
             )}
           </div>
         </TableCell>
-        <TableCell>{formatDate(meeting.meeting_date)}</TableCell>
+        <TableCell>{formatDate(displayDate)}</TableCell>
         <TableCell>
-          {meeting.meeting_time
-            ? formatTime(
-                meeting.meeting_date,
-                meeting.meeting_time,
-                meeting.meeting_timezone,
-              )
+          {displayTime
+            ? formatTime(displayDate, displayTime, displayTimezone)
             : "—"}
         </TableCell>
         <TableCell className="max-w-0 truncate">
